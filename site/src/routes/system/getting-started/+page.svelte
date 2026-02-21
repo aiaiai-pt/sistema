@@ -184,7 +184,7 @@
 	.link {
 		color: var(--color-accent);
 		text-decoration: underline;
-		text-underline-offset: 2px;
+		text-underline-offset: var(--space-2xs);
 	}
 
 	.link:hover {

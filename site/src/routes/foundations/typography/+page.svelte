@@ -30,7 +30,7 @@
 	<div class="pairing-grid">
 		<div class="pairing-card">
 			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">SANS</span>
-			<span style="font-family: var(--font-sans); font-size: 48px; font-weight: 600; line-height: 1.1; letter-spacing: -0.02em;">
+			<span style="font-family: var(--font-sans); font-size: var(--type-display-size); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em;">
 				Instrument Sans
 			</span>
 			<p class="type-body-sm" style="margin-top: var(--space-sm);">
@@ -39,7 +39,7 @@
 		</div>
 		<div class="pairing-card">
 			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">MONO</span>
-			<span style="font-family: var(--font-mono); font-size: 48px; font-weight: 400; line-height: 1.1;">
+			<span style="font-family: var(--font-mono); font-size: var(--type-display-size); font-weight: 400; line-height: 1.1;">
 				Berkeley Mono
 			</span>
 			<p class="type-body-sm" style="margin-top: var(--space-sm);">
@@ -82,8 +82,14 @@
 <style>
 	.pairing-grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 768px) {
+		.pairing-grid {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.pairing-card {
@@ -95,7 +101,7 @@
 	.scale-list {
 		display: flex;
 		flex-direction: column;
-		gap: 1px;
+		gap: var(--border-width);
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
 		overflow: hidden;
@@ -125,9 +131,14 @@
 	.scale-meta {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-2xs);
 		min-width: 180px;
 		text-align: right;
 	}
 
+	@media (max-width: 767px) {
+		.scale-meta {
+			min-width: 120px;
+		}
+	}
 </style>

@@ -40,65 +40,65 @@
 	<DemoGrid columns="repeat(auto-fill, minmax(240px, 1fr))">
 		<StateCard label="PLACEHOLDER">
 			<div class="input-group">
-				<label class="input-label">EMAIL</label>
-				<input type="text" class="input" placeholder="you@example.com" />
+				<label class="input-label" for="input-email-placeholder">EMAIL</label>
+				<input id="input-email-placeholder" type="text" class="input" placeholder="you@example.com" />
 			</div>
 		</StateCard>
 
 		<StateCard label="FILLED">
 			<div class="input-group">
-				<label class="input-label">EMAIL</label>
-				<input type="text" class="input" value="hello@aiaiai.pt" />
+				<label class="input-label" for="input-email-filled">EMAIL</label>
+				<input id="input-email-filled" type="text" class="input" value="hello@aiaiai.pt" />
 			</div>
 		</StateCard>
 
 		<StateCard label="WITH HELP TEXT">
 			<div class="input-group">
-				<label class="input-label">USERNAME</label>
-				<input type="text" class="input" placeholder="Enter username" />
+				<label class="input-label" for="input-username-help">USERNAME</label>
+				<input id="input-username-help" type="text" class="input" placeholder="Enter username" />
 				<span class="input-help">Must be 3-20 characters, letters and numbers only.</span>
 			</div>
 		</StateCard>
 
 		<StateCard label="FOCUSED">
 			<div class="input-group">
-				<label class="input-label">NAME</label>
-				<input type="text" class="input" placeholder="Click to focus" />
+				<label class="input-label" for="input-name-focus">NAME</label>
+				<input id="input-name-focus" type="text" class="input" placeholder="Click to focus" />
 			</div>
 			<span class="type-caption">Click the input to see focus state</span>
 		</StateCard>
 
 		<StateCard label="ERROR">
 			<div class="input-group">
-				<label class="input-label">EMAIL</label>
-				<input type="text" class="input input-error" value="not-an-email" />
+				<label class="input-label" for="input-email-error">EMAIL</label>
+				<input id="input-email-error" type="text" class="input input-error" value="not-an-email" />
 				<span class="input-error-text">Please enter a valid email address.</span>
 			</div>
 		</StateCard>
 
 		<StateCard label="DISABLED">
 			<div class="input-group">
-				<label class="input-label">EMAIL</label>
-				<input type="text" class="input" value="disabled@example.com" disabled />
+				<label class="input-label" for="input-email-disabled">EMAIL</label>
+				<input id="input-email-disabled" type="text" class="input" value="disabled@example.com" disabled />
 			</div>
 		</StateCard>
 
 		<StateCard label="READ-ONLY">
 			<div class="input-group">
-				<label class="input-label">API KEY</label>
-				<input type="text" class="input input-readonly" value="sk-xxxxx-readonly" readonly />
+				<label class="input-label" for="input-apikey-readonly">API KEY</label>
+				<input id="input-apikey-readonly" type="text" class="input input-readonly" value="sk-xxxxx-readonly" readonly />
 			</div>
 		</StateCard>
 
 		<StateCard label="WITH ICON">
 			<div class="input-group">
-				<label class="input-label">SEARCH</label>
+				<label class="input-label" for="input-search-icon">SEARCH</label>
 				<div class="input-icon-wrapper">
 					<svg class="input-leading-icon" viewBox="0 0 16 16" fill="none">
 						<circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/>
 						<path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
 					</svg>
-					<input type="text" class="input input-with-icon" placeholder="Search projects..." />
+					<input id="input-search-icon" type="text" class="input input-with-icon" placeholder="Search projects..." />
 				</div>
 			</div>
 		</StateCard>
@@ -111,8 +111,8 @@
 	<DemoGrid columns="repeat(auto-fill, minmax(240px, 1fr))">
 		<StateCard label="DEFAULT">
 			<div class="input-group">
-				<label class="input-label">COUNTRY</label>
-				<select class="input select" bind:value={selectValue}>
+				<label class="input-label" for="select-country-default">COUNTRY</label>
+				<select id="select-country-default" class="input select" bind:value={selectValue}>
 					<option value="" disabled selected>Select a country</option>
 					<option value="pt">Portugal</option>
 					<option value="br">Brazil</option>
@@ -124,8 +124,8 @@
 
 		<StateCard label="DISABLED">
 			<div class="input-group">
-				<label class="input-label">COUNTRY</label>
-				<select class="input select" disabled>
+				<label class="input-label" for="select-country-disabled">COUNTRY</label>
+				<select id="select-country-disabled" class="input select" disabled>
 					<option>Portugal</option>
 				</select>
 			</div>
@@ -133,8 +133,8 @@
 
 		<StateCard label="ERROR">
 			<div class="input-group">
-				<label class="input-label">COUNTRY</label>
-				<select class="input select input-error">
+				<label class="input-label" for="select-country-error">COUNTRY</label>
+				<select id="select-country-error" class="input select input-error">
 					<option value="" disabled selected>Required</option>
 				</select>
 				<span class="input-error-text">Please select a country.</span>
@@ -143,8 +143,8 @@
 
 		<StateCard label="WITH VALUE">
 			<div class="input-group">
-				<label class="input-label">COUNTRY</label>
-				<select class="input select" value="pt">
+				<label class="input-label" for="select-country-value">COUNTRY</label>
+				<select id="select-country-value" class="input select" value="pt">
 					<option value="" disabled>Select a country</option>
 					<option value="pt" selected>Portugal</option>
 					<option value="br">Brazil</option>
@@ -168,46 +168,47 @@
 					onclick={() => toggleOn = !toggleOn}
 					role="switch"
 					aria-checked={toggleOn}
+					aria-labelledby="toggle-interactive-label"
 				>
 					<span class="toggle-knob"></span>
 				</button>
-				<span class="type-body-sm">{toggleOn ? 'On' : 'Off'}</span>
+				<span id="toggle-interactive-label" class="type-body-sm">{toggleOn ? 'On' : 'Off'}</span>
 			</div>
 		</StateCard>
 
 		<StateCard label="OFF">
 			<div class="toggle-group">
-				<div class="toggle">
+				<div class="toggle" aria-labelledby="toggle-off-label">
 					<span class="toggle-knob"></span>
 				</div>
-				<span class="type-body-sm">Notifications</span>
+				<span id="toggle-off-label" class="type-body-sm">Notifications</span>
 			</div>
 		</StateCard>
 
 		<StateCard label="ON">
 			<div class="toggle-group">
-				<div class="toggle toggle-on">
+				<div class="toggle toggle-on" aria-labelledby="toggle-on-label">
 					<span class="toggle-knob"></span>
 				</div>
-				<span class="type-body-sm">Dark mode</span>
+				<span id="toggle-on-label" class="type-body-sm">Dark mode</span>
 			</div>
 		</StateCard>
 
 		<StateCard label="DISABLED OFF">
 			<div class="toggle-group">
-				<div class="toggle toggle-disabled">
+				<div class="toggle toggle-disabled" aria-labelledby="toggle-disabled-off-label">
 					<span class="toggle-knob"></span>
 				</div>
-				<span class="type-body-sm" style="color: var(--color-text-muted);">Disabled</span>
+				<span id="toggle-disabled-off-label" class="type-body-sm" style="color: var(--color-text-muted);">Disabled</span>
 			</div>
 		</StateCard>
 
 		<StateCard label="DISABLED ON">
 			<div class="toggle-group">
-				<div class="toggle toggle-on toggle-disabled">
+				<div class="toggle toggle-on toggle-disabled" aria-labelledby="toggle-disabled-on-label">
 					<span class="toggle-knob"></span>
 				</div>
-				<span class="type-body-sm" style="color: var(--color-text-muted);">Disabled</span>
+				<span id="toggle-disabled-on-label" class="type-body-sm" style="color: var(--color-text-muted);">Disabled</span>
 			</div>
 		</StateCard>
 	</DemoGrid>
@@ -218,7 +219,7 @@
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Checkbox</h2>
 	<DemoGrid columns="repeat(auto-fill, minmax(240px, 1fr))">
 		<StateCard label="INTERACTIVE">
-			<label class="checkbox-group">
+			<label class="checkbox-group" for="checkbox-accept-terms">
 				<span class="checkbox" class:checkbox-checked={checked}>
 					{#if checked}
 						<svg class="checkbox-icon" viewBox="0 0 12 12" fill="none">
@@ -226,7 +227,7 @@
 						</svg>
 					{/if}
 				</span>
-				<input type="checkbox" class="checkbox-input" bind:checked />
+				<input id="checkbox-accept-terms" type="checkbox" class="checkbox-input" bind:checked />
 				<span class="type-body-sm">Accept terms and conditions</span>
 			</label>
 		</StateCard>
@@ -268,13 +269,13 @@
 		</StateCard>
 
 		<StateCard label="INDETERMINATE">
-			<label class="checkbox-group">
+			<label class="checkbox-group" for="checkbox-select-all">
 				<span class="checkbox checkbox-checked">
 					<svg class="checkbox-icon" viewBox="0 0 12 12" fill="none">
 						<path d="M3 6h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
 					</svg>
 				</span>
-				<input type="checkbox" class="checkbox-input" bind:this={indeterminateEl} />
+				<input id="checkbox-select-all" type="checkbox" class="checkbox-input" bind:this={indeterminateEl} />
 				<span class="type-body-sm">Select all</span>
 			</label>
 		</StateCard>
@@ -413,8 +414,8 @@
 
 	.toggle-knob {
 		position: absolute;
-		top: 2px;
-		left: 2px;
+		top: var(--space-2xs);
+		left: var(--space-2xs);
 		width: var(--toggle-knob-size);
 		height: var(--toggle-knob-size);
 		border-radius: var(--radius-circle);
@@ -423,7 +424,7 @@
 	}
 
 	.toggle-on .toggle-knob {
-		transform: translateX(calc(var(--toggle-width) - var(--toggle-knob-size) - 4px));
+		transform: translateX(calc(var(--toggle-width) - var(--toggle-knob-size) - calc(2 * var(--space-2xs))));
 	}
 
 	/* ─── Checkbox ─── */

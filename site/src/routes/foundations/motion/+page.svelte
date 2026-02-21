@@ -147,7 +147,7 @@
 	.duration-list {
 		display: flex;
 		flex-direction: column;
-		gap: 1px;
+		gap: var(--border-width);
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
 		overflow: hidden;
@@ -169,7 +169,7 @@
 	.duration-demo {
 		flex-shrink: 0;
 		width: 120px;
-		height: 8px;
+		height: var(--space-sm);
 		background: var(--color-surface-tertiary);
 		border-radius: var(--radius-pill);
 		overflow: hidden;
@@ -190,7 +190,7 @@
 	.duration-meta {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-2xs);
 		flex: 1;
 	}
 
@@ -223,13 +223,13 @@
 	}
 
 	.easing-dot {
-		width: 24px;
-		height: 24px;
+		width: var(--space-lg);
+		height: var(--space-lg);
 		background: var(--color-accent);
 		border-radius: var(--radius-circle);
 		position: absolute;
-		top: 8px;
-		left: 8px;
+		top: var(--space-sm);
+		left: var(--space-sm);
 		transition-property: transform;
 	}
 
@@ -273,8 +273,14 @@
 
 	.rules-grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 768px) {
+		.rules-grid {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.rule-card {
@@ -284,11 +290,11 @@
 	}
 
 	.rule-do {
-		border-left: 3px solid var(--color-success);
+		border-left: var(--accent-stripe-width) solid var(--color-success);
 	}
 
 	.rule-dont {
-		border-left: 3px solid var(--color-destructive);
+		border-left: var(--accent-stripe-width) solid var(--color-destructive);
 	}
 
 	.rule-list {
@@ -309,7 +315,7 @@
 		content: '';
 		position: absolute;
 		left: 0;
-		top: 8px;
+		top: var(--space-sm);
 		width: 6px;
 		height: 6px;
 		border-radius: var(--radius-circle);
@@ -318,6 +324,13 @@
 
 	.rule-list code {
 		font-size: var(--type-label-size);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.motion-button:hover,
+		.motion-button:active {
+			transform: none;
+		}
 	}
 
 </style>

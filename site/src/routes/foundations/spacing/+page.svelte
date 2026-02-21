@@ -112,7 +112,7 @@
 	.scale-list {
 		display: flex;
 		flex-direction: column;
-		gap: 1px;
+		gap: var(--border-width);
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
 		overflow: hidden;
@@ -141,14 +141,14 @@
 	.scale-bar {
 		background: var(--color-accent);
 		border-radius: var(--radius-sm);
-		min-width: 4px;
-		min-height: 4px;
+		min-width: var(--space-xs);
+		min-height: var(--space-xs);
 	}
 
 	.scale-meta {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-2xs);
 		flex: 1;
 	}
 
@@ -178,7 +178,7 @@
 		width: var(--space-lg);
 		background: var(--color-accent);
 		border-radius: var(--radius-sm);
-		min-height: 4px;
+		min-height: var(--space-xs);
 	}
 
 	.usage-grid {
@@ -197,8 +197,8 @@
 	}
 
 	.demo-icon {
-		width: 16px;
-		height: 16px;
+		width: var(--space-md);
+		height: var(--space-md);
 		background: var(--color-text-muted);
 		border-radius: var(--radius-sm);
 	}

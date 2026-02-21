@@ -167,6 +167,19 @@
   --nav-section-margin-top: var(--space-md);
 
   /* ═══════════════════════════════════════════════
+     NAVIGATION — MOBILE HEADER
+     ═══════════════════════════════════════════════ */
+
+  --nav-mobile-header-height: 48px;
+  --nav-mobile-header-bg: var(--color-surface-secondary);
+  --nav-mobile-header-border: var(--elevation-border);
+
+  /* Stacking order */
+  --nav-mobile-header-z: 20;
+  --nav-sidebar-backdrop-z: 25;
+  --nav-sidebar-drawer-z: 30;
+
+  /* ═══════════════════════════════════════════════
      NAVIGATION — BOTTOM BAR
      ═══════════════════════════════════════════════ */
 
@@ -188,7 +201,7 @@
   --badge-tracking: var(--type-label-tracking);
   --badge-radius: var(--radius-pill);
   --badge-padding-x: var(--space-sm);
-  --badge-padding-y: 2px;
+  --badge-padding-y: var(--space-2xs);
   --badge-neutral-bg: var(--color-surface-tertiary);
   --badge-neutral-text: var(--color-text-secondary);
 
@@ -197,7 +210,7 @@
   --tag-size: var(--type-label-size);
   --tag-radius: var(--radius-sm);
   --tag-padding-x: var(--space-sm);
-  --tag-padding-y: 2px;
+  --tag-padding-y: var(--space-2xs);
   --tag-border: var(--elevation-border);
   --tag-bg: var(--color-surface);
   --tag-text: var(--color-text-secondary);
@@ -248,10 +261,16 @@
   --skeleton-duration: 1.5s;
 
   /* ═══════════════════════════════════════════════
+     ACCENT STRIPE
+     ═══════════════════════════════════════════════ */
+
+  --accent-stripe-width: 3px;
+
+  /* ═══════════════════════════════════════════════
      FOCUS RING (global)
      ═══════════════════════════════════════════════ */
 
-  --focus-ring-width: 2px;
-  --focus-ring-offset: 2px;
+  --focus-ring-width: var(--border-width-thick);
+  --focus-ring-offset: var(--border-width-thick);
   --focus-ring-color: var(--color-accent);
 }

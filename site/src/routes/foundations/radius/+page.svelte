@@ -131,7 +131,7 @@
 	.radius-demo {
 		width: 96px;
 		height: 96px;
-		border: 2px solid var(--color-accent);
+		border: var(--border-width-thick) solid var(--color-accent);
 		background: var(--color-accent-subtle);
 		display: flex;
 		align-items: center;

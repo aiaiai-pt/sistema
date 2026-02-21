@@ -219,7 +219,7 @@
 					<circle cx="16" cy="16" r="12" stroke="var(--color-destructive)" stroke-width="2"/>
 					<path d="M16 10v8M16 22v1" stroke="var(--color-destructive)" stroke-width="2" stroke-linecap="round"/>
 				</svg>
-				<h4 class="type-heading-sm">Page not found</h4>
+				<h3 class="type-heading-sm">Page not found</h3>
 				<p class="type-body-sm" style="color: var(--color-text-secondary);">The page you are looking for does not exist or has been moved.</p>
 			</div>
 		</div>
@@ -248,7 +248,7 @@
 		<div class="error-card">
 			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">TIMEOUT</span>
 			<div class="error-inline" style="align-items: flex-start;">
-				<svg class="error-inline-icon" style="margin-top: 2px;" viewBox="0 0 16 16" fill="none">
+				<svg class="error-inline-icon" style="margin-top: var(--space-2xs);" viewBox="0 0 16 16" fill="none">
 					<circle cx="8" cy="8" r="6" stroke="var(--color-destructive)" stroke-width="1.5"/>
 					<path d="M8 5v4M8 11v.5" stroke="var(--color-destructive)" stroke-width="1.5" stroke-linecap="round"/>
 				</svg>
@@ -284,7 +284,7 @@
 	}
 
 	.toast-accent {
-		width: 3px;
+		width: var(--accent-stripe-width);
 		flex-shrink: 0;
 	}
 
@@ -307,6 +307,11 @@
 
 	.toast-action:hover {
 		opacity: 0.8;
+	}
+
+	.toast-action:focus-visible {
+		outline: var(--focus-ring-width) solid var(--color-accent);
+		outline-offset: var(--focus-ring-offset);
 	}
 
 	/* ─── Empty state ─── */
@@ -413,6 +418,12 @@
 		100% { left: 100%; }
 	}
 
+	@media (prefers-reduced-motion: reduce) {
+		.skeleton::after {
+			animation: none;
+		}
+	}
+
 	.skeleton-card-demo {
 		display: flex;
 		flex-direction: column;
@@ -486,10 +497,15 @@
 		text-decoration: underline;
 	}
 
+	.error-retry:focus-visible {
+		outline: var(--focus-ring-width) solid var(--color-accent);
+		outline-offset: var(--focus-ring-offset);
+	}
+
 	.error-banner {
 		padding: var(--space-sm) var(--space-md);
 		background: var(--color-warning-subtle);
-		border: 1px solid var(--color-warning);
+		border: var(--border-width) solid var(--color-warning);
 		border-radius: var(--radius-sm);
 	}
 

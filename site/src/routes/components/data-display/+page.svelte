@@ -185,25 +185,25 @@
 	<div class="demo-row">
 		<div class="demo-item">
 			<span class="status">
-				<span class="status-dot" style="background: var(--color-success);"></span>
+				<span class="status-dot status-dot-success" style="background: var(--color-success);"></span>
 				<span class="status-label">ACTIVE</span>
 			</span>
 		</div>
 		<div class="demo-item">
 			<span class="status">
-				<span class="status-dot" style="background: var(--color-text-muted);"></span>
+				<span class="status-dot status-dot-inactive" style="color: var(--color-text-muted);"></span>
 				<span class="status-label">INACTIVE</span>
 			</span>
 		</div>
 		<div class="demo-item">
 			<span class="status">
-				<span class="status-dot status-dot-pulse" style="background: var(--color-warning);"></span>
+				<span class="status-dot status-dot-warning status-dot-pulse" style="background: var(--color-warning);"></span>
 				<span class="status-label">PENDING</span>
 			</span>
 		</div>
 		<div class="demo-item">
 			<span class="status">
-				<span class="status-dot" style="background: var(--color-destructive);"></span>
+				<span class="status-dot status-dot-error" style="background: var(--color-destructive);"></span>
 				<span class="status-label">ERROR</span>
 			</span>
 		</div>
@@ -213,21 +213,21 @@
 		<div class="context-row">
 			<span class="type-body-sm">api.aiaiai.pt</span>
 			<span class="status">
-				<span class="status-dot" style="background: var(--color-success);"></span>
+				<span class="status-dot status-dot-success" style="background: var(--color-success);"></span>
 				<span class="status-label">OPERATIONAL</span>
 			</span>
 		</div>
 		<div class="context-row">
 			<span class="type-body-sm">cdn.aiaiai.pt</span>
 			<span class="status">
-				<span class="status-dot status-dot-pulse" style="background: var(--color-warning);"></span>
+				<span class="status-dot status-dot-warning status-dot-pulse" style="background: var(--color-warning);"></span>
 				<span class="status-label">DEGRADED</span>
 			</span>
 		</div>
 		<div class="context-row">
 			<span class="type-body-sm">db.aiaiai.pt</span>
 			<span class="status">
-				<span class="status-dot" style="background: var(--color-success);"></span>
+				<span class="status-dot status-dot-success" style="background: var(--color-success);"></span>
 				<span class="status-label">OPERATIONAL</span>
 			</span>
 		</div>
@@ -325,6 +325,11 @@
 		color: var(--color-text);
 	}
 
+	.tag-remove:focus-visible {
+		outline: var(--focus-ring-width) solid var(--color-accent);
+		outline-offset: var(--focus-ring-offset);
+	}
+
 	.tag-remove-icon {
 		width: 10px;
 		height: 10px;
@@ -333,8 +338,14 @@
 	/* ─── Key-value ─── */
 	.kv-demo-grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 768px) {
+		.kv-demo-grid {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.kv-card {
@@ -401,6 +412,26 @@
 		flex-shrink: 0;
 	}
 
+	/* Shape variants: progressive enhancement over the base circle */
+	.status-dot-success {
+		/* circle — default shape, no overrides needed */
+	}
+
+	.status-dot-warning {
+		border-radius: 0;
+		clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+	}
+
+	.status-dot-error {
+		border-radius: 0;
+		clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+	}
+
+	.status-dot-inactive {
+		background: transparent;
+		box-shadow: inset 0 0 0 2px currentColor;
+	}
+
 	.status-dot-pulse {
 		animation: pulse 2s ease-in-out infinite;
 	}
@@ -408,6 +439,12 @@
 	@keyframes pulse {
 		0%, 100% { opacity: 1; }
 		50% { opacity: 0.4; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.status-dot-pulse {
+			animation: none;
+		}
 	}
 
 	.status-label {

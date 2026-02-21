@@ -120,6 +120,7 @@
   --raw-tracking-loose: 0.01em;
 
   /* ─── Spacing ─── */
+  --raw-space-2: 0.125rem;
   --raw-space-4: 0.25rem;
   --raw-space-8: 0.5rem;
   --raw-space-16: 1rem;
@@ -128,6 +129,10 @@
   --raw-space-48: 3rem;
   --raw-space-64: 4rem;
   --raw-space-96: 6rem;
+
+  /* ─── Border Width ─── */
+  --raw-border-width-1: 1px;
+  --raw-border-width-2: 2px;
 
   /* ─── Radius ─── */
   --raw-radius-2: 2px;

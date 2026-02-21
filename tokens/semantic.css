@@ -119,6 +119,7 @@
      SPACING
      ═══════════════════════════════════════════════ */
 
+  --space-2xs: var(--raw-space-2);
   --space-xs: var(--raw-space-4);
   --space-sm: var(--raw-space-8);
   --space-md: var(--raw-space-16);
@@ -127,6 +128,13 @@
   --space-2xl: var(--raw-space-48);
   --space-3xl: var(--raw-space-64);
   --space-4xl: var(--raw-space-96);
+
+  /* ═══════════════════════════════════════════════
+     BORDER WIDTH
+     ═══════════════════════════════════════════════ */
+
+  --border-width: var(--raw-border-width-1);
+  --border-width-thick: var(--raw-border-width-2);
 
   /* ═══════════════════════════════════════════════
      GRID
@@ -144,8 +152,9 @@
      ELEVATION
      ═══════════════════════════════════════════════ */
 
-  --elevation-border: 1px solid var(--color-border);
-  --elevation-border-strong: 1px solid var(--color-border-strong);
+  --elevation-border: var(--border-width) solid var(--color-border);
+  --elevation-border-strong: var(--border-width) solid
+    var(--color-border-strong);
   --elevation-raised: var(--raw-shadow-sm);
   --elevation-overlay: var(--raw-shadow-md);
 
@@ -177,11 +186,26 @@
   /* ═══════════════════════════════════════════════
      RESPONSIVE OVERRIDES
      ═══════════════════════════════════════════════ */
+
+  /* Content area spacing — mobile defaults */
+  --content-padding-x: var(--space-md);
+  --content-padding-y: var(--space-lg);
 }
 
+/* ─── Tablet (768px+) ─── */
+@media (min-width: 768px) {
+  :root {
+    --content-padding-x: var(--space-lg);
+    --content-padding-y: var(--space-xl);
+  }
+}
+
+/* ─── Desktop (1024px+) ─── */
 @media (min-width: 1024px) {
   :root {
     --grid-gutter: var(--space-lg);
     --grid-margin: var(--space-2xl);
+    --content-padding-x: var(--space-xl);
+    --content-padding-y: var(--space-2xl);
   }
 }

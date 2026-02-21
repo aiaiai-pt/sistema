@@ -86,3 +86,8 @@ Or for Tailwind projects, reference the tokens in `@theme` configuration.
 - No dark mode yet (architecture supports it via semantic naming)
 - Warm shadows only (never cold gray)
 - Never pure black text, never clinical white backgrounds
+- `#faf9f7` on `#ff6b35` (2.69:1) is a documented WCAG exception — see `reference/color.md`
+- `all: unset` buttons MUST have explicit `:focus-visible` in the same Svelte `<style>` block — global rules can't cascade through scoped `all: unset`
+- Every looping CSS animation needs a `prefers-reduced-motion: reduce` guard
+- Zero raw px/rem in spacing, borders, font-size, border-radius — see `dev_docs/solutions/token-compliance.md`
+- 1px is a border concern (`--border-width`), not a spacing token. 2px is both (`--space-2xs` or `--border-width-thick` depending on context)

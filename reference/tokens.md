@@ -161,6 +161,7 @@ This is the canonical token table for the aiaiai design system. All tokens from 
 
 | Token | Value | Constraints |
 |-------|-------|-------------|
+| `--raw-space-2` | `0.125rem` (2px) | Sub-grid spacing. Badge/tag vertical padding, focus ring dimensions. |
 | `--raw-space-4` | `0.25rem` (4px) | Micro-spacing only. Exception to 8px grid. |
 | `--raw-space-8` | `0.5rem` (8px) | |
 | `--raw-space-16` | `1rem` (16px) | |
@@ -169,6 +170,13 @@ This is the canonical token table for the aiaiai design system. All tokens from 
 | `--raw-space-48` | `3rem` (48px) | |
 | `--raw-space-64` | `4rem` (64px) | |
 | `--raw-space-96` | `6rem` (96px) | |
+
+### Border Width
+
+| Token | Value | Constraints |
+|-------|-------|-------------|
+| `--raw-border-width-1` | `1px` | Default structural border width. |
+| `--raw-border-width-2` | `2px` | Focus rings, emphasis borders. |
 
 ### Radius
 
@@ -301,6 +309,7 @@ This is the canonical token table for the aiaiai design system. All tokens from 
 
 | Token | Value (resolves to) | Role | Tier 1 Overridable | Tier 2 Overridable | Constraints |
 |-------|---------------------|------|--------------------|--------------------|-------------|
+| `--space-2xs` | `2px` (0.125rem) | Sub-grid: badge/tag vertical padding, focus ring dimensions | No | No | Smallest spacing token. |
 | `--space-xs` | `4px` (0.25rem) | Micro-spacing: icon gaps, tight padding | No | No | Only exception to 8px grid. |
 | `--space-sm` | `8px` (0.5rem) | Compact padding, icon-to-label gap | No | No | |
 | `--space-md` | `16px` (1rem) | Standard padding, between related elements | No | No | |
@@ -309,6 +318,13 @@ This is the canonical token table for the aiaiai design system. All tokens from 
 | `--space-2xl` | `48px` (3rem) | Page-level spacing | No | No | |
 | `--space-3xl` | `64px` (4rem) | Hero spacing, desktop page margins | No | No | |
 | `--space-4xl` | `96px` (6rem) | Maximum breathing room | No | No | |
+
+### Border Width
+
+| Token | Value (resolves to) | Role | Tier 1 Overridable | Tier 2 Overridable | Constraints |
+|-------|---------------------|------|--------------------|--------------------|-------------|
+| `--border-width` | `1px` | Default border width for structural borders | No | No | Used by `--elevation-border`. |
+| `--border-width-thick` | `2px` | Focus rings, emphasis borders | No | No | Used by `--focus-ring-width`, `--focus-ring-offset`. |
 
 ### Grid
 
@@ -321,13 +337,15 @@ This is the canonical token table for the aiaiai design system. All tokens from 
 | `--content-width` | `960px` | Standard content | No | No | |
 | `--content-width-wide` | `1200px` | Dashboard, multi-column | No | No | |
 | `--content-width-full` | `1440px` | Maximum content width | No | No | |
+| `--content-padding-x` | `16px` / `24px` (≥768) / `32px` (≥1024) | Content horizontal padding | No | No | Responsive: 3 breakpoints |
+| `--content-padding-y` | `24px` / `32px` (≥768) / `48px` (≥1024) | Content vertical padding | No | No | Responsive: 3 breakpoints |
 
 ### Elevation
 
 | Token | Value (resolves to) | Role | Tier 1 Overridable | Tier 2 Overridable | Constraints |
 |-------|---------------------|------|--------------------|--------------------|-------------|
-| `--elevation-border` | `1px solid #e0d9d1` | Default structural border | No | Yes | Borders > shadows for structure. |
-| `--elevation-border-strong` | `1px solid #c4bbb0` | Emphasized border | No | Yes | |
+| `--elevation-border` | `var(--border-width) solid #e0d9d1` | Default structural border | No | Yes | Borders > shadows for structure. Uses `--border-width`. |
+| `--elevation-border-strong` | `var(--border-width) solid #c4bbb0` | Emphasized border | No | Yes | Uses `--border-width`. |
 | `--elevation-raised` | `0 1px 3px rgba(44,40,37,0.08), 0 1px 2px rgba(44,40,37,0.06)` | Dropdowns, popovers | No | Yes | Warm shadows only. |
 | `--elevation-overlay` | `0 4px 16px rgba(44,40,37,0.12), 0 2px 4px rgba(44,40,37,0.08)` | Modals, command palette | No | Yes | Warm shadows only. |
 
@@ -496,6 +514,16 @@ This is the canonical token table for the aiaiai design system. All tokens from 
 | `--nav-section-color` | `#a8a29e` | Section header color | Follows `--color-text-muted` | Yes | |
 | `--nav-section-margin-top` | `16px` | Space above section | No | No | |
 
+### Navigation: Mobile Header
+
+| Token | Value (resolves to) | Role | Tier 1 Overridable | Tier 2 Overridable | Constraints |
+|-------|---------------------|------|--------------------|--------------------|-------------|
+| `--nav-mobile-header-height` | `48px` | Mobile header bar height | No | Yes | Must accommodate touch targets. |
+| `--nav-mobile-header-bg` | `#f0ece8` | Background | Follows `--color-surface-secondary` | Yes | |
+| `--nav-mobile-header-border` | `1px solid #e0d9d1` | Bottom border | No | Yes | |
+| `--nav-sidebar-drawer-z` | `30` | Sidebar drawer z-index | No | No | |
+| `--nav-sidebar-backdrop-z` | `25` | Drawer backdrop z-index | No | No | |
+
 ### Navigation: Bottom Bar
 
 | Token | Value (resolves to) | Role | Tier 1 Overridable | Tier 2 Overridable | Constraints |
@@ -517,7 +545,7 @@ This is the canonical token table for the aiaiai design system. All tokens from 
 | `--badge-tracking` | `0.04em` | Letter spacing | No | Yes | |
 | `--badge-radius` | `999px` | Pill shape | No | Yes | |
 | `--badge-padding-x` | `8px` | Horizontal padding | No | Yes | |
-| `--badge-padding-y` | `2px` | Vertical padding | No | Yes | |
+| `--badge-padding-y` | `var(--space-2xs)` = 2px | Vertical padding | No | Yes | Uses `--space-2xs`. |
 | `--badge-neutral-bg` | `#e8e2dc` | Neutral badge bg | Follows `--color-surface-tertiary` | Yes | |
 | `--badge-neutral-text` | `#78716c` | Neutral badge text | Follows `--color-text-secondary` | Yes | |
 
@@ -529,7 +557,7 @@ This is the canonical token table for the aiaiai design system. All tokens from 
 | `--tag-size` | `12px` | Font size | No | Yes | |
 | `--tag-radius` | `2px` | Corner radius | No | Yes | |
 | `--tag-padding-x` | `8px` | Horizontal padding | No | Yes | |
-| `--tag-padding-y` | `2px` | Vertical padding | No | Yes | |
+| `--tag-padding-y` | `var(--space-2xs)` = 2px | Vertical padding | No | Yes | Uses `--space-2xs`. |
 | `--tag-border` | `1px solid #e0d9d1` | Border | No | Yes | |
 | `--tag-bg` | `#f7f5f3` | Background | Follows `--color-surface` | Yes | |
 | `--tag-text` | `#78716c` | Text color | Follows `--color-text-secondary` | Yes | |
@@ -594,6 +622,6 @@ This is the canonical token table for the aiaiai design system. All tokens from 
 
 | Token | Value (resolves to) | Role | Tier 1 Overridable | Tier 2 Overridable | Constraints |
 |-------|---------------------|------|--------------------|--------------------|-------------|
-| `--focus-ring-width` | `2px` | Ring width | No | No | Non-negotiable for accessibility. |
-| `--focus-ring-offset` | `2px` | Ring offset | No | No | Non-negotiable for accessibility. |
+| `--focus-ring-width` | `var(--border-width-thick)` = 2px | Ring width | No | No | Non-negotiable for accessibility. Uses `--border-width-thick`. |
+| `--focus-ring-offset` | `var(--border-width-thick)` = 2px | Ring offset | No | No | Non-negotiable for accessibility. Uses `--border-width-thick`. |
 | `--focus-ring-color` | `#ff6b35` | Ring color | Yes (follows accent) | Yes | Must be visible on all surfaces. |

@@ -144,7 +144,7 @@
 	}
 
 	.swatch-sm {
-		height: 48px;
+		height: var(--space-2xl);
 	}
 
 	.swatch-name {

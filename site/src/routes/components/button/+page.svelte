@@ -321,7 +321,7 @@
 	.spinner {
 		width: 14px;
 		height: 14px;
-		border: 2px solid currentColor;
+		border: var(--border-width-thick) solid currentColor;
 		border-top-color: transparent;
 		border-radius: var(--radius-circle);
 		animation: spin 0.6s linear infinite;
@@ -329,6 +329,12 @@
 
 	@keyframes spin {
 		to { transform: rotate(360deg); }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.spinner {
+			animation: none;
+		}
 	}
 
 	/* ─── Layout ─── */
@@ -352,7 +358,7 @@
 	.variant-table {
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
-		overflow: hidden;
+		overflow-x: auto;
 	}
 
 	.variant-table-header {
@@ -363,6 +369,7 @@
 		padding: var(--space-sm) var(--space-md);
 		background: var(--color-surface-secondary);
 		border-bottom: var(--elevation-border);
+		min-width: 480px;
 	}
 
 	.variant-table-row {
@@ -373,6 +380,7 @@
 		padding: var(--space-md);
 		background: var(--color-surface);
 		border-bottom: var(--elevation-border);
+		min-width: 480px;
 	}
 
 	.variant-table-row:last-child {

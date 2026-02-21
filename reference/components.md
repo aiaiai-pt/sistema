@@ -78,7 +78,7 @@ Is this the primary action on the page?
 - Disabled: `aria-disabled="true"` (not `disabled` attribute if you need to explain why)
 - Loading: `aria-busy="true"`, visually replace text with spinner
 - Icon-only: `aria-label="[action description]"` required
-- Primary text on accent bg: 3.2:1 contrast (meets AA for UI components)
+- Primary text on accent bg: 2.69:1 contrast (known exception -- see color.md Known Exception section)
 - Keyboard: activated with Enter and Space
 
 ---
@@ -490,12 +490,23 @@ Is this a desktop/tablet application?
 
 #### Variants
 
-| Status | Dot Color | Use When |
-|--------|-----------|----------|
-| Active | `--color-success` (#16a34a) | Online, running, healthy |
-| Inactive | `--color-text-muted` (#a8a29e) | Offline, stopped |
-| Pending | `--color-warning` (#ca8a04) | Processing, waiting |
-| Error | `--color-destructive` (#dc2626) | Failed, unhealthy |
+| Status | Dot Color | Shape | Use When |
+|--------|-----------|-------|----------|
+| Active | `--color-success` (#16a34a) | Circle (filled) | Online, running, healthy |
+| Inactive | `--color-text-muted` (#a8a29e) | Hollow ring (stroke only) | Offline, stopped |
+| Pending | `--color-warning` (#ca8a04) | Triangle-up (filled) | Processing, waiting |
+| Error | `--color-destructive` (#dc2626) | Diamond (filled, rotated square) | Failed, unhealthy |
+
+#### Shape as Progressive Enhancement
+
+Shapes are a **progressive enhancement** layer -- color remains the primary signal, shapes add a second channel for accessibility. This benefits users who have difficulty distinguishing colors (color vision deficiency) by encoding status in geometry as well.
+
+- **Circle** = stable/positive (complete, whole)
+- **Triangle-up** = attention/caution (warning sign convention)
+- **Diamond** = critical/error (sharp, angular = urgency)
+- **Hollow ring** = absence/inactive (empty, no fill)
+
+Implementations that cannot render shapes (e.g., plain text fallback, very small sizes) should fall back to color-only dots. The text label beside the indicator already provides the primary accessible signal.
 
 ### Data Display Do / Don't
 

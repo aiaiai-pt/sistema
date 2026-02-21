@@ -108,12 +108,12 @@
 		<div class="comparison-card comparison-dont">
 			<span class="type-label" style="color: var(--color-destructive); margin-bottom: var(--space-sm); display: block;">DON'T</span>
 			<div class="comparison-demo" style="background: var(--color-surface); border: var(--elevation-border); padding: var(--space-xs);">
-				<h3 style="font-family: var(--font-sans); font-size: var(--type-heading-sm-size); font-weight: var(--type-heading-sm-weight); margin-bottom: 2px;">Section Title</h3>
-				<div style="display: flex; flex-direction: column; gap: 2px;">
-					<div style="border: var(--elevation-border); padding: 4px;">
+				<h3 style="font-family: var(--font-sans); font-size: var(--type-heading-sm-size); font-weight: var(--type-heading-sm-weight); margin-bottom: var(--space-2xs);">Section Title</h3>
+				<div style="display: flex; flex-direction: column; gap: var(--space-2xs);">
+					<div style="border: var(--elevation-border); padding: var(--space-xs);">
 						<span class="type-body-sm">Item one</span>
 					</div>
-					<div style="border: var(--elevation-border); padding: 4px;">
+					<div style="border: var(--elevation-border); padding: var(--space-xs);">
 						<span class="type-body-sm">Item two</span>
 					</div>
 				</div>
@@ -222,8 +222,14 @@
 
 	.comparison-grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 768px) {
+		.comparison-grid {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.comparison-card {

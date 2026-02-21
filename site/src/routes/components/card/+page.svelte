@@ -228,4 +228,10 @@
 		100% { left: 100%; }
 	}
 
+	@media (prefers-reduced-motion: reduce) {
+		.skeleton::after {
+			animation: none;
+		}
+	}
+
 </style>

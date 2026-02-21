@@ -31,7 +31,7 @@ Complete color palette with semantic roles, OKLCH values, contrast ratios, and u
 | `--color-text` | `#2c2825` | `oklch(22% 0.015 55)` | Primary text. Headings, body. | Never pure black (#000). 11.3:1 on `--color-surface`. |
 | `--color-text-secondary` | `#78716c` | `oklch(52% 0.01 55)` | Descriptions, metadata, secondary info. | ~5:1 on `--color-surface`. AA compliant. |
 | `--color-text-muted` | `#a8a29e` | `oklch(70% 0.008 55)` | Placeholders, disabled text, non-essential. | ~3:1 on `--color-surface`. NOT for essential body text. |
-| `--color-text-on-accent` | `#faf9f7` | `oklch(97% 0.005 60)` | Text on accent-colored backgrounds. | 3.2:1 on `--color-accent`. AA for UI components. |
+| `--color-text-on-accent` | `#faf9f7` | `oklch(97% 0.005 60)` | Text on accent-colored backgrounds. | 2.69:1 on `--color-accent`. See Known Exception below. |
 
 ### Accent (Orange -- Creation, Focus, Primary Action)
 
@@ -191,7 +191,7 @@ Computed contrast ratios for the default aiaiai theme.
 |-----------|-----------|-------|------------|---------|
 | `--color-accent` (#ff6b35) | `--color-surface` (#f7f5f3) | ~3.5:1 | AA Large / UI | PASS for large text (18px+) and UI components |
 | `--color-accent` (#ff6b35) | `--color-surface` (#f7f5f3) | ~3.5:1 | -- | FAIL for normal body text (needs 4.5:1) |
-| `--color-text-on-accent` (#faf9f7) | `--color-accent` (#ff6b35) | ~3.2:1 | AA UI | PASS for UI components (buttons) |
+| `--color-text-on-accent` (#faf9f7) | `--color-accent` (#ff6b35) | ~2.69:1 | -- | FAIL AA (see Known Exception below) |
 
 ### Semantic Colors on Surfaces
 
@@ -210,6 +210,37 @@ Computed contrast ratios for the default aiaiai theme.
 | `--color-success` (#16a34a) | `--color-success-subtle` (#f0fdf4) | ~3.9:1 | PASS AA Large |
 | `--color-warning` (#ca8a04) | `--color-warning-subtle` (#fffbeb) | ~3.7:1 | PASS AA Large |
 | `--color-info` (#2563eb) | `--color-info-subtle` (#eff6ff) | ~4.5:1 | PASS AA |
+
+---
+
+## Known Exception: White-on-Orange (Primary Button Text)
+
+**Pairing:** `#faf9f7` (--color-text-on-accent) on `#ff6b35` (--color-accent)
+**Measured ratio:** 2.69:1
+**WCAG AA requirement:** 4.5:1 for normal text, 3:1 for large text / UI components
+**Verdict:** FAIL AA for both normal text and large text
+
+### Why this is kept
+
+Dark text on orange was tested and rejected -- it undermines the bold, decisive Teenage Engineering lineage that defines the aiaiai visual identity. The orange accent is a studio signature; muting it with dark text destroys the intended character.
+
+### What was tried
+
+| Option | Pairing | Ratio | Outcome |
+|--------|---------|-------|---------|
+| Dark text on orange | `#2c2825` on `#ff6b35` | 5.15:1 | Passes AA. Visually muted -- loses the confident, high-energy feel. Rejected. |
+| Darker orange | `#faf9f7` on `#c2410c` | Passes AA | Changes the brand color. No longer reads as the studio orange. Rejected. |
+| Current (kept) | `#faf9f7` on `#ff6b35` | 2.69:1 | Fails AA. Accepted as conscious tradeoff. |
+
+### Mitigations
+
+- **Typography:** Uppercase Berkeley Mono with wide tracking (0.04em) improves perceptual legibility significantly beyond what the raw contrast ratio suggests.
+- **Affordance:** Primary buttons have clear affordances -- distinct shape, generous padding, pointer cursor -- so the text is not the sole signal.
+- **Scope:** Applies only to primary button text. All other text in the system meets WCAG AA.
+
+### Status
+
+Accepted as a conscious tradeoff. This is a deliberate brand decision, not an oversight. Revisit if the accent color changes or if user research surfaces readability issues.
 
 ---
 

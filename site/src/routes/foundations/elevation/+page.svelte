@@ -170,8 +170,14 @@
 
 	.philosophy-grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 768px) {
+		.philosophy-grid {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.philosophy-card {
@@ -203,7 +209,7 @@
 	.token-table {
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
-		overflow: hidden;
+		overflow-x: auto;
 	}
 
 	.token-table-header {
@@ -213,6 +219,7 @@
 		padding: var(--space-sm) var(--space-md);
 		background: var(--color-surface-secondary);
 		border-bottom: var(--elevation-border);
+		min-width: 480px;
 	}
 
 	.token-table-row {
@@ -223,6 +230,7 @@
 		padding: var(--space-sm) var(--space-md);
 		background: var(--color-surface);
 		border-bottom: var(--elevation-border);
+		min-width: 480px;
 	}
 
 	.token-table-row:last-child {

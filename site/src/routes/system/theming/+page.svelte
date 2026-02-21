@@ -276,7 +276,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 2px;
+		gap: var(--space-2xs);
 		padding: var(--space-md) var(--space-xl);
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
@@ -303,9 +303,15 @@
 	/* ─── Tier cards ─── */
 	.tier-grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-md);
 		margin-bottom: var(--space-md);
+	}
+
+	@media (min-width: 768px) {
+		.tier-grid {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.tier-card {
@@ -332,9 +338,9 @@
 		content: '';
 		position: absolute;
 		left: 0;
-		top: 8px;
-		width: 4px;
-		height: 4px;
+		top: var(--space-sm);
+		width: var(--space-xs);
+		height: var(--space-xs);
 		border-radius: var(--radius-circle);
 		background: var(--color-text-muted);
 	}

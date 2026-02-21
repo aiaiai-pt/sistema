@@ -153,11 +153,12 @@
 		border-radius: var(--radius-md);
 		background: var(--color-surface);
 		margin-bottom: var(--space-md);
+		overflow-x: auto;
 	}
 
 	.grid-column {
 		background: var(--color-accent-subtle);
-		border: 1px solid var(--color-accent);
+		border: var(--border-width) solid var(--color-accent);
 		border-radius: var(--radius-sm);
 		padding: var(--space-md) 0;
 		display: flex;
@@ -168,17 +169,25 @@
 	.grid-col-number {
 		font-size: var(--type-caption-size);
 		color: var(--color-accent);
+		display: none;
+	}
+
+	@media (min-width: 768px) {
+		.grid-col-number {
+			display: inline;
+		}
 	}
 
 	.grid-info {
 		display: flex;
 		gap: var(--space-xl);
+		flex-wrap: wrap;
 	}
 
 	.grid-info-item {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-2xs);
 	}
 
 	.width-demo-container {
@@ -219,7 +228,7 @@
 	.width-table {
 		display: flex;
 		flex-direction: column;
-		gap: 1px;
+		gap: var(--border-width);
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
 		overflow: hidden;
@@ -242,7 +251,7 @@
 	.breakpoint-table {
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
-		overflow: hidden;
+		overflow-x: auto;
 	}
 
 	.breakpoint-header {
@@ -252,6 +261,7 @@
 		padding: var(--space-sm) var(--space-md);
 		background: var(--color-surface-secondary);
 		border-bottom: var(--elevation-border);
+		min-width: 480px;
 	}
 
 	.breakpoint-row {
@@ -262,6 +272,7 @@
 		padding: var(--space-sm) var(--space-md);
 		background: var(--color-surface);
 		border-bottom: var(--elevation-border);
+		min-width: 480px;
 	}
 
 	.breakpoint-row:last-child {
@@ -270,8 +281,14 @@
 
 	.responsive-grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 768px) {
+		.responsive-grid {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.responsive-card {
@@ -283,7 +300,7 @@
 	.responsive-demo {
 		display: flex;
 		align-items: stretch;
-		height: 64px;
+		height: var(--space-3xl);
 		border: var(--elevation-border);
 		border-radius: var(--radius-sm);
 		overflow: hidden;

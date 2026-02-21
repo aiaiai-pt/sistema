@@ -22,7 +22,7 @@
 <div class="hero">
 	<h1 class="type-display">aiaiai</h1>
 	<p class="type-body" style="color: var(--color-text-secondary); max-width: var(--content-width-narrow);">
-		The design system for aiaiai studio. Switch themes in the sidebar —
+		The design system for aiaiai studio. Switch themes using the menu —
 		every element on this page adapts without code changes.
 	</p>
 </div>
@@ -77,8 +77,8 @@
 				</div>
 				<div class="panel-content">
 					<div class="control-group">
-						<label class="control-label type-label">PROJECT NAME</label>
-						<input type="text" class="control-input" placeholder="e.g. Still Phone" value="Still Phone" />
+						<label for="specimen-project" class="control-label type-label">PROJECT NAME</label>
+						<input id="specimen-project" type="text" class="control-input" placeholder="e.g. Still Phone" value="Still Phone" />
 					</div>
 					<div class="control-group">
 						<label class="control-label type-label">STATUS</label>
@@ -98,7 +98,7 @@
 						</div>
 					</div>
 					<div class="control-group">
-						<label class="control-label type-label">PUBLISH</label>
+						<span class="control-label type-label" id="specimen-publish-label">PUBLISH</span>
 						<div class="toggle-row">
 							<button
 								class="toggle"
@@ -106,6 +106,7 @@
 								onclick={() => toggleOn = !toggleOn}
 								role="switch"
 								aria-checked={toggleOn}
+								aria-labelledby="specimen-publish-label"
 							>
 								<span class="toggle-knob"></span>
 							</button>
@@ -268,8 +269,14 @@
 	/* ─── Metrics ─── */
 	.metrics-row {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(2, 1fr);
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 1024px) {
+		.metrics-row {
+			grid-template-columns: repeat(4, 1fr);
+		}
 	}
 
 	.metric-card {
@@ -285,12 +292,15 @@
 		font-size: var(--type-heading-lg-size);
 		line-height: 1;
 		color: var(--color-text);
+		text-overflow: ellipsis;
+		overflow: hidden;
+		white-space: nowrap;
 	}
 
 	.metric-trend {
 		display: flex;
 		align-items: center;
-		gap: 4px;
+		gap: var(--space-xs);
 	}
 
 	.trend-up {
@@ -303,11 +313,11 @@
 	}
 
 	.progress-bar {
-		height: 4px;
+		height: var(--space-xs);
 		background: var(--color-surface-tertiary);
 		border-radius: var(--radius-pill);
 		overflow: hidden;
-		margin-top: 2px;
+		margin-top: var(--space-2xs);
 	}
 
 	.progress-fill {
@@ -320,8 +330,14 @@
 	/* ─── Panels ─── */
 	.panel-row {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 768px) {
+		.panel-row {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.panel {
@@ -384,7 +400,7 @@
 	.badge {
 		display: inline-flex;
 		align-items: center;
-		gap: 6px;
+		gap: var(--space-xs);
 		padding: var(--space-xs) var(--space-sm);
 		border-radius: var(--radius-pill);
 	}
@@ -456,8 +472,8 @@
 
 	.toggle-knob {
 		position: absolute;
-		top: 2px;
-		left: 2px;
+		top: var(--space-2xs);
+		left: var(--space-2xs);
 		width: var(--toggle-knob-size);
 		height: var(--toggle-knob-size);
 		border-radius: var(--radius-circle);
@@ -466,7 +482,7 @@
 	}
 
 	.toggle-on .toggle-knob {
-		transform: translateX(calc(var(--toggle-width) - var(--toggle-knob-size) - 4px));
+		transform: translateX(calc(var(--toggle-width) - var(--toggle-knob-size) - calc(2 * var(--space-2xs))));
 	}
 
 	.control-actions {
@@ -485,6 +501,11 @@
 		align-items: center;
 		justify-content: center;
 		transition: all var(--button-transition);
+	}
+
+	.btn:focus-visible {
+		outline: var(--focus-ring-width) solid var(--color-accent);
+		outline-offset: var(--focus-ring-offset);
 	}
 
 	.btn-primary {
@@ -530,7 +551,7 @@
 	.table-cell-main {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: var(--space-2xs);
 	}
 
 	.table-time {
@@ -542,8 +563,14 @@
 	/* ─── Surfaces ─── */
 	.surfaces-row {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(2, 1fr);
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 1024px) {
+		.surfaces-row {
+			grid-template-columns: repeat(4, 1fr);
+		}
 	}
 
 	.surface-card {
@@ -589,9 +616,15 @@
 	/* ─── Quick nav ─── */
 	.quicknav {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(2, 1fr);
 		gap: var(--space-md);
 		margin-bottom: var(--space-2xl);
+	}
+
+	@media (min-width: 1024px) {
+		.quicknav {
+			grid-template-columns: repeat(4, 1fr);
+		}
 	}
 
 	.quicknav-card {
