@@ -1,0 +1,55 @@
+/*
+ * aiaiai Design System — Tier 1: Branded Theme Example
+ *
+ * Example: A fictional fintech client "Verdant Finance"
+ *
+ * Tier 1 rules:
+ *   - Override < 20 semantic tokens
+ *   - Change: accent color, secondary color, surface tint direction
+ *   - Keep: typography, spacing, motion, grid, elevation, radius, warmth
+ *
+ * Use case: Client dashboards, whitelabel products, internal tools
+ *
+ * Apply via: <html data-theme="branded-example">
+ */
+
+[data-theme="branded-example"] {
+  /* ─── Accent: teal instead of orange (12 tokens) ─── */
+  --color-accent: #0d9488;
+  --color-accent-hover: #0f766e;
+  --color-accent-subtle: #f0fdfa;
+
+  /* ─── Surface: cooler tint direction ─── */
+  --color-surface: #f8faf9;
+  --color-surface-secondary: #f0f4f2;
+  --color-surface-tertiary: #e4ebe7;
+
+  /* ─── Borders: slightly cooler ─── */
+  --color-border: #d4ddd8;
+  --color-border-strong: #a8b8b0;
+
+  /* ─── Text: still warm, slightly cooled ─── */
+  --color-text: #1a2c25;
+  --color-text-secondary: #4a6358;
+  --color-text-muted: #7a9488;
+
+  /* ─── Overlay: cool-tinted ─── */
+  --color-overlay: rgba(26, 44, 37, 0.5);
+
+  /* ─── Focus ring follows accent ─── */
+  --focus-ring-color: var(--color-accent);
+
+  /*
+   * Everything else stays:
+   * - Typography (Instrument Sans + Berkeley Mono)
+   * - Spacing scale (8px grid)
+   * - Motion language (snappy, functional)
+   * - Radius (sharp, precise)
+   * - Elevation (borders > shadows)
+   * - Component sizing
+   *
+   * Total overrides: 14 tokens
+   * The result still feels like an aiaiai product,
+   * but with the client's color identity.
+   */
+}

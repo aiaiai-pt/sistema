@@ -1,0 +1,257 @@
+/*
+ * aiaiai Design System — Component Tokens (components.css)
+ *
+ * Scoped to specific components. Reference semantic tokens.
+ * These allow component-level tuning without breaking the system.
+ *
+ * Naming: --{component}-{property}
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════
+     BUTTON
+     ═══════════════════════════════════════════════ */
+
+  --button-font: var(--type-label-font);
+  --button-tracking: var(--type-label-tracking);
+  --button-radius: var(--radius-md);
+  --button-transition: var(--duration-instant) var(--easing-default);
+
+  /* Sizes */
+  --button-sm-height: 28px;
+  --button-sm-padding-x: var(--space-sm);
+  --button-sm-font-size: var(--type-caption-size);
+
+  --button-md-height: 36px;
+  --button-md-padding-x: var(--space-md);
+  --button-md-font-size: var(--type-label-size);
+
+  --button-lg-height: 44px;
+  --button-lg-padding-x: var(--space-lg);
+  --button-lg-font-size: var(--type-body-sm-size);
+
+  /* Primary variant */
+  --button-primary-bg: var(--color-accent);
+  --button-primary-bg-hover: var(--color-accent-hover);
+  --button-primary-text: var(--color-text-on-accent);
+  --button-primary-border: none;
+
+  /* Secondary variant */
+  --button-secondary-bg: transparent;
+  --button-secondary-bg-hover: var(--color-surface-secondary);
+  --button-secondary-text: var(--color-text);
+  --button-secondary-border: var(--elevation-border);
+
+  /* Ghost variant */
+  --button-ghost-bg: transparent;
+  --button-ghost-bg-hover: var(--color-surface-secondary);
+  --button-ghost-text: var(--color-text-secondary);
+  --button-ghost-border: none;
+
+  /* Destructive variant */
+  --button-destructive-bg: var(--color-destructive);
+  --button-destructive-bg-hover: var(--color-destructive-hover);
+  --button-destructive-text: var(--color-text-on-accent);
+  --button-destructive-border: none;
+
+  /* ═══════════════════════════════════════════════
+     INPUT
+     ═══════════════════════════════════════════════ */
+
+  --input-font: var(--type-data-font);
+  --input-font-size: var(--type-data-size);
+  --input-radius: var(--radius-sm);
+  --input-border: var(--elevation-border);
+  --input-border-focus: var(--elevation-border-strong);
+  --input-bg: var(--color-surface);
+  --input-text: var(--color-text);
+  --input-placeholder: var(--color-text-muted);
+  --input-transition: var(--duration-instant) var(--easing-default);
+
+  /* Sizes */
+  --input-sm-height: 28px;
+  --input-sm-padding-x: var(--space-sm);
+
+  --input-md-height: 36px;
+  --input-md-padding-x: var(--space-sm);
+
+  --input-lg-height: 44px;
+  --input-lg-padding-x: var(--space-md);
+
+  /* Label (always mono) */
+  --input-label-font: var(--type-label-font);
+  --input-label-size: var(--type-label-size);
+  --input-label-tracking: var(--type-label-tracking);
+  --input-label-color: var(--color-text-secondary);
+  --input-label-gap: var(--space-xs);
+
+  /* Help text */
+  --input-help-font: var(--type-body-sm-font);
+  --input-help-size: var(--type-body-sm-size);
+  --input-help-color: var(--color-text-muted);
+  --input-help-gap: var(--space-xs);
+
+  /* Error state */
+  --input-error-border-color: var(--color-destructive);
+  --input-error-text: var(--color-destructive);
+
+  /* Toggle */
+  --toggle-width: 36px;
+  --toggle-height: 20px;
+  --toggle-radius: var(--radius-pill);
+  --toggle-bg-off: var(--color-surface-tertiary);
+  --toggle-bg-on: var(--color-accent);
+  --toggle-knob-size: 16px;
+  --toggle-knob-color: var(--color-surface);
+
+  /* Checkbox */
+  --checkbox-size: 16px;
+  --checkbox-radius: var(--radius-sm);
+  --checkbox-border: var(--elevation-border-strong);
+  --checkbox-bg-checked: var(--color-accent);
+  --checkbox-check-color: var(--color-text-on-accent);
+
+  /* ═══════════════════════════════════════════════
+     CARD
+     ═══════════════════════════════════════════════ */
+
+  --card-radius: var(--radius-md);
+  --card-padding: var(--space-lg);
+  --card-bg: var(--color-surface);
+  --card-transition: var(--duration-instant) var(--easing-default);
+
+  /* Flat variant (no elevation) */
+  --card-flat-border: none;
+  --card-flat-shadow: none;
+
+  /* Bordered variant (exposed mechanism default) */
+  --card-bordered-border: var(--elevation-border);
+  --card-bordered-shadow: none;
+
+  /* Elevated variant (floating) */
+  --card-elevated-border: none;
+  --card-elevated-shadow: var(--elevation-raised);
+
+  /* Interactive states */
+  --card-interactive-hover-border: var(--elevation-border-strong);
+  --card-interactive-active-bg: var(--color-surface-secondary);
+  --card-selected-border-color: var(--color-accent);
+
+  /* ═══════════════════════════════════════════════
+     NAVIGATION — SIDEBAR
+     ═══════════════════════════════════════════════ */
+
+  --nav-sidebar-width: 240px;
+  --nav-sidebar-width-collapsed: 48px;
+  --nav-sidebar-bg: var(--color-surface-secondary);
+  --nav-sidebar-border: var(--elevation-border);
+  --nav-sidebar-padding: var(--space-sm);
+
+  --nav-item-height: 32px;
+  --nav-item-padding-x: var(--space-sm);
+  --nav-item-radius: var(--radius-sm);
+  --nav-item-font: var(--type-label-font);
+  --nav-item-font-size: var(--type-label-size);
+  --nav-item-tracking: var(--type-label-tracking);
+  --nav-item-color: var(--color-text-secondary);
+  --nav-item-color-hover: var(--color-text);
+  --nav-item-color-active: var(--color-text);
+  --nav-item-bg-hover: var(--color-surface-tertiary);
+  --nav-item-bg-active: var(--color-surface);
+  --nav-item-transition: var(--duration-instant) var(--easing-default);
+
+  --nav-section-font: var(--type-caption-font);
+  --nav-section-size: var(--type-caption-size);
+  --nav-section-tracking: var(--type-caption-tracking);
+  --nav-section-color: var(--color-text-muted);
+  --nav-section-margin-top: var(--space-md);
+
+  /* ═══════════════════════════════════════════════
+     NAVIGATION — BOTTOM BAR
+     ═══════════════════════════════════════════════ */
+
+  --nav-bottom-height: 56px;
+  --nav-bottom-bg: var(--color-surface);
+  --nav-bottom-border-top: var(--elevation-border);
+  --nav-bottom-item-color: var(--color-text-muted);
+  --nav-bottom-item-color-active: var(--color-accent);
+  --nav-bottom-item-font: var(--type-caption-font);
+  --nav-bottom-item-size: var(--type-caption-size);
+
+  /* ═══════════════════════════════════════════════
+     DATA DISPLAY
+     ═══════════════════════════════════════════════ */
+
+  /* Badge */
+  --badge-font: var(--type-label-font);
+  --badge-size: var(--type-label-size);
+  --badge-tracking: var(--type-label-tracking);
+  --badge-radius: var(--radius-pill);
+  --badge-padding-x: var(--space-sm);
+  --badge-padding-y: 2px;
+  --badge-neutral-bg: var(--color-surface-tertiary);
+  --badge-neutral-text: var(--color-text-secondary);
+
+  /* Tag */
+  --tag-font: var(--type-label-font);
+  --tag-size: var(--type-label-size);
+  --tag-radius: var(--radius-sm);
+  --tag-padding-x: var(--space-sm);
+  --tag-padding-y: 2px;
+  --tag-border: var(--elevation-border);
+  --tag-bg: var(--color-surface);
+  --tag-text: var(--color-text-secondary);
+
+  /* Key-value pair */
+  --kv-key-font: var(--type-label-font);
+  --kv-key-size: var(--type-label-size);
+  --kv-key-color: var(--color-text-muted);
+  --kv-value-font: var(--type-data-font);
+  --kv-value-size: var(--type-data-size);
+  --kv-value-color: var(--color-text);
+  --kv-gap: var(--space-xs);
+
+  /* Status indicator */
+  --status-dot-size: 8px;
+  --status-font: var(--type-label-font);
+  --status-size: var(--type-label-size);
+  --status-gap: var(--space-xs);
+
+  /* ═══════════════════════════════════════════════
+     FEEDBACK
+     ═══════════════════════════════════════════════ */
+
+  /* Toast */
+  --toast-radius: var(--radius-md);
+  --toast-padding: var(--space-md);
+  --toast-shadow: var(--elevation-overlay);
+  --toast-bg: var(--color-surface);
+  --toast-border: var(--elevation-border);
+  --toast-font: var(--type-body-sm-font);
+  --toast-font-size: var(--type-body-sm-size);
+  --toast-max-width: 360px;
+
+  /* Empty state */
+  --empty-icon-size: 48px;
+  --empty-icon-color: var(--color-text-muted);
+  --empty-heading-font: var(--type-heading-font);
+  --empty-heading-size: var(--type-heading-size);
+  --empty-body-font: var(--type-body-sm-font);
+  --empty-body-size: var(--type-body-sm-size);
+  --empty-body-color: var(--color-text-secondary);
+  --empty-gap: var(--space-md);
+
+  /* Skeleton */
+  --skeleton-bg: var(--color-surface-tertiary);
+  --skeleton-shine: var(--color-surface-secondary);
+  --skeleton-radius: var(--radius-sm);
+  --skeleton-duration: 1.5s;
+
+  /* ═══════════════════════════════════════════════
+     FOCUS RING (global)
+     ═══════════════════════════════════════════════ */
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color: var(--color-accent);
+}

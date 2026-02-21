@@ -1,0 +1,53 @@
+/*
+ * aiaiai Design System — Default Theme (aiaiai.css)
+ *
+ * The canonical aiaiai studio theme.
+ * This is applied via [data-theme="aiaiai"] on <html> or as the :root default.
+ * All other themes override this baseline.
+ *
+ * Import order:
+ *   @import '../base.css';
+ *   @import '../semantic.css';
+ *   @import '../components.css';
+ *   @import './aiaiai.css';
+ */
+
+[data-theme="aiaiai"],
+:root {
+  /*
+   * The default theme uses all semantic.css values as-is.
+   * This file exists to:
+   *   1. Document that the defaults ARE the aiaiai theme
+   *   2. Serve as the template for creating new themes
+   *   3. Allow runtime theme switching via data-theme attribute
+   *
+   * If you need to tweak the default aiaiai look, change semantic.css.
+   * This file only overrides when the aiaiai theme diverges from
+   * the semantic defaults (which it doesn't, by definition).
+   */
+
+  /* ─── Studio identity markers ─── */
+  /* These are documented here for clarity — they're the values
+     that make something "look like aiaiai" */
+
+  /* Warm paper surface (never clinical white) */
+  /* --color-surface: #f7f5f3 (set in semantic.css) */
+
+  /* Orange accent: creation, focus */
+  /* --color-accent: #ff6b35 (set in semantic.css) */
+
+  /* Warm dark brown text (never pure black) */
+  /* --color-text: #2c2825 (set in semantic.css) */
+
+  /* Borders > shadows (exposed mechanism) */
+  /* --elevation-border: 1px solid var(--color-border) (set in semantic.css) */
+
+  /* Sharp radii (precision instrument) */
+  /* --radius-sm: 2px (set in semantic.css) */
+
+  /* Berkeley Mono for labels and data (the mechanism) */
+  /* --font-mono: 'Berkeley Mono', ... (set in semantic.css) */
+
+  /* Instrument Sans for prose (the Swiss canvas) */
+  /* --font-sans: 'Instrument Sans', ... (set in semantic.css) */
+}

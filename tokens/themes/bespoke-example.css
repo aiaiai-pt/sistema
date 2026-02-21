@@ -1,0 +1,148 @@
+/*
+ * aiaiai Design System — Tier 2: Bespoke Theme Example
+ *
+ * Example: A fictional children's learning app "Sprout"
+ *
+ * Tier 2 rules:
+ *   - Override 40-80 tokens (full personality shift)
+ *   - Change: full color palette, typography, surface materials,
+ *     motion personality, elevation style, radius language
+ *   - Keep: spacing scale (8px grid), grid structure,
+ *     accessibility minimums, token naming convention
+ *
+ * Use case: Client-facing consumer products where aiaiai builds
+ * something that doesn't look like aiaiai
+ *
+ * Apply via: <html data-theme="bespoke-example">
+ */
+
+[data-theme="bespoke-example"] {
+  /* ═══════════════════════════════════════════════
+     COLOR — Full palette override (20 tokens)
+     ═══════════════════════════════════════════════ */
+
+  /* Surfaces: brighter, more playful */
+  --color-surface: #fffdf7;
+  --color-surface-secondary: #fef9ec;
+  --color-surface-tertiary: #fdf0d5;
+  --color-overlay: rgba(60, 40, 10, 0.4);
+
+  /* Borders: softer */
+  --color-border: #f0e4c8;
+  --color-border-strong: #dbc89a;
+
+  /* Text: darker for children's readability */
+  --color-text: #2d2006;
+  --color-text-secondary: #6b5c3e;
+  --color-text-muted: #a09070;
+  --color-text-on-accent: #ffffff;
+
+  /* Accent: playful purple */
+  --color-accent: #7c3aed;
+  --color-accent-hover: #6d28d9;
+  --color-accent-subtle: #f5f3ff;
+
+  /* Destructive: softer red */
+  --color-destructive: #e11d48;
+  --color-destructive-hover: #be123c;
+  --color-destructive-subtle: #fff1f2;
+
+  /* Success: brighter green */
+  --color-success: #059669;
+  --color-success-subtle: #ecfdf5;
+
+  /* Warning */
+  --color-warning: #d97706;
+  --color-warning-subtle: #fffbeb;
+
+  /* Info */
+  --color-info: #2563eb;
+  --color-info-subtle: #eff6ff;
+
+  /* ═══════════════════════════════════════════════
+     TYPOGRAPHY — Full override (10 tokens)
+     ═══════════════════════════════════════════════ */
+
+  /* Different font families entirely */
+  --font-sans: "Nunito", "Quicksand", sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+
+  /* Slightly larger base sizes for children */
+  --type-body-size: var(--raw-font-size-18);
+  --type-body-sm-size: var(--raw-font-size-15);
+  --type-label-size: var(--raw-font-size-13);
+  --type-data-size: var(--raw-font-size-15);
+  --type-heading-size: var(--raw-font-size-24);
+  --type-heading-lg-size: var(--raw-font-size-36);
+
+  /* Label uses sans, not mono (less technical feel) */
+  --type-label-font: var(--font-sans);
+  --type-label-tracking: var(--raw-tracking-loose);
+
+  /* ═══════════════════════════════════════════════
+     ELEVATION — Shadows instead of borders (4 tokens)
+     ═══════════════════════════════════════════════ */
+
+  --elevation-border: none;
+  --elevation-border-strong: none;
+  --elevation-raised:
+    0 2px 8px rgba(60, 40, 10, 0.1), 0 1px 3px rgba(60, 40, 10, 0.08);
+  --elevation-overlay:
+    0 8px 32px rgba(60, 40, 10, 0.15), 0 4px 8px rgba(60, 40, 10, 0.1);
+
+  /* ═══════════════════════════════════════════════
+     RADIUS — Rounded, friendly (5 tokens)
+     ═══════════════════════════════════════════════ */
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+  /* ═══════════════════════════════════════════════
+     MOTION — Bouncier, more playful (5 tokens)
+     ═══════════════════════════════════════════════ */
+
+  --duration-instant: 120ms;
+  --duration-fast: 200ms;
+  --duration-normal: 350ms;
+  --duration-slow: 500ms;
+
+  /* Springy easing for playful feel */
+  --easing-default: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --easing-enter: cubic-bezier(0.22, 1.2, 0.36, 1);
+
+  /* ═══════════════════════════════════════════════
+     COMPONENTS — Adjusted for new personality (10 tokens)
+     ═══════════════════════════════════════════════ */
+
+  /* Buttons: larger, rounder, use sans for labels */
+  --button-font: var(--font-sans);
+  --button-tracking: var(--raw-tracking-normal);
+  --button-radius: var(--radius-md);
+  --button-sm-height: 32px;
+  --button-md-height: 44px;
+  --button-lg-height: 52px;
+
+  /* Inputs: rounder, softer */
+  --input-radius: var(--radius-sm);
+
+  /* Cards: elevated instead of bordered */
+  --card-bordered-border: none;
+  --card-bordered-shadow: var(--elevation-raised);
+  --card-radius: var(--radius-md);
+
+  /*
+   * What's preserved from the base system:
+   * - 8px spacing grid (non-negotiable)
+   * - Grid structure and breakpoints
+   * - Token naming convention
+   * - Accessibility minimums (contrast, touch targets)
+   * - Semantic color roles (accent, destructive, success, etc.)
+   *
+   * Total overrides: ~54 tokens
+   * The result is a completely different visual identity
+   * that still uses the same structural foundation.
+   */
+}

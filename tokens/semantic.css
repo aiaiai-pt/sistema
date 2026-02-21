@@ -1,0 +1,187 @@
+/*
+ * aiaiai Design System — Semantic Tokens (semantic.css)
+ *
+ * Role-based aliases that themes override.
+ * These are what components and layouts should reference.
+ * Never use --raw-* tokens directly in components.
+ *
+ * Naming: --{category}-{role}
+ * Categories: color, type, space, radius, elevation, duration, easing, grid
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════
+     COLOR — Surfaces, Text, Accents, Semantic
+     ═══════════════════════════════════════════════ */
+
+  /* Surfaces */
+  --color-surface: var(--raw-color-neutral-50);
+  --color-surface-secondary: var(--raw-color-neutral-100);
+  --color-surface-tertiary: var(--raw-color-neutral-200);
+  --color-overlay: rgba(44, 40, 37, 0.5);
+
+  /* Borders */
+  --color-border: var(--raw-color-neutral-300);
+  --color-border-strong: var(--raw-color-neutral-400);
+
+  /* Text */
+  --color-text: var(--raw-color-neutral-900);
+  --color-text-secondary: var(--raw-color-neutral-600);
+  --color-text-muted: var(--raw-color-neutral-500);
+  --color-text-on-accent: var(--raw-color-white);
+
+  /* Accent (orange — creation, focus, primary action) */
+  --color-accent: var(--raw-color-orange-500);
+  --color-accent-hover: var(--raw-color-orange-600);
+  --color-accent-subtle: var(--raw-color-orange-100);
+
+  /* Destructive (red — danger, errors, deletion) */
+  --color-destructive: var(--raw-color-red-600);
+  --color-destructive-hover: var(--raw-color-red-700);
+  --color-destructive-subtle: var(--raw-color-red-50);
+
+  /* Success (green — confirmation, positive) */
+  --color-success: var(--raw-color-green-600);
+  --color-success-subtle: var(--raw-color-green-50);
+
+  /* Warning (amber — caution, attention) */
+  --color-warning: var(--raw-color-amber-600);
+  --color-warning-subtle: var(--raw-color-amber-50);
+
+  /* Info (blue — information, links) */
+  --color-info: var(--raw-color-blue-600);
+  --color-info-subtle: var(--raw-color-blue-50);
+
+  /* ═══════════════════════════════════════════════
+     TYPOGRAPHY
+     ═══════════════════════════════════════════════ */
+
+  /* Font families */
+  --font-sans: var(--raw-font-sans);
+  --font-mono: var(--raw-font-mono);
+
+  /* Type scale — categorical */
+  --type-display-size: var(--raw-font-size-36);
+  --type-display-weight: var(--raw-font-weight-semibold);
+  --type-display-leading: var(--raw-line-height-tight);
+  --type-display-tracking: var(--raw-tracking-tight);
+  --type-display-font: var(--font-sans);
+
+  --type-heading-lg-size: var(--raw-font-size-24);
+  --type-heading-lg-weight: var(--raw-font-weight-medium);
+  --type-heading-lg-leading: var(--raw-line-height-snug);
+  --type-heading-lg-tracking: var(--raw-tracking-snug);
+  --type-heading-lg-font: var(--font-sans);
+
+  --type-heading-size: var(--raw-font-size-18);
+  --type-heading-weight: var(--raw-font-weight-medium);
+  --type-heading-leading: var(--raw-line-height-heading);
+  --type-heading-tracking: var(--raw-tracking-heading);
+  --type-heading-font: var(--font-sans);
+
+  --type-heading-sm-size: var(--raw-font-size-15);
+  --type-heading-sm-weight: var(--raw-font-weight-medium);
+  --type-heading-sm-leading: var(--raw-line-height-relaxed);
+  --type-heading-sm-tracking: var(--raw-tracking-normal);
+  --type-heading-sm-font: var(--font-sans);
+
+  --type-body-size: var(--raw-font-size-15);
+  --type-body-weight: var(--raw-font-weight-regular);
+  --type-body-leading: var(--raw-line-height-body);
+  --type-body-tracking: var(--raw-tracking-normal);
+  --type-body-font: var(--font-sans);
+
+  --type-body-sm-size: var(--raw-font-size-13);
+  --type-body-sm-weight: var(--raw-font-weight-regular);
+  --type-body-sm-leading: var(--raw-line-height-body);
+  --type-body-sm-tracking: var(--raw-tracking-micro);
+  --type-body-sm-font: var(--font-sans);
+
+  --type-label-size: var(--raw-font-size-12);
+  --type-label-weight: var(--raw-font-weight-regular);
+  --type-label-leading: var(--raw-line-height-heading);
+  --type-label-tracking: var(--raw-tracking-wider);
+  --type-label-font: var(--font-mono);
+
+  --type-data-size: var(--raw-font-size-14);
+  --type-data-weight: var(--raw-font-weight-regular);
+  --type-data-leading: var(--raw-line-height-relaxed);
+  --type-data-tracking: var(--raw-tracking-normal);
+  --type-data-font: var(--font-mono);
+
+  --type-caption-size: var(--raw-font-size-11);
+  --type-caption-weight: var(--raw-font-weight-regular);
+  --type-caption-leading: var(--raw-line-height-relaxed);
+  --type-caption-tracking: var(--raw-tracking-wide);
+  --type-caption-font: var(--font-sans);
+
+  /* ═══════════════════════════════════════════════
+     SPACING
+     ═══════════════════════════════════════════════ */
+
+  --space-xs: var(--raw-space-4);
+  --space-sm: var(--raw-space-8);
+  --space-md: var(--raw-space-16);
+  --space-lg: var(--raw-space-24);
+  --space-xl: var(--raw-space-32);
+  --space-2xl: var(--raw-space-48);
+  --space-3xl: var(--raw-space-64);
+  --space-4xl: var(--raw-space-96);
+
+  /* ═══════════════════════════════════════════════
+     GRID
+     ═══════════════════════════════════════════════ */
+
+  --grid-columns: var(--raw-grid-columns);
+  --grid-gutter: var(--space-md);
+  --grid-margin: var(--space-md);
+  --content-width-narrow: var(--raw-content-640);
+  --content-width: var(--raw-content-960);
+  --content-width-wide: var(--raw-content-1200);
+  --content-width-full: var(--raw-content-1440);
+
+  /* ═══════════════════════════════════════════════
+     ELEVATION
+     ═══════════════════════════════════════════════ */
+
+  --elevation-border: 1px solid var(--color-border);
+  --elevation-border-strong: 1px solid var(--color-border-strong);
+  --elevation-raised: var(--raw-shadow-sm);
+  --elevation-overlay: var(--raw-shadow-md);
+
+  /* ═══════════════════════════════════════════════
+     RADIUS
+     ═══════════════════════════════════════════════ */
+
+  --radius-sm: var(--raw-radius-2);
+  --radius-md: var(--raw-radius-4);
+  --radius-lg: var(--raw-radius-8);
+  --radius-pill: var(--raw-radius-999);
+  --radius-circle: var(--raw-radius-circle);
+
+  /* ═══════════════════════════════════════════════
+     MOTION
+     ═══════════════════════════════════════════════ */
+
+  --duration-instant: var(--raw-duration-100);
+  --duration-fast: var(--raw-duration-150);
+  --duration-normal: var(--raw-duration-250);
+  --duration-slow: var(--raw-duration-400);
+  --duration-dramatic: var(--raw-duration-600);
+
+  --easing-default: var(--raw-easing-default);
+  --easing-enter: var(--raw-easing-enter);
+  --easing-exit: var(--raw-easing-exit);
+  --easing-linear: var(--raw-easing-linear);
+
+  /* ═══════════════════════════════════════════════
+     RESPONSIVE OVERRIDES
+     ═══════════════════════════════════════════════ */
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --grid-gutter: var(--space-lg);
+    --grid-margin: var(--space-2xl);
+  }
+}
