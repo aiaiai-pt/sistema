@@ -6,14 +6,29 @@
 - Client presentations that need Figma deliverables
 - Design exploration that starts from existing components
 
+## Setup (One-Time)
+
+**Requirements:** Figma desktop app (not browser), Figma Dev or Full seat, Claude Code.
+
+1. Open Figma desktop → Preferences → Enable **Dev Mode MCP Server**
+   (runs locally at `http://127.0.0.1:3845/sse`)
+2. Connect it to Claude Code:
+   ```bash
+   claude mcp add --transport sse figma-dev-mode-mcp-server http://127.0.0.1:3845/sse
+   ```
+3. Restart Claude Code to pick up the new MCP server
+
 ## How to Capture
 
 1. Run `npm run dev` to start the SvelteKit dev server
-2. Navigate to the component or page you want to capture
-3. Use Claude Code to Figma to capture the live browser state
-4. The captured frame lands in Figma as editable nodes (not a flat image)
+2. Open the Figma desktop app and create or open a Design file
+3. Navigate to the component or page you want to capture in the browser
+4. Tell Claude Code: **"Send this to Figma"**
+5. The captured frame lands in Figma as editable nodes with auto-layout (not a flat image)
 
 To capture a specific theme, switch themes in the site before capturing.
+
+The MCP server is bidirectional — Claude can also read from Figma (components, variables, styles), so changes can flow back to code.
 
 ## What Transfers
 
