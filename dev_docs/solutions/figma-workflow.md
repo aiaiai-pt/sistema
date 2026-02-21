@@ -10,7 +10,8 @@
 
 **Requirements:** Figma desktop app (not browser), Figma Dev or Full seat, Claude Code.
 
-1. Open Figma desktop → Preferences → Enable **Dev Mode MCP Server**
+1. Open a Design file in Figma desktop → enter **Dev Mode** (`Shift+D`) →
+   in the Inspect panel, find the MCP server section → click **"Enable desktop MCP server"**
    (runs locally at `http://127.0.0.1:3845/sse`)
 2. Connect it to Claude Code:
    ```bash
