@@ -28,7 +28,6 @@ aiaiai-design-system/
 ├── dev_docs/                # Internal specs, solutions, ADLs
 │   ├── specs/               # Design specs
 │   └── solutions/           # Reusable pattern docs
-├── *.pen                    # Pencil design files
 └── CLAUDE.md                # This file
 ```
 
@@ -44,7 +43,7 @@ Browse `site/` (deployed to design.aiaiai.pt) — visual reference with live com
 Import `tokens/*.css` into their project. Read `dev_docs/solutions/` for integration guides.
 
 ### By the Pencil MCP
-Open the `.pen` file to access the component library and visual reference during design work.
+Use for freeform AI-assisted design exploration during DFG workflows. Pencil does not mirror the token system or component library — the site is the canonical visual reference. See `dev_docs/solutions/figma-workflow.md` for when to use Pencil vs code vs Figma.
 
 ## Design Philosophy
 
