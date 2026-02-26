@@ -325,6 +325,80 @@
   --code-cursor-color: var(--color-accent);
 
   /* ═══════════════════════════════════════════════
+     TEXTAREA
+     ═══════════════════════════════════════════════ */
+
+  --textarea-min-height: 80px;
+  --textarea-padding: var(--space-sm);
+
+  /* ═══════════════════════════════════════════════
+     SEPARATOR
+     ═══════════════════════════════════════════════ */
+
+  --separator-color: var(--color-border);
+  --separator-thickness: var(--border-width-default);
+
+  /* ═══════════════════════════════════════════════
+     PROGRESS
+     ═══════════════════════════════════════════════ */
+
+  --progress-height: 8px;
+  --progress-radius: var(--radius-pill);
+  --progress-bg: var(--color-surface-tertiary);
+  --progress-fill: var(--color-accent);
+  --progress-transition: var(--duration-fast) var(--easing-default);
+
+  /* ═══════════════════════════════════════════════
+     ALERT (inline callout)
+     ═══════════════════════════════════════════════ */
+
+  --alert-radius: var(--radius-md);
+  --alert-padding: var(--space-md);
+  --alert-border: var(--elevation-border);
+  --alert-bg: var(--color-surface);
+  --alert-font: var(--type-body-sm-font);
+  --alert-font-size: var(--type-body-sm-size);
+
+  /* ═══════════════════════════════════════════════
+     TABS
+     ═══════════════════════════════════════════════ */
+
+  --tabs-list-bg: var(--color-surface-secondary);
+  --tabs-list-radius: var(--radius-md);
+  --tabs-list-padding: var(--space-2xs);
+  --tabs-trigger-font: var(--type-label-font);
+  --tabs-trigger-size: var(--type-label-size);
+  --tabs-trigger-tracking: var(--type-label-tracking);
+  --tabs-trigger-height: 32px;
+  --tabs-trigger-padding-x: var(--space-md);
+  --tabs-trigger-radius: var(--radius-sm);
+  --tabs-trigger-color: var(--color-text-secondary);
+  --tabs-trigger-color-active: var(--color-text);
+  --tabs-trigger-bg-active: var(--color-surface);
+  --tabs-trigger-shadow-active: var(--elevation-raised);
+  --tabs-trigger-transition: var(--duration-instant) var(--easing-default);
+  --tabs-content-padding-top: var(--space-md);
+
+  /* ═══════════════════════════════════════════════
+     MODAL (centered overlay)
+     ═══════════════════════════════════════════════ */
+
+  --modal-width: 480px;
+  --modal-width-sm: 360px;
+  --modal-width-lg: 640px;
+  --modal-bg: var(--color-surface);
+  --modal-radius: var(--radius-lg);
+  --modal-shadow: var(--elevation-overlay);
+  --modal-padding: var(--space-lg);
+  --modal-header-height: 56px;
+  --modal-header-border: var(--elevation-border);
+  --modal-header-font: var(--type-heading-sm-font);
+  --modal-header-size: var(--type-heading-sm-size);
+  --modal-header-weight: var(--type-heading-sm-weight);
+  --modal-backdrop: var(--color-overlay);
+  --modal-transition: var(--duration-normal) var(--easing-enter);
+
+  /* ═══════════════════════════════════════════════
      ACCENT STRIPE
      ═══════════════════════════════════════════════ */
 

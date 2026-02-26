@@ -18,15 +18,29 @@ export { default as KeyValue } from "./KeyValue.svelte";
 // Form controls
 export { default as Button } from "./Button.svelte";
 export { default as Input } from "./Input.svelte";
+export { default as Textarea } from "./Textarea.svelte";
 export { default as Select } from "./Select.svelte";
 export { default as Toggle } from "./Toggle.svelte";
 export { default as Checkbox } from "./Checkbox.svelte";
+export { default as Label } from "./Label.svelte";
+
+// Layout
+export { default as Separator } from "./Separator.svelte";
+export { default as Progress } from "./Progress.svelte";
 
 // Containers
 export { default as Card } from "./Card.svelte";
 export { default as Panel } from "./Panel.svelte";
+export { default as Modal } from "./Modal.svelte";
+
+// Tabs
+export { default as Tabs } from "./Tabs.svelte";
+export { default as TabList } from "./TabList.svelte";
+export { default as Tab } from "./Tab.svelte";
+export { default as TabPanel } from "./TabPanel.svelte";
 
 // Feedback
+export { default as Alert } from "./Alert.svelte";
 export { default as Toast } from "./Toast.svelte";
 export { default as EmptyState } from "./EmptyState.svelte";
 
