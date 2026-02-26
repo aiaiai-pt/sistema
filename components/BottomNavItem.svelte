@@ -34,14 +34,12 @@
   } = $props();
 </script>
 
-{#if href}
+{#if href && !disabled}
   <a
     {href}
     class="bottom-nav-item {className}"
     class:bottom-nav-active={active}
-    class:bottom-nav-disabled={disabled}
     aria-current={active ? 'page' : undefined}
-    aria-disabled={disabled || undefined}
     {...rest}
   >
     <div class="bottom-nav-icon-wrap">

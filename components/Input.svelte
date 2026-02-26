@@ -21,6 +21,10 @@
     {/snippet}
   </Input>
 -->
+<script module>
+  let _inputUid = 0;
+</script>
+
 <script>
   /**
    * @typedef {'sm' | 'md' | 'lg'} Size
@@ -54,8 +58,10 @@
     ...rest
   } = $props();
 
-  const fallbackId = `input-${Math.random().toString(36).slice(2, 8)}`;
+  const fallbackId = `input-${_inputUid++}`;
   const inputId = $derived(id ?? fallbackId);
+  const hintId = $derived(`${inputId}-hint`);
+  const hasHint = $derived(!!error || !!help);
 </script>
 
 <div class="input-group {className}">
@@ -74,6 +80,8 @@
         class="input input-{size} input-with-icon"
         class:input-error={!!error}
         class:input-readonly={readonly}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={hasHint ? hintId : undefined}
         {placeholder}
         {disabled}
         {readonly}
@@ -88,6 +96,8 @@
       class="input input-{size}"
       class:input-error={!!error}
       class:input-readonly={readonly}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={hasHint ? hintId : undefined}
       {placeholder}
       {disabled}
       {readonly}
@@ -97,9 +107,9 @@
   {/if}
 
   {#if error}
-    <span class="input-error-text" role="alert">{error}</span>
+    <span id={hintId} class="input-error-text" role="alert">{error}</span>
   {:else if help}
-    <span class="input-help">{help}</span>
+    <span id={hintId} class="input-help">{help}</span>
   {/if}
 </div>
 

@@ -10,6 +10,10 @@
     { value: 'br', label: 'Brazil' },
   ]} />
 -->
+<script module>
+  let _selectUid = 0;
+</script>
+
 <script>
   /**
    * @typedef {{ value: string, label: string, disabled?: boolean }} Option
@@ -40,8 +44,10 @@
     ...rest
   } = $props();
 
-  const fallbackId = `select-${Math.random().toString(36).slice(2, 8)}`;
+  const fallbackId = `select-${_selectUid++}`;
   const selectId = $derived(id ?? fallbackId);
+  const hintId = $derived(`${selectId}-hint`);
+  const hasHint = $derived(!!error || !!help);
 </script>
 
 <div class="input-group {className}">
@@ -49,26 +55,35 @@
     <label class="input-label" for={selectId}>{label}</label>
   {/if}
 
-  <select
-    id={selectId}
-    class="input select input-{size}"
-    class:input-error={!!error}
-    {disabled}
-    bind:value
-    {...rest}
-  >
-    {#if placeholder}
-      <option value="" disabled>{placeholder}</option>
-    {/if}
-    {#each options as opt}
-      <option value={opt.value} disabled={opt.disabled}>{opt.label}</option>
-    {/each}
-  </select>
+  <div class="select-wrapper">
+    <select
+      id={selectId}
+      class="input select input-{size}"
+      class:input-error={!!error}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={hasHint ? hintId : undefined}
+      {disabled}
+      bind:value
+      {...rest}
+    >
+      {#if placeholder}
+        <option value="" disabled>{placeholder}</option>
+      {/if}
+      {#each options as opt}
+        <option value={opt.value} disabled={opt.disabled}>{opt.label}</option>
+      {/each}
+    </select>
+    <span class="select-chevron" aria-hidden="true">
+      <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+        <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+  </div>
 
   {#if error}
-    <span class="input-error-text" role="alert">{error}</span>
+    <span id={hintId} class="input-error-text" role="alert">{error}</span>
   {:else if help}
-    <span class="input-help">{help}</span>
+    <span id={hintId} class="input-help">{help}</span>
   {/if}
 </div>
 
@@ -142,9 +157,26 @@
   .select {
     appearance: none;
     cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2378716c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right var(--input-md-padding-x) center;
     padding-right: var(--space-xl);
+  }
+
+  .select-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .select-chevron {
+    position: absolute;
+    right: var(--input-md-padding-x);
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    display: flex;
+    color: var(--color-text-secondary);
+  }
+
+  .select-chevron svg {
+    width: 10px;
+    height: 6px;
   }
 </style>

@@ -10,6 +10,10 @@
   @example Indeterminate
   <Checkbox label="Select all" indeterminate />
 -->
+<script module>
+  let _checkboxUid = 0;
+</script>
+
 <script>
   let {
     /** @type {boolean} */
@@ -27,7 +31,7 @@
     ...rest
   } = $props();
 
-  const fallbackId = `checkbox-${Math.random().toString(36).slice(2, 8)}`;
+  const fallbackId = `checkbox-${_checkboxUid++}`;
   const checkboxId = $derived(id ?? fallbackId);
 
   /** @type {HTMLInputElement | undefined} */

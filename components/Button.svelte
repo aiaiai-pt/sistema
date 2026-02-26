@@ -55,6 +55,7 @@
   class="btn btn-{variant} btn-{size} {className}"
   class:btn-icon-only={iconOnly}
   disabled={disabled || loading}
+  aria-busy={loading || undefined}
   {...rest}
 >
   {#if loading}

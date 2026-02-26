@@ -44,7 +44,7 @@
   };
 </script>
 
-<div class="toast {className}" role="status" {...rest}>
+<div class="toast {className}" role={variant === 'error' ? 'alert' : 'status'} {...rest}>
   <div class="toast-accent" style:background={accentColors[variant]}></div>
   <div class="toast-content">
     <span class="toast-message">

@@ -14,6 +14,10 @@
     Settings form
   </Panel>
 -->
+<script module>
+  let _panelUid = 0;
+</script>
+
 <script>
   /**
    * @typedef {'default' | 'narrow' | 'wide'} Width
@@ -37,18 +41,58 @@
     ...rest
   } = $props();
 
-  function handleKeydown(e) {
-    if (e.key === 'Escape' && open) {
-      onclose?.();
+  const headerId = `panel-header-${_panelUid++}`;
+
+  /** @type {HTMLElement | undefined} */
+  let panelEl;
+
+  const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+  // Focus trap: save previous focus, trap Tab, restore on close
+  $effect(() => {
+    if (!open || !panelEl) return;
+
+    const previouslyFocused = /** @type {HTMLElement | null} */ (document.activeElement);
+
+    // Focus the close button on open
+    const firstFocusable = panelEl.querySelector(FOCUSABLE);
+    if (firstFocusable) /** @type {HTMLElement} */ (firstFocusable).focus();
+
+    /** @param {KeyboardEvent} e */
+    function handleKeydown(e) {
+      if (e.key === 'Escape') {
+        onclose?.();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      const focusable = /** @type {NodeListOf<HTMLElement>} */ (panelEl?.querySelectorAll(FOCUSABLE));
+      if (!focusable?.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
-  }
+
+    document.addEventListener('keydown', handleKeydown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+      previouslyFocused?.focus();
+    };
+  });
 
   function handleBackdropClick() {
     onclose?.();
   }
 </script>
-
-<svelte:window onkeydown={handleKeydown} />
 
 {#if open}
   <!-- Backdrop -->
@@ -60,15 +104,17 @@
 
   <!-- Panel -->
   <aside
+    bind:this={panelEl}
     class="panel panel-{width} {className}"
     role="dialog"
     aria-modal="true"
-    aria-label={title}
+    aria-label={!header ? title : undefined}
+    aria-labelledby={header ? headerId : undefined}
     {...rest}
   >
     <div class="panel-header">
       {#if header}
-        {@render header()}
+        <div id={headerId}>{@render header()}</div>
       {:else if title}
         <h2 class="panel-title">{title}</h2>
       {/if}

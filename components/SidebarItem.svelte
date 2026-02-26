@@ -48,14 +48,12 @@
   const isCollapsed = $derived(sidebar?.collapsed ?? false);
 </script>
 
-{#if href}
+{#if href && !disabled}
   <a
     {href}
     class="nav-item {className}"
     class:nav-item-active={active}
-    class:nav-item-disabled={disabled}
     aria-current={active ? 'page' : undefined}
-    aria-disabled={disabled || undefined}
     {...rest}
   >
     {#if icon}<span class="nav-icon-wrap">{@render icon()}</span>{/if}

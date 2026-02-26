@@ -10,6 +10,10 @@
   @example Disabled
   <Toggle label="Notifications" checked disabled />
 -->
+<script module>
+  let _toggleUid = 0;
+</script>
+
 <script>
   let {
     /** @type {boolean} */
@@ -25,7 +29,7 @@
     ...rest
   } = $props();
 
-  const fallbackId = `toggle-${Math.random().toString(36).slice(2, 8)}`;
+  const fallbackId = `toggle-${_toggleUid++}`;
   const toggleId = $derived(id ?? fallbackId);
 
   function handleClick() {
@@ -55,6 +59,8 @@
       id="{toggleId}-label"
       class="toggle-label"
       class:toggle-label-disabled={disabled}
+      onclick={handleClick}
+      role="none"
     >{label}</span>
   {/if}
 </div>
@@ -114,6 +120,7 @@
     font-family: var(--type-body-sm-font);
     font-size: var(--type-body-sm-size);
     color: var(--color-text);
+    cursor: pointer;
   }
 
   .toggle-label-disabled {
