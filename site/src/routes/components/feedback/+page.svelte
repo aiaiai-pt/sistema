@@ -4,11 +4,17 @@
 	import Toast from '$ui/Toast.svelte';
 	import EmptyState from '$ui/EmptyState.svelte';
 	import Skeleton from '$ui/Skeleton.svelte';
+	import Progress from '$ui/Progress.svelte';
+
+	let progressValue = $state(65);
 
 	const feedbackTokens = [
 		'--toast-radius: var(--radius-md)',
 		'--toast-shadow: var(--elevation-overlay)',
 		'--toast-max-width: 360px',
+		'--progress-height: 8px',
+		'--progress-fill: var(--color-accent)',
+		'--progress-radius: var(--radius-pill)',
 		'--empty-icon-size: 48px',
 		'--empty-gap: var(--space-md)',
 		'--skeleton-bg: var(--color-surface-tertiary)',
@@ -132,6 +138,29 @@
 	</div>
 </section>
 
+<!-- Progress -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Progress</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Determinate progress bar for sync, upload, and pipeline execution status.</p>
+	<div class="progress-demos">
+		<div class="progress-row">
+			<span class="type-label">UPLOADING</span>
+			<Progress value={35} />
+			<span class="type-data">35%</span>
+		</div>
+		<div class="progress-row">
+			<span class="type-label">SYNCING</span>
+			<Progress value={72} />
+			<span class="type-data">72%</span>
+		</div>
+		<div class="progress-row">
+			<span class="type-label">COMPLETE</span>
+			<Progress value={100} />
+			<span class="type-data">100%</span>
+		</div>
+	</div>
+</section>
+
 <!-- Loading skeleton -->
 <section style="margin-bottom: var(--space-2xl);">
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Loading Skeleton</h2>
@@ -250,7 +279,24 @@
 <TokenRef component="Feedback components" file="components.css" tokens={feedbackTokens} />
 
 <style>
-	/* Only demo layout — all toast, empty state, and skeleton CSS lives in the components */
+	/* Only demo layout — all component CSS lives in the components */
+	.progress-demos {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-lg);
+		max-width: 400px;
+	}
+
+	.progress-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-md);
+	}
+
+	.progress-row :global(.progress) {
+		flex: 1;
+	}
+
 	.toast-stack {
 		display: flex;
 		flex-direction: column;
