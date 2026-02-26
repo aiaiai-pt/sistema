@@ -11,7 +11,7 @@
 <style>
 	.callout {
 		border: var(--elevation-border-strong);
-		border-left: 3px solid var(--color-accent);
+		border-left: var(--accent-stripe-width) solid var(--color-accent);
 		border-radius: var(--radius-md);
 		padding: var(--space-lg);
 		background: var(--color-accent-subtle);

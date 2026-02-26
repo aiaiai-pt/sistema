@@ -1,0 +1,63 @@
+{
+  "plugins": [
+    "stylelint-declaration-strict-value",
+    "./stylelint-plugins/token-roles.js"
+  ],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "color",
+        "background-color",
+        "border-color",
+        "fill",
+        "stroke",
+        "gap",
+        "padding",
+        "margin",
+        "padding-top",
+        "padding-right",
+        "padding-bottom",
+        "padding-left",
+        "margin-top",
+        "margin-right",
+        "margin-bottom",
+        "margin-left",
+        "row-gap",
+        "column-gap",
+        "font-size",
+        "border-radius",
+        "border-width"
+      ],
+      {
+        "ignoreValues": [
+          "/^0$/",
+          "auto",
+          "inherit",
+          "initial",
+          "unset",
+          "none",
+          "transparent",
+          "currentColor",
+          "/^100%$/",
+          "/^50%$/",
+          "/^var\\(/"
+        ]
+      }
+    ],
+    "aiaiai/token-roles": [true, { "allowRawTokens": true }]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.svelte"],
+      "customSyntax": "postcss-html"
+    },
+    {
+      "files": ["**/system/principles/+page.svelte"],
+      "rules": {
+        "scale-unlimited/declaration-strict-value": null,
+        "aiaiai/token-roles": null
+      }
+    }
+  ],
+  "ignoreFiles": ["tokens/**", "node_modules/**", "build/**", ".svelte-kit/**"]
+}

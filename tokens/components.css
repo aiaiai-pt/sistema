@@ -261,6 +261,70 @@
   --skeleton-duration: 1.5s;
 
   /* ═══════════════════════════════════════════════
+     PANEL / DRAWER (slide-over surface)
+     ═══════════════════════════════════════════════ */
+
+  --panel-width: 480px;
+  --panel-width-narrow: 360px;
+  --panel-width-wide: 640px;
+  --panel-bg: var(--color-surface);
+  --panel-border: var(--elevation-border);
+  --panel-shadow: var(--elevation-overlay);
+  --panel-radius: 0;
+  --panel-header-height: 56px;
+  --panel-header-border: var(--elevation-border);
+  --panel-header-font: var(--type-heading-sm-font);
+  --panel-header-size: var(--type-heading-sm-size);
+  --panel-header-weight: var(--type-heading-sm-weight);
+  --panel-padding: var(--space-lg);
+  --panel-transition: var(--duration-normal) var(--easing-enter);
+  --panel-backdrop: var(--color-overlay);
+
+  /* ═══════════════════════════════════════════════
+     STEPPER (wizard / multi-step flow)
+     ═══════════════════════════════════════════════ */
+
+  --stepper-dot-size: 32px;
+  --stepper-dot-font: var(--type-label-font);
+  --stepper-dot-size-text: var(--type-label-size);
+  --stepper-dot-tracking: var(--type-label-tracking);
+  --stepper-dot-bg: var(--color-surface-tertiary);
+  --stepper-dot-color: var(--color-text-secondary);
+  --stepper-dot-border: none;
+  --stepper-active-bg: var(--color-accent);
+  --stepper-active-color: var(--color-text-on-accent);
+  --stepper-complete-bg: var(--color-success);
+  --stepper-complete-color: var(--color-text-on-accent);
+  --stepper-line-color: var(--color-border);
+  --stepper-line-width: var(--border-width-thick);
+  --stepper-label-font: var(--type-label-font);
+  --stepper-label-size: var(--type-label-size);
+  --stepper-label-tracking: var(--type-label-tracking);
+  --stepper-label-color: var(--color-text-muted);
+  --stepper-label-active-color: var(--color-text);
+  --stepper-gap: var(--space-sm);
+  --stepper-transition: var(--duration-fast) var(--easing-default);
+
+  /* ═══════════════════════════════════════════════
+     CODE BLOCK (editor / syntax display)
+     ═══════════════════════════════════════════════ */
+
+  --code-font: var(--type-data-font);
+  --code-font-size: var(--type-data-size);
+  --code-line-height: var(--type-data-leading);
+  --code-bg: var(--color-surface-secondary);
+  --code-text: var(--color-text);
+  --code-border: var(--elevation-border);
+  --code-radius: var(--radius-sm);
+  --code-padding: var(--space-md);
+  --code-line-number-color: var(--color-text-muted);
+  --code-line-number-width: 48px;
+  --code-gutter-bg: var(--color-surface-tertiary);
+  --code-gutter-border: var(--elevation-border);
+  --code-selection-bg: var(--color-accent-subtle);
+  --code-cursor-color: var(--color-accent);
+
+  /* ═══════════════════════════════════════════════
      ACCENT STRIPE
      ═══════════════════════════════════════════════ */
 

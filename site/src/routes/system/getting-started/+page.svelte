@@ -120,7 +120,7 @@
 		font-family: var(--font-mono);
 		font-size: var(--type-caption-size);
 		background: var(--color-surface-secondary);
-		padding: 1px var(--space-xs);
+		padding: var(--border-width) var(--space-xs);
 		border-radius: var(--radius-sm);
 		border: var(--elevation-border);
 	}

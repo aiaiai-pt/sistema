@@ -1,0 +1,122 @@
+/*
+ * aiaiai Design System — Utilities (utilities.css)
+ *
+ * Global utility classes that consume semantic tokens.
+ * Framework-agnostic — works with plain HTML, Svelte, React, etc.
+ *
+ * Contents:
+ * 1. Typography scale (9 steps)
+ * 2. Focus ring
+ * 3. Reduced motion
+ */
+
+/* ═══════════════════════════════════════════════
+   TYPOGRAPHY SCALE
+
+   9-step categorical type scale.
+   Use these instead of arbitrary font-size/family combos.
+
+   Rule: Labels and data are ALWAYS Berkeley Mono.
+   Instrument Sans is the quiet backdrop for prose.
+   ═══════════════════════════════════════════════ */
+
+.type-display {
+  font-family: var(--type-display-font);
+  font-size: var(--type-display-size);
+  font-weight: var(--type-display-weight);
+  line-height: var(--type-display-leading);
+  letter-spacing: var(--type-display-tracking);
+}
+
+.type-heading-lg {
+  font-family: var(--type-heading-lg-font);
+  font-size: var(--type-heading-lg-size);
+  font-weight: var(--type-heading-lg-weight);
+  line-height: var(--type-heading-lg-leading);
+  letter-spacing: var(--type-heading-lg-tracking);
+}
+
+.type-heading {
+  font-family: var(--type-heading-font);
+  font-size: var(--type-heading-size);
+  font-weight: var(--type-heading-weight);
+  line-height: var(--type-heading-leading);
+  letter-spacing: var(--type-heading-tracking);
+}
+
+.type-heading-sm {
+  font-family: var(--type-heading-sm-font);
+  font-size: var(--type-heading-sm-size);
+  font-weight: var(--type-heading-sm-weight);
+  line-height: var(--type-heading-sm-leading);
+  letter-spacing: var(--type-heading-sm-tracking);
+}
+
+.type-body {
+  font-family: var(--type-body-font);
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  line-height: var(--type-body-leading);
+  letter-spacing: var(--type-body-tracking);
+}
+
+.type-body-sm {
+  font-family: var(--type-body-sm-font);
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--type-body-sm-weight);
+  line-height: var(--type-body-sm-leading);
+  letter-spacing: var(--type-body-sm-tracking);
+}
+
+.type-label {
+  font-family: var(--type-label-font);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  line-height: var(--type-label-leading);
+  letter-spacing: var(--type-label-tracking);
+}
+
+.type-data {
+  font-family: var(--type-data-font);
+  font-size: var(--type-data-size);
+  font-weight: var(--type-data-weight);
+  line-height: var(--type-data-leading);
+  letter-spacing: var(--type-data-tracking);
+}
+
+.type-caption {
+  font-family: var(--type-caption-font);
+  font-size: var(--type-caption-size);
+  font-weight: var(--type-caption-weight);
+  line-height: var(--type-caption-leading);
+  letter-spacing: var(--type-caption-tracking);
+}
+
+/* ═══════════════════════════════════════════════
+   FOCUS RING
+
+   Apply .focus-ring to any interactive element.
+   Uses :focus-visible so keyboard-only.
+   ═══════════════════════════════════════════════ */
+
+.focus-ring:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ═══════════════════════════════════════════════
+   REDUCED MOTION
+
+   Respects user preference. Disables all animation
+   and transition globally.
+   ═══════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

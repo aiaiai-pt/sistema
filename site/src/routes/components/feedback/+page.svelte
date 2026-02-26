@@ -1,6 +1,9 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import TokenRef from '$lib/components/TokenRef.svelte';
+	import Toast from '$ui/Toast.svelte';
+	import EmptyState from '$ui/EmptyState.svelte';
+	import Skeleton from '$ui/Skeleton.svelte';
 
 	const feedbackTokens = [
 		'--toast-radius: var(--radius-md)',
@@ -28,48 +31,25 @@
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Toast</h2>
 	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Non-blocking notifications. Semantic color on the left border, warm shadow for float effect.</p>
 	<div class="toast-stack">
-		<!-- Info -->
-		<div class="toast toast-info">
-			<div class="toast-accent" style="background: var(--color-info);"></div>
-			<div class="toast-content">
-				<span class="type-body-sm"><strong>Sync complete.</strong> All changes have been saved.</span>
-			</div>
-		</div>
+		<Toast variant="info">
+			<strong>Sync complete.</strong> All changes have been saved.
+		</Toast>
 
-		<!-- Success -->
-		<div class="toast toast-success">
-			<div class="toast-accent" style="background: var(--color-success);"></div>
-			<div class="toast-content">
-				<span class="type-body-sm"><strong>Project created.</strong> Your new project is ready.</span>
-			</div>
-		</div>
+		<Toast variant="success">
+			<strong>Project created.</strong> Your new project is ready.
+		</Toast>
 
-		<!-- Warning -->
-		<div class="toast toast-warning">
-			<div class="toast-accent" style="background: var(--color-warning);"></div>
-			<div class="toast-content">
-				<span class="type-body-sm"><strong>Storage limit approaching.</strong> You have used 90% of available storage.</span>
-			</div>
-		</div>
+		<Toast variant="warning">
+			<strong>Storage limit approaching.</strong> You have used 90% of available storage.
+		</Toast>
 
-		<!-- Error -->
-		<div class="toast toast-error">
-			<div class="toast-accent" style="background: var(--color-destructive);"></div>
-			<div class="toast-content">
-				<span class="type-body-sm"><strong>Upload failed.</strong> The file exceeds the 10MB limit.</span>
-			</div>
-		</div>
+		<Toast variant="error">
+			<strong>Upload failed.</strong> The file exceeds the 10MB limit.
+		</Toast>
 
-		<!-- With action -->
-		<div class="toast toast-info">
-			<div class="toast-accent" style="background: var(--color-info);"></div>
-			<div class="toast-content">
-				<span class="type-body-sm"><strong>Message archived.</strong></span>
-				<button class="toast-action">
-					<span class="type-label" style="color: var(--color-accent);">UNDO</span>
-				</button>
-			</div>
-		</div>
+		<Toast variant="info" actionLabel="UNDO" onaction={() => {}}>
+			<strong>Message archived.</strong>
+		</Toast>
 	</div>
 </section>
 
@@ -78,70 +58,76 @@
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Empty State</h2>
 	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Shown when there is nothing to display. Different copy for different contexts.</p>
 	<div class="empty-grid">
-		<!-- First use -->
-		<div class="empty-state">
-			<div class="empty-icon">
-				<svg viewBox="0 0 48 48" fill="none">
-					<rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="2"/>
-					<path d="M18 24h12M24 18v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-				</svg>
-			</div>
-			<h3 class="type-heading-sm">Create your first project</h3>
-			<p class="type-body-sm" style="color: var(--color-text-secondary); text-align: center;">Projects organize your work into focused spaces. Start with one and grow from there.</p>
-			<button class="empty-action">
-				<span class="type-label" style="color: var(--color-text-on-accent);">NEW PROJECT</span>
-			</button>
-			<span class="type-caption" style="margin-top: var(--space-xs);">First-use empty state</span>
+		<div class="empty-card">
+			<EmptyState
+				heading="Create your first project"
+				body="Projects organize your work into focused spaces. Start with one and grow from there."
+				actionLabel="NEW PROJECT"
+				onaction={() => {}}
+			>
+				{#snippet icon()}
+					<svg viewBox="0 0 48 48" fill="none">
+						<rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="2"/>
+						<path d="M18 24h12M24 18v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+			</EmptyState>
+			<span class="type-caption demo-label">First-use empty state</span>
 		</div>
 
-		<!-- No results -->
-		<div class="empty-state">
-			<div class="empty-icon">
-				<svg viewBox="0 0 48 48" fill="none">
-					<circle cx="22" cy="22" r="12" stroke="currentColor" stroke-width="2"/>
-					<path d="M31 31l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-				</svg>
-			</div>
-			<h3 class="type-heading-sm">No results found</h3>
-			<p class="type-body-sm" style="color: var(--color-text-secondary); text-align: center;">Try adjusting your search or filters to find what you are looking for.</p>
-			<button class="empty-action-secondary">
-				<span class="type-label">CLEAR FILTERS</span>
-			</button>
-			<span class="type-caption" style="margin-top: var(--space-xs);">No-results empty state</span>
+		<div class="empty-card">
+			<EmptyState
+				heading="No results found"
+				body="Try adjusting your search or filters to find what you are looking for."
+				actionLabel="CLEAR FILTERS"
+				actionVariant="secondary"
+				onaction={() => {}}
+			>
+				{#snippet icon()}
+					<svg viewBox="0 0 48 48" fill="none">
+						<circle cx="22" cy="22" r="12" stroke="currentColor" stroke-width="2"/>
+						<path d="M31 31l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+			</EmptyState>
+			<span class="type-caption demo-label">No-results empty state</span>
 		</div>
 
-		<!-- Error recovery -->
-		<div class="empty-state">
-			<div class="empty-icon" style="color: var(--color-destructive);">
-				<svg viewBox="0 0 48 48" fill="none">
-					<circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2"/>
-					<path d="M24 16v12M24 32v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-				</svg>
-			</div>
-			<h3 class="type-heading-sm">Couldn't load your projects</h3>
-			<p class="type-body-sm" style="color: var(--color-text-secondary); text-align: center;">The server didn't respond. Check your connection and try again.</p>
-			<button class="empty-action-secondary">
-				<span class="type-label">TRY AGAIN</span>
-			</button>
-			<span class="type-caption" style="margin-top: var(--space-xs);">Error-recovery empty state</span>
+		<div class="empty-card">
+			<EmptyState
+				heading="Couldn't load your projects"
+				body="The server didn't respond. Check your connection and try again."
+				actionLabel="TRY AGAIN"
+				actionVariant="secondary"
+				onaction={() => {}}
+			>
+				{#snippet icon()}
+					<svg viewBox="0 0 48 48" fill="none" style="color: var(--color-destructive);">
+						<circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="2"/>
+						<path d="M24 16v12M24 32v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+			</EmptyState>
+			<span class="type-caption demo-label">Error-recovery empty state</span>
 		</div>
 
-		<!-- Permission -->
-		<div class="empty-state">
-			<div class="empty-icon">
-				<svg viewBox="0 0 48 48" fill="none">
-					<rect x="14" y="20" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
-					<path d="M19 20v-4a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-					<circle cx="24" cy="29" r="2" fill="currentColor"/>
-					<path d="M24 31v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-				</svg>
-			</div>
-			<h3 class="type-heading-sm">You don't have access to this project</h3>
-			<p class="type-body-sm" style="color: var(--color-text-secondary); text-align: center;">Ask the project owner for permission, or switch to a project you own.</p>
-			<button class="empty-action">
-				<span class="type-label" style="color: var(--color-text-on-accent);">REQUEST ACCESS</span>
-			</button>
-			<span class="type-caption" style="margin-top: var(--space-xs);">Permission empty state</span>
+		<div class="empty-card">
+			<EmptyState
+				heading="You don't have access to this project"
+				body="Ask the project owner for permission, or switch to a project you own."
+				actionLabel="REQUEST ACCESS"
+				onaction={() => {}}
+			>
+				{#snippet icon()}
+					<svg viewBox="0 0 48 48" fill="none">
+						<rect x="14" y="20" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+						<path d="M19 20v-4a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+						<circle cx="24" cy="29" r="2" fill="currentColor"/>
+						<path d="M24 31v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+			</EmptyState>
+			<span class="type-caption demo-label">Permission empty state</span>
 		</div>
 	</div>
 </section>
@@ -155,38 +141,36 @@
 		<div class="skeleton-card">
 			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">TEXT LINES</span>
 			<div class="skeleton-demo">
-				<div class="skeleton" style="width: 40%; height: 12px;"></div>
-				<div class="skeleton" style="width: 100%; height: 16px;"></div>
-				<div class="skeleton" style="width: 85%; height: 14px;"></div>
-				<div class="skeleton" style="width: 60%; height: 14px;"></div>
+				<Skeleton width="40%" height="12px" />
+				<Skeleton width="100%" height="16px" />
+				<Skeleton width="85%" height="14px" />
+				<Skeleton width="60%" height="14px" />
 			</div>
 		</div>
 
 		<!-- Card skeleton -->
 		<div class="skeleton-card">
 			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">CARD</span>
-			<div class="skeleton-card-demo">
-				<div class="skeleton" style="width: 100%; height: 120px; border-radius: var(--radius-md);"></div>
-				<div class="skeleton" style="width: 60%; height: 14px; margin-top: var(--space-sm);"></div>
-				<div class="skeleton" style="width: 80%; height: 12px; margin-top: var(--space-xs);"></div>
-			</div>
+			<Skeleton width="100%" height="120px" radius="var(--radius-md)" />
+			<Skeleton width="60%" height="14px" style="margin-top: var(--space-sm);" />
+			<Skeleton width="80%" height="12px" style="margin-top: var(--space-xs);" />
 		</div>
 
 		<!-- Avatar + text -->
 		<div class="skeleton-card">
 			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">AVATAR + TEXT</span>
 			<div class="skeleton-avatar-demo">
-				<div class="skeleton" style="width: 40px; height: 40px; border-radius: var(--radius-circle); flex-shrink: 0;"></div>
+				<Skeleton width="40px" height="40px" circle />
 				<div style="flex: 1; display: flex; flex-direction: column; gap: var(--space-xs);">
-					<div class="skeleton" style="width: 50%; height: 14px;"></div>
-					<div class="skeleton" style="width: 80%; height: 12px;"></div>
+					<Skeleton width="50%" height="14px" />
+					<Skeleton width="80%" height="12px" />
 				</div>
 			</div>
 			<div class="skeleton-avatar-demo" style="margin-top: var(--space-sm);">
-				<div class="skeleton" style="width: 40px; height: 40px; border-radius: var(--radius-circle); flex-shrink: 0;"></div>
+				<Skeleton width="40px" height="40px" circle />
 				<div style="flex: 1; display: flex; flex-direction: column; gap: var(--space-xs);">
-					<div class="skeleton" style="width: 40%; height: 14px;"></div>
-					<div class="skeleton" style="width: 70%; height: 12px;"></div>
+					<Skeleton width="40%" height="14px" />
+					<Skeleton width="70%" height="12px" />
 				</div>
 			</div>
 		</div>
@@ -196,10 +180,10 @@
 			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">TABLE ROW</span>
 			{#each Array(3) as _}
 				<div class="skeleton-table-row">
-					<div class="skeleton" style="width: 30%; height: 12px;"></div>
-					<div class="skeleton" style="width: 20%; height: 12px;"></div>
-					<div class="skeleton" style="width: 15%; height: 12px;"></div>
-					<div class="skeleton" style="width: 10%; height: 12px;"></div>
+					<Skeleton width="30%" height="12px" />
+					<Skeleton width="20%" height="12px" />
+					<Skeleton width="15%" height="12px" />
+					<Skeleton width="10%" height="12px" />
 				</div>
 			{/each}
 		</div>
@@ -212,7 +196,7 @@
 	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Different error presentations depending on scope: page-level, inline, field-level.</p>
 	<div class="error-grid">
 		<!-- Page-level error -->
-		<div class="error-card error-page">
+		<div class="error-card">
 			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">PAGE-LEVEL</span>
 			<div class="error-demo-page">
 				<svg class="error-icon" viewBox="0 0 32 32" fill="none">
@@ -266,118 +250,32 @@
 <TokenRef component="Feedback components" file="components.css" tokens={feedbackTokens} />
 
 <style>
-	/* ─── Toast ─── */
+	/* Only demo layout — all toast, empty state, and skeleton CSS lives in the components */
 	.toast-stack {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-sm);
-		max-width: var(--toast-max-width);
+		max-width: 360px;
 	}
 
-	.toast {
-		display: flex;
-		overflow: hidden;
-		border-radius: var(--toast-radius);
-		border: var(--toast-border);
-		box-shadow: var(--toast-shadow);
-		background: var(--toast-bg);
-	}
-
-	.toast-accent {
-		width: var(--accent-stripe-width);
-		flex-shrink: 0;
-	}
-
-	.toast-content {
-		padding: var(--toast-padding);
-		font-family: var(--toast-font);
-		font-size: var(--toast-font-size);
-		display: flex;
-		align-items: center;
-		gap: var(--space-md);
-		flex: 1;
-	}
-
-	.toast-action {
-		all: unset;
-		cursor: pointer;
-		flex-shrink: 0;
-		transition: opacity var(--duration-instant) var(--easing-default);
-	}
-
-	.toast-action:hover {
-		opacity: 0.8;
-	}
-
-	.toast-action:focus-visible {
-		outline: var(--focus-ring-width) solid var(--color-accent);
-		outline-offset: var(--focus-ring-offset);
-	}
-
-	/* ─── Empty state ─── */
 	.empty-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 		gap: var(--space-md);
 	}
 
-	.empty-state {
+	.empty-card {
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
-		padding: var(--space-2xl) var(--space-lg);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: var(--empty-gap);
-		text-align: center;
 	}
 
-	.empty-icon {
-		width: var(--empty-icon-size);
-		height: var(--empty-icon-size);
-		color: var(--empty-icon-color);
+	.demo-label {
+		padding-bottom: var(--space-md);
 	}
 
-	.empty-icon svg {
-		width: 100%;
-		height: 100%;
-	}
-
-	.empty-action {
-		font-family: var(--button-font);
-		font-size: var(--button-md-font-size);
-		letter-spacing: var(--button-tracking);
-		height: var(--button-md-height);
-		padding: 0 var(--button-md-padding-x);
-		border: none;
-		border-radius: var(--button-radius);
-		background: var(--color-accent);
-		cursor: pointer;
-		transition: background var(--button-transition);
-	}
-
-	.empty-action:hover {
-		background: var(--color-accent-hover);
-	}
-
-	.empty-action-secondary {
-		font-family: var(--button-font);
-		font-size: var(--button-md-font-size);
-		letter-spacing: var(--button-tracking);
-		height: var(--button-md-height);
-		padding: 0 var(--button-md-padding-x);
-		border: var(--elevation-border);
-		border-radius: var(--button-radius);
-		background: transparent;
-		cursor: pointer;
-		transition: background var(--button-transition);
-	}
-
-	.empty-action-secondary:hover {
-		background: var(--color-surface-secondary);
-	}
-
-	/* ─── Skeleton ─── */
 	.skeleton-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -394,39 +292,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-sm);
-	}
-
-	.skeleton {
-		background: var(--skeleton-bg);
-		border-radius: var(--skeleton-radius);
-		position: relative;
-		overflow: hidden;
-	}
-
-	.skeleton::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		left: -100%;
-		width: 100%;
-		height: 100%;
-		background: linear-gradient(90deg, transparent, var(--skeleton-shine), transparent);
-		animation: shimmer var(--skeleton-duration) infinite;
-	}
-
-	@keyframes shimmer {
-		100% { left: 100%; }
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.skeleton::after {
-			animation: none;
-		}
-	}
-
-	.skeleton-card-demo {
-		display: flex;
-		flex-direction: column;
 	}
 
 	.skeleton-avatar-demo {
@@ -446,7 +311,7 @@
 		border-bottom: none;
 	}
 
-	/* ─── Error state ─── */
+	/* ─── Error state (no component — composed inline) ─── */
 	.error-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -508,5 +373,4 @@
 		border: var(--border-width) solid var(--color-warning);
 		border-radius: var(--radius-sm);
 	}
-
 </style>
