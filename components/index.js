@@ -30,6 +30,13 @@ export { default as Panel } from "./Panel.svelte";
 export { default as Toast } from "./Toast.svelte";
 export { default as EmptyState } from "./EmptyState.svelte";
 
+// Navigation
+export { default as Sidebar } from "./Sidebar.svelte";
+export { default as SidebarItem } from "./SidebarItem.svelte";
+export { default as SidebarSection } from "./SidebarSection.svelte";
+export { default as BottomNav } from "./BottomNav.svelte";
+export { default as BottomNavItem } from "./BottomNavItem.svelte";
+
 // Complex
 export { default as Stepper } from "./Stepper.svelte";
 export { default as CodeBlock } from "./CodeBlock.svelte";

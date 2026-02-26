@@ -1,27 +1,16 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Callout from '$lib/components/Callout.svelte';
+	import Button from '$ui/Button.svelte';
+	import Sidebar from '$ui/Sidebar.svelte';
+	import SidebarItem from '$ui/SidebarItem.svelte';
+	import SidebarSection from '$ui/SidebarSection.svelte';
+	import BottomNav from '$ui/BottomNav.svelte';
+	import BottomNavItem from '$ui/BottomNavItem.svelte';
 
 	let sidebarCollapsed = $state(false);
 	let activeItem = $state('dashboard');
 	let bottomActiveItem = $state('home');
-
-	const sidebarItems = [
-		{ id: 'dashboard', label: 'DASHBOARD', section: null },
-		{ id: 'projects', label: 'PROJECTS', section: null, badge: 3 },
-		{ id: 'tasks', label: 'TASKS', section: null },
-		{ id: 'settings', label: 'SETTINGS', section: 'CONFIG' },
-		{ id: 'team', label: 'TEAM', section: null },
-		{ id: 'billing', label: 'BILLING', section: null }
-	];
-
-	const bottomItems = [
-		{ id: 'home', label: 'Home', icon: 'home' },
-		{ id: 'search', label: 'Search', icon: 'search' },
-		{ id: 'create', label: 'Create', icon: 'create', badge: true },
-		{ id: 'activity', label: 'Activity', icon: 'activity' },
-		{ id: 'profile', label: 'Profile', icon: 'profile', disabled: true }
-	];
 </script>
 
 <svelte:head>
@@ -38,117 +27,106 @@
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Sidebar Navigation</h2>
 	<div class="sidebar-demo-container">
 		<div class="sidebar-controls">
-			<button class="control-btn" onclick={() => sidebarCollapsed = !sidebarCollapsed}>
-				<span class="type-label">{sidebarCollapsed ? 'EXPAND' : 'COLLAPSE'}</span>
-			</button>
+			<Button variant="secondary" size="sm" onclick={() => sidebarCollapsed = !sidebarCollapsed}>
+				{sidebarCollapsed ? 'EXPAND' : 'COLLAPSE'}
+			</Button>
 		</div>
-		<div class="sidebar-demo" class:sidebar-collapsed={sidebarCollapsed}>
-			<div class="sidebar-header-demo">
+
+		<Sidebar bind:collapsed={sidebarCollapsed}>
+			{#snippet header()}
 				{#if !sidebarCollapsed}
 					<span class="type-label" style="color: var(--color-text);">AIAIAI</span>
 					<span class="type-caption">Studio</span>
 				{:else}
 					<span class="type-label" style="color: var(--color-text);">A</span>
 				{/if}
-			</div>
+			{/snippet}
 
-			<nav class="sidebar-nav-demo">
-				<!-- Workspace section -->
-				{#if !sidebarCollapsed}
-					<span class="nav-section-title">WORKSPACE</span>
-				{/if}
-				{#each sidebarItems.slice(0, 3) as item}
-					<button
-						class="nav-item-demo"
-						class:nav-item-active={activeItem === item.id}
-						onclick={() => activeItem = item.id}
-					>
-						<svg class="nav-icon" viewBox="0 0 16 16" fill="none">
-							<rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
-						</svg>
-						{#if !sidebarCollapsed}
-							<span class="nav-item-label">{item.label}</span>
-							{#if item.badge}
-								<span class="nav-badge">{item.badge}</span>
-							{/if}
-						{/if}
-					</button>
-				{/each}
+			<SidebarSection title="WORKSPACE" />
+			<SidebarItem active={activeItem === 'dashboard'} onclick={() => activeItem = 'dashboard'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+				{/snippet}
+				DASHBOARD
+			</SidebarItem>
+			<SidebarItem active={activeItem === 'projects'} badge={3} onclick={() => activeItem = 'projects'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+				{/snippet}
+				PROJECTS
+			</SidebarItem>
+			<SidebarItem active={activeItem === 'tasks'} onclick={() => activeItem = 'tasks'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+				{/snippet}
+				TASKS
+			</SidebarItem>
 
-				<!-- Config section -->
-				{#if !sidebarCollapsed}
-					<span class="nav-section-title" style="margin-top: var(--nav-section-margin-top);">CONFIG</span>
-				{/if}
-				{#each sidebarItems.slice(3) as item}
-					<button
-						class="nav-item-demo"
-						class:nav-item-active={activeItem === item.id}
-						onclick={() => activeItem = item.id}
-					>
-						<svg class="nav-icon" viewBox="0 0 16 16" fill="none">
-							<circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
-						</svg>
-						{#if !sidebarCollapsed}
-							<span class="nav-item-label">{item.label}</span>
-						{/if}
-					</button>
-				{/each}
-			</nav>
-		</div>
+			<SidebarSection title="CONFIG" />
+			<SidebarItem active={activeItem === 'settings'} onclick={() => activeItem = 'settings'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/></svg>
+				{/snippet}
+				SETTINGS
+			</SidebarItem>
+			<SidebarItem active={activeItem === 'team'} onclick={() => activeItem = 'team'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/></svg>
+				{/snippet}
+				TEAM
+			</SidebarItem>
+			<SidebarItem active={activeItem === 'billing'} onclick={() => activeItem = 'billing'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/></svg>
+				{/snippet}
+				BILLING
+			</SidebarItem>
+		</Sidebar>
 
 		<!-- State reference -->
 		<div class="state-reference">
 			<h3 class="type-heading-sm" style="margin-bottom: var(--space-md);">Sidebar States</h3>
 			<div class="state-list">
 				<div class="state-item">
-					<div class="state-demo-row">
-						<div class="nav-item-demo nav-item-preview">
-							<svg class="nav-icon" viewBox="0 0 16 16" fill="none">
-								<rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
-							</svg>
-							<span class="nav-item-label">DEFAULT</span>
-						</div>
-					</div>
+					<SidebarItem>
+						{#snippet icon()}
+							<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+						{/snippet}
+						DEFAULT
+					</SidebarItem>
 					<span class="type-caption">Default state</span>
 				</div>
 				<div class="state-item">
-					<div class="state-demo-row">
-						<div class="nav-item-demo nav-item-preview nav-item-hover-preview">
-							<svg class="nav-icon" viewBox="0 0 16 16" fill="none">
-								<rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
-							</svg>
-							<span class="nav-item-label">HOVER</span>
-						</div>
+					<div class="nav-hover-preview">
+						<SidebarItem>
+							{#snippet icon()}
+								<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+							{/snippet}
+							HOVER
+						</SidebarItem>
 					</div>
 					<span class="type-caption">Hover state</span>
 				</div>
 				<div class="state-item">
-					<div class="state-demo-row">
-						<div class="nav-item-demo nav-item-preview nav-item-active">
-							<svg class="nav-icon" viewBox="0 0 16 16" fill="none">
-								<rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
-							</svg>
-							<span class="nav-item-label">ACTIVE</span>
-						</div>
-					</div>
+					<SidebarItem active>
+						{#snippet icon()}
+							<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+						{/snippet}
+						ACTIVE
+					</SidebarItem>
 					<span class="type-caption">Active / current page</span>
 				</div>
 				<div class="state-item">
-					<div class="state-demo-row">
-						<div class="nav-item-demo nav-item-preview">
-							<svg class="nav-icon" viewBox="0 0 16 16" fill="none">
-								<rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
-							</svg>
-							<span class="nav-item-label">WITH BADGE</span>
-							<span class="nav-badge">5</span>
-						</div>
-					</div>
+					<SidebarItem badge={5}>
+						{#snippet icon()}
+							<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+						{/snippet}
+						WITH BADGE
+					</SidebarItem>
 					<span class="type-caption">With notification badge</span>
 				</div>
 				<div class="state-item">
-					<div class="state-demo-row">
-						<span class="nav-section-title" style="padding: 0;">SECTION HEADER</span>
-					</div>
+					<SidebarSection title="SECTION HEADER" />
 					<span class="type-caption">Section divider label</span>
 				</div>
 			</div>
@@ -160,64 +138,52 @@
 <section style="margin-bottom: var(--space-2xl);">
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Bottom Navigation</h2>
 	<div class="bottom-nav-container">
-		<div class="bottom-nav-demo">
-			{#each bottomItems as item}
-				<button
-					class="bottom-nav-item"
-					class:bottom-nav-active={bottomActiveItem === item.id}
-					class:bottom-nav-disabled={item.disabled}
-					onclick={() => { if (!item.disabled) bottomActiveItem = item.id; }}
-					disabled={item.disabled}
-				>
-					<div class="bottom-nav-icon-wrap">
-						{#if item.icon === 'home'}
-							<svg class="bottom-nav-icon" viewBox="0 0 20 20" fill="none">
-								<path d="M3 10l7-7 7 7M5 8v7a1 1 0 001 1h3v-4h2v4h3a1 1 0 001-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-							</svg>
-						{:else if item.icon === 'search'}
-							<svg class="bottom-nav-icon" viewBox="0 0 20 20" fill="none">
-								<circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.5"/>
-								<path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-							</svg>
-						{:else if item.icon === 'create'}
-							<svg class="bottom-nav-icon" viewBox="0 0 20 20" fill="none">
-								<path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-							</svg>
-						{:else if item.icon === 'activity'}
-							<svg class="bottom-nav-icon" viewBox="0 0 20 20" fill="none">
-								<path d="M3 10h3l2-6 4 12 2-6h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-							</svg>
-						{:else}
-							<svg class="bottom-nav-icon" viewBox="0 0 20 20" fill="none">
-								<circle cx="10" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/>
-								<path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-							</svg>
-						{/if}
-						{#if item.badge}
-							<span class="bottom-nav-badge"></span>
-						{/if}
-					</div>
-					<span class="bottom-nav-label">{item.label}</span>
-				</button>
-			{/each}
-		</div>
+		<BottomNav>
+			<BottomNavItem active={bottomActiveItem === 'home'} label="Home" onclick={() => bottomActiveItem = 'home'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 20 20" fill="none">
+						<path d="M3 10l7-7 7 7M5 8v7a1 1 0 001 1h3v-4h2v4h3a1 1 0 001-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				{/snippet}
+			</BottomNavItem>
+			<BottomNavItem active={bottomActiveItem === 'search'} label="Search" onclick={() => bottomActiveItem = 'search'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 20 20" fill="none">
+						<circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+						<path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+			</BottomNavItem>
+			<BottomNavItem active={bottomActiveItem === 'create'} label="Create" badge onclick={() => bottomActiveItem = 'create'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 20 20" fill="none">
+						<path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+			</BottomNavItem>
+			<BottomNavItem active={bottomActiveItem === 'activity'} label="Activity" onclick={() => bottomActiveItem = 'activity'}>
+				{#snippet icon()}
+					<svg viewBox="0 0 20 20" fill="none">
+						<path d="M3 10h3l2-6 4 12 2-6h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				{/snippet}
+			</BottomNavItem>
+			<BottomNavItem label="Profile" disabled>
+				{#snippet icon()}
+					<svg viewBox="0 0 20 20" fill="none">
+						<circle cx="10" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+						<path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+			</BottomNavItem>
+		</BottomNav>
 	</div>
 	<div class="bottom-states-row">
-		<div class="state-label-pair">
-			<span class="type-caption">Default</span>
-		</div>
-		<div class="state-label-pair">
-			<span class="type-caption">Default</span>
-		</div>
-		<div class="state-label-pair">
-			<span class="type-caption">With badge</span>
-		</div>
-		<div class="state-label-pair">
-			<span class="type-caption">Default</span>
-		</div>
-		<div class="state-label-pair">
-			<span class="type-caption">Disabled</span>
-		</div>
+		<span class="type-caption">Default</span>
+		<span class="type-caption">Default</span>
+		<span class="type-caption">With badge</span>
+		<span class="type-caption">Default</span>
+		<span class="type-caption">Disabled</span>
 	</div>
 </section>
 
@@ -245,7 +211,7 @@
 </Callout>
 
 <style>
-	/* ─── Sidebar demo ─── */
+	/* Only demo layout — all nav CSS lives in the components */
 	.sidebar-demo-container {
 		display: grid;
 		grid-template-columns: auto 1fr;
@@ -253,137 +219,17 @@
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
 		overflow-x: auto;
+		position: relative;
 	}
 
 	.sidebar-controls {
 		position: absolute;
 		top: var(--space-md);
 		right: var(--space-md);
+		z-index: 1;
 	}
 
-	.sidebar-demo-container {
-		position: relative;
-	}
-
-	.control-btn {
-		font-family: var(--button-font);
-		letter-spacing: var(--button-tracking);
-		font-size: var(--button-sm-font-size);
-		height: var(--button-sm-height);
-		padding: 0 var(--button-sm-padding-x);
-		border: var(--elevation-border);
-		border-radius: var(--button-radius);
-		background: var(--color-surface);
-		color: var(--color-text-secondary);
-		cursor: pointer;
-		transition: all var(--button-transition);
-	}
-
-	.control-btn:hover {
-		background: var(--color-surface-secondary);
-	}
-
-	.sidebar-demo {
-		width: var(--nav-sidebar-width);
-		min-width: var(--nav-sidebar-width);
-		background: var(--nav-sidebar-bg);
-		border-right: var(--nav-sidebar-border);
-		padding: var(--nav-sidebar-padding);
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-sm);
-		transition: width var(--duration-slow) var(--easing-default),
-					min-width var(--duration-slow) var(--easing-default);
-	}
-
-	.sidebar-collapsed {
-		width: var(--nav-sidebar-width-collapsed);
-		min-width: var(--nav-sidebar-width-collapsed);
-	}
-
-	.sidebar-header-demo {
-		display: flex;
-		align-items: baseline;
-		gap: var(--space-sm);
-		padding: var(--space-sm);
-		border-bottom: var(--elevation-border);
-		padding-bottom: var(--space-md);
-	}
-
-	.sidebar-nav-demo {
-		display: flex;
-		flex-direction: column;
-		gap: var(--border-width);
-	}
-
-	.nav-section-title {
-		font-family: var(--nav-section-font);
-		font-size: var(--nav-section-size);
-		letter-spacing: var(--nav-section-tracking);
-		color: var(--nav-section-color);
-		padding: var(--space-sm) var(--space-sm) var(--space-xs);
-	}
-
-	.nav-item-demo {
-		all: unset;
-		display: flex;
-		align-items: center;
-		gap: var(--space-sm);
-		height: var(--nav-item-height);
-		padding: 0 var(--nav-item-padding-x);
-		border-radius: var(--nav-item-radius);
-		font-family: var(--nav-item-font);
-		font-size: var(--nav-item-font-size);
-		letter-spacing: var(--nav-item-tracking);
-		color: var(--nav-item-color);
-		cursor: pointer;
-		transition: all var(--nav-item-transition);
-	}
-
-	.nav-item-demo:hover {
-		color: var(--nav-item-color-hover);
-		background: var(--nav-item-bg-hover);
-	}
-
-	.nav-item-demo:focus-visible {
-		outline: var(--focus-ring-width) solid var(--color-accent);
-		outline-offset: var(--focus-ring-offset);
-	}
-
-	.nav-item-active {
-		color: var(--nav-item-color-active);
-		background: var(--nav-item-bg-active);
-	}
-
-	.nav-item-label {
-		font-family: inherit;
-		font-size: inherit;
-		letter-spacing: inherit;
-		white-space: nowrap;
-	}
-
-	.nav-icon {
-		width: 16px;
-		height: 16px;
-		flex-shrink: 0;
-	}
-
-	.nav-badge {
-		font-family: var(--type-data-font);
-		font-size: var(--type-caption-size);
-		background: var(--color-accent);
-		color: var(--color-text-on-accent);
-		border-radius: var(--radius-pill);
-		padding: 0 var(--space-xs);
-		min-width: 18px;
-		height: 18px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		margin-left: auto;
-	}
-
-	/* ─── State reference ─── */
+	/* State reference panel */
 	.state-reference {
 		padding: var(--space-lg);
 	}
@@ -400,86 +246,22 @@
 		gap: var(--space-2xs);
 	}
 
-	.state-demo-row {
-		display: flex;
-	}
-
-	.nav-item-preview {
+	/* Simulated hover: wrap the item and force hover colors */
+	.nav-hover-preview {
 		pointer-events: none;
-		background: transparent;
-		min-width: 180px;
 	}
 
-	.nav-item-hover-preview {
+	.nav-hover-preview :global(.nav-item) {
 		color: var(--nav-item-color-hover);
 		background: var(--nav-item-bg-hover);
 	}
 
-	/* ─── Bottom nav ─── */
+	/* Bottom nav demo */
 	.bottom-nav-container {
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
 		overflow: hidden;
 		max-width: 400px;
-	}
-
-	.bottom-nav-demo {
-		height: var(--nav-bottom-height);
-		background: var(--nav-bottom-bg);
-		border-top: var(--nav-bottom-border-top);
-		display: flex;
-		align-items: center;
-		justify-content: space-around;
-	}
-
-	.bottom-nav-item {
-		all: unset;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--space-2xs);
-		cursor: pointer;
-		color: var(--nav-bottom-item-color);
-		transition: color var(--duration-instant) var(--easing-default);
-		padding: var(--space-xs);
-	}
-
-	.bottom-nav-item:focus-visible {
-		outline: var(--focus-ring-width) solid var(--color-accent);
-		outline-offset: var(--focus-ring-offset);
-	}
-
-	.bottom-nav-active {
-		color: var(--nav-bottom-item-color-active);
-	}
-
-	.bottom-nav-disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
-	}
-
-	.bottom-nav-icon-wrap {
-		position: relative;
-	}
-
-	.bottom-nav-icon {
-		width: 20px;
-		height: 20px;
-	}
-
-	.bottom-nav-badge {
-		position: absolute;
-		top: -2px;
-		right: -4px;
-		width: var(--status-dot-size);
-		height: var(--status-dot-size);
-		background: var(--color-accent);
-		border-radius: var(--radius-circle);
-	}
-
-	.bottom-nav-label {
-		font-family: var(--nav-bottom-item-font);
-		font-size: var(--nav-bottom-item-size);
 	}
 
 	.bottom-states-row {
@@ -489,11 +271,7 @@
 		margin-top: var(--space-xs);
 	}
 
-	.state-label-pair {
-		text-align: center;
-	}
-
-	/* ─── Layout ─── */
+	/* Token reference layout */
 	.token-columns {
 		display: grid;
 		grid-template-columns: 1fr;
