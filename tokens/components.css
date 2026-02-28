@@ -405,6 +405,28 @@
   --accent-stripe-width: 3px;
 
   /* ═══════════════════════════════════════════════
+     LIST
+     ═══════════════════════════════════════════════ */
+
+  --list-gap: var(--space-sm);
+  --list-border: var(--elevation-border);
+  --list-border-radius: var(--radius-md);
+
+  /* ═══════════════════════════════════════════════
+     LIST ITEM
+     ═══════════════════════════════════════════════ */
+
+  --list-item-padding-x: var(--space-md);
+  --list-item-padding-y: var(--space-sm);
+  --list-item-gap: var(--space-md);
+  --list-item-bg: var(--color-surface);
+  --list-item-bg-hover: var(--color-surface-secondary);
+  --list-item-divider: var(--elevation-border);
+  --list-item-transition: var(--duration-instant) var(--easing-default);
+  --list-item-leading-gap: var(--space-xs);
+  --list-item-trailing-gap: var(--space-xs);
+
+  /* ═══════════════════════════════════════════════
      FOCUS RING (global)
      ═══════════════════════════════════════════════ */
 

@@ -27,6 +27,8 @@ export { default as Label } from "./Label.svelte";
 // Layout
 export { default as Separator } from "./Separator.svelte";
 export { default as Progress } from "./Progress.svelte";
+export { default as List } from "./List.svelte";
+export { default as ListItem } from "./ListItem.svelte";
 
 // Containers
 export { default as Card } from "./Card.svelte";

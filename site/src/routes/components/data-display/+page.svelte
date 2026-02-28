@@ -5,6 +5,7 @@
 	import Tag from '$ui/Tag.svelte';
 	import KeyValue from '$ui/KeyValue.svelte';
 	import Status from '$ui/Status.svelte';
+	import CodeBlock from '$ui/CodeBlock.svelte';
 
 	const dataDisplayTokens = [
 		'--badge-font: var(--type-label-font)',
@@ -14,7 +15,11 @@
 		'--kv-key-font: var(--type-label-font)',
 		'--kv-value-font: var(--type-data-font)',
 		'--status-dot-size: 8px',
-		'--status-font: var(--type-label-font)'
+		'--status-font: var(--type-label-font)',
+		'--code-font: var(--type-data-font)',
+		'--code-bg: var(--color-surface-secondary)',
+		'--code-radius: var(--radius-sm)',
+		'--code-line-number-color: var(--color-text-muted)'
 	];
 </script>
 
@@ -176,6 +181,26 @@
 	</div>
 </section>
 
+<!-- Code Block -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Code Block</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Formatted code display with optional line numbers and copy button. Syntax highlighting is the consumer's responsibility.</p>
+	<div class="code-demos">
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">WITH LINE NUMBERS</span>
+			<CodeBlock code={"SELECT id, name, email\nFROM users\nWHERE active = true\nORDER BY created_at DESC\nLIMIT 50;"} language="sql" />
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">WITHOUT LINE NUMBERS</span>
+			<CodeBlock code="pip install aiaiai-sdk" lineNumbers={false} language="bash" />
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">WITH COPY BUTTON</span>
+			<CodeBlock code={"export AIAIAI_API_KEY=sk-xxxxx\nexport AIAIAI_ENDPOINT=https://api.aiaiai.pt"} lineNumbers={false} language="bash" />
+		</div>
+	</div>
+</section>
+
 <!-- Token reference -->
 <TokenRef component="Data display components" file="components.css" tokens={dataDisplayTokens} />
 
@@ -255,5 +280,11 @@
 	.kv-inline-list :global(.kv-inline-item:last-child) {
 		border-bottom: none;
 		padding-bottom: 0;
+	}
+
+	.code-demos {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-lg);
 	}
 </style>

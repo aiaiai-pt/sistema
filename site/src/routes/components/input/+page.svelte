@@ -7,6 +7,8 @@
 	import Select from '$ui/Select.svelte';
 	import Toggle from '$ui/Toggle.svelte';
 	import Checkbox from '$ui/Checkbox.svelte';
+	import Label from '$ui/Label.svelte';
+	import Textarea from '$ui/Textarea.svelte';
 
 	let toggleOn = $state(false);
 	let checked = $state(false);
@@ -25,7 +27,9 @@
 		'--input-border: var(--elevation-border)',
 		'--input-label-font: var(--type-label-font)',
 		'--toggle-bg-on: var(--color-accent)',
-		'--checkbox-bg-checked: var(--color-accent)'
+		'--checkbox-bg-checked: var(--color-accent)',
+		'--textarea-min-height: 80px',
+		'--textarea-padding: var(--space-sm)'
 	];
 </script>
 
@@ -158,6 +162,57 @@
 
 		<StateCard label="INDETERMINATE">
 			<Checkbox label="Select all" indeterminate />
+		</StateCard>
+	</DemoGrid>
+</section>
+
+<!-- Label -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Label</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Standalone form label for complex layouts where the label is not built into a form component. Uses mono label font.</p>
+	<DemoGrid columns="repeat(auto-fill, minmax(240px, 1fr))">
+		<StateCard label="DEFAULT">
+			<Label>EMAIL ADDRESS</Label>
+		</StateCard>
+
+		<StateCard label="WITH FOR">
+			<Label for="demo-input">LINKED LABEL</Label>
+			<span class="type-caption">Click label to focus linked input</span>
+		</StateCard>
+
+		<StateCard label="DISABLED">
+			<Label disabled>LOCKED FIELD</Label>
+		</StateCard>
+	</DemoGrid>
+</section>
+
+<!-- Textarea -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Textarea</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Multi-line text input. Values displayed in Berkeley Mono (data font). Resizable vertically.</p>
+	<DemoGrid columns="repeat(auto-fill, minmax(240px, 1fr))">
+		<StateCard label="PLACEHOLDER">
+			<Textarea label="DESCRIPTION" placeholder="Enter a detailed description..." rows={3} />
+		</StateCard>
+
+		<StateCard label="FILLED">
+			<Textarea label="SQL QUERY" value={"SELECT id, name, email\nFROM users\nWHERE active = true\nORDER BY created_at DESC;"} rows={4} />
+		</StateCard>
+
+		<StateCard label="WITH HELP TEXT">
+			<Textarea label="NOTES" placeholder="Add notes..." help="Markdown formatting is supported." rows={3} />
+		</StateCard>
+
+		<StateCard label="ERROR">
+			<Textarea label="SQL QUERY" value="SELCT * FROM" error="Syntax error near SELCT on line 1." rows={2} />
+		</StateCard>
+
+		<StateCard label="DISABLED">
+			<Textarea label="TEMPLATE" value="This template cannot be modified." disabled rows={2} />
+		</StateCard>
+
+		<StateCard label="READ-ONLY">
+			<Textarea label="AUDIT LOG" value={"2026-02-28 12:00:00 — Pipeline started\n2026-02-28 12:01:23 — Step 1 complete"} readonly rows={3} />
 		</StateCard>
 	</DemoGrid>
 </section>

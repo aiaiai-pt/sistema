@@ -3,6 +3,7 @@
 	import Callout from '$lib/components/Callout.svelte';
 	import Button from '$ui/Button.svelte';
 	import Modal from '$ui/Modal.svelte';
+	import Panel from '$ui/Panel.svelte';
 	import Alert from '$ui/Alert.svelte';
 	import Input from '$ui/Input.svelte';
 
@@ -10,6 +11,9 @@
 	let showSmallModal = $state(false);
 	let showLargeModal = $state(false);
 	let renameName = $state('My Pipeline');
+	let showNarrowPanel = $state(false);
+	let showDefaultPanel = $state(false);
+	let showWidePanel = $state(false);
 </script>
 
 <svelte:head>
@@ -106,6 +110,64 @@
 	</div>
 </section>
 
+<!-- Panel -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Panel</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Slide-over drawer for editing, detail views, and settings. Opens from the right. Focus-trapped with Escape key support.</p>
+
+	<div class="modal-triggers">
+		<Button variant="secondary" onclick={() => showNarrowPanel = true}>NARROW PANEL</Button>
+		<Button variant="primary" onclick={() => showDefaultPanel = true}>DEFAULT PANEL</Button>
+		<Button variant="secondary" onclick={() => showWidePanel = true}>WIDE PANEL</Button>
+	</div>
+
+	<Panel open={showNarrowPanel} width="narrow" title="Settings" onclose={() => showNarrowPanel = false}>
+		<div style="display: flex; flex-direction: column; gap: var(--space-md);">
+			<Input label="DISPLAY NAME" value="Carlos Oliveira" />
+			<Input label="EMAIL" value="carlos@aiaiai.pt" />
+		</div>
+	</Panel>
+
+	<Panel open={showDefaultPanel} title="Edit Pipeline" onclose={() => showDefaultPanel = false}>
+		<div style="display: flex; flex-direction: column; gap: var(--space-md);">
+			<p class="type-body-sm">Default width panel for editing forms, detail views, and configuration.</p>
+			<Input label="PIPELINE NAME" value="customer-enrichment-v2" />
+			<Input label="SCHEDULE" value="0 */6 * * *" help="Cron expression for execution schedule." />
+			<div style="background: var(--color-surface-secondary); border-radius: var(--radius-sm); padding: var(--space-lg); min-height: 80px; display: flex; align-items: center; justify-content: center;">
+				<span class="type-caption" style="color: var(--color-text-muted);">CONFIGURATION AREA</span>
+			</div>
+		</div>
+	</Panel>
+
+	<Panel open={showWidePanel} width="wide" title="Pipeline Details" onclose={() => showWidePanel = false}>
+		<div style="display: flex; flex-direction: column; gap: var(--space-md);">
+			<p class="type-body-sm">Wide panel for content that needs more horizontal space — code editors, data tables, schema previews.</p>
+			<div style="background: var(--color-surface-secondary); border-radius: var(--radius-sm); padding: var(--space-lg); min-height: 160px; display: flex; align-items: center; justify-content: center;">
+				<span class="type-caption" style="color: var(--color-text-muted);">WIDE CONTENT AREA</span>
+			</div>
+		</div>
+	</Panel>
+</section>
+
+<!-- Panel Sizes -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Panel Sizes</h2>
+	<div class="size-table">
+		<div class="size-row">
+			<code class="type-data">narrow</code>
+			<span class="type-body-sm">360px — settings, simple forms</span>
+		</div>
+		<div class="size-row">
+			<code class="type-data">default</code>
+			<span class="type-body-sm">480px — edit forms, detail views</span>
+		</div>
+		<div class="size-row">
+			<code class="type-data">wide</code>
+			<span class="type-body-sm">640px — code editors, data tables, schema previews</span>
+		</div>
+	</div>
+</section>
+
 <!-- Token reference -->
 <Callout title="TOKEN REFERENCE">
 	<div class="token-columns">
@@ -125,6 +187,15 @@
 				<code class="type-data token-item">--modal-radius: var(--radius-lg)</code>
 				<code class="type-data token-item">--modal-shadow: var(--elevation-overlay)</code>
 				<code class="type-data token-item">--modal-backdrop: var(--color-overlay)</code>
+			</div>
+		</div>
+		<div>
+			<p class="type-body-sm" style="margin-bottom: var(--space-xs);"><strong>Panel:</strong></p>
+			<div class="token-list">
+				<code class="type-data token-item">--panel-width: 480px</code>
+				<code class="type-data token-item">--panel-radius: 0</code>
+				<code class="type-data token-item">--panel-shadow: var(--elevation-overlay)</code>
+				<code class="type-data token-item">--panel-backdrop: var(--color-overlay)</code>
 			</div>
 		</div>
 	</div>

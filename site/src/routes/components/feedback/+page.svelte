@@ -5,6 +5,7 @@
 	import EmptyState from '$ui/EmptyState.svelte';
 	import Skeleton from '$ui/Skeleton.svelte';
 	import Progress from '$ui/Progress.svelte';
+	import Stepper from '$ui/Stepper.svelte';
 
 	let progressValue = $state(65);
 
@@ -15,6 +16,10 @@
 		'--progress-height: 8px',
 		'--progress-fill: var(--color-accent)',
 		'--progress-radius: var(--radius-pill)',
+		'--stepper-dot-size: 32px',
+		'--stepper-active-bg: var(--color-accent)',
+		'--stepper-complete-bg: var(--color-success)',
+		'--stepper-line-color: var(--color-border)',
 		'--empty-icon-size: 48px',
 		'--empty-gap: var(--space-md)',
 		'--skeleton-bg: var(--color-surface-tertiary)',
@@ -157,6 +162,40 @@
 			<span class="type-label">COMPLETE</span>
 			<Progress value={100} />
 			<span class="type-data">100%</span>
+		</div>
+	</div>
+</section>
+
+<!-- Stepper -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Stepper</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Horizontal step indicator for multi-step flows. Shows completed, active, and upcoming steps with connecting lines.</p>
+	<div class="stepper-demos">
+		<div class="stepper-card">
+			<span class="type-label" style="margin-bottom: var(--space-md); display: block;">MID-FLOW</span>
+			<Stepper steps={[
+				{ label: 'Source', status: 'complete' },
+				{ label: 'Transform', status: 'complete' },
+				{ label: 'Configure', status: 'active' },
+				{ label: 'Deploy', status: 'upcoming' },
+			]} />
+		</div>
+		<div class="stepper-card">
+			<span class="type-label" style="margin-bottom: var(--space-md); display: block;">EARLY STAGE</span>
+			<Stepper steps={[
+				{ label: 'Connect', status: 'active' },
+				{ label: 'Schema', status: 'upcoming' },
+				{ label: 'Mapping', status: 'upcoming' },
+				{ label: 'Review', status: 'upcoming' },
+			]} />
+		</div>
+		<div class="stepper-card">
+			<span class="type-label" style="margin-bottom: var(--space-md); display: block;">COMPLETE</span>
+			<Stepper steps={[
+				{ label: 'Upload', status: 'complete' },
+				{ label: 'Validate', status: 'complete' },
+				{ label: 'Process', status: 'complete' },
+			]} />
 		</div>
 	</div>
 </section>
@@ -418,5 +457,17 @@
 		background: var(--color-warning-subtle);
 		border: var(--border-width) solid var(--color-warning);
 		border-radius: var(--radius-sm);
+	}
+
+	.stepper-demos {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-md);
+	}
+
+	.stepper-card {
+		border: var(--elevation-border);
+		border-radius: var(--radius-md);
+		padding: var(--space-lg);
 	}
 </style>
