@@ -347,6 +347,7 @@
   --progress-bg: var(--color-surface-tertiary);
   --progress-fill: var(--color-accent);
   --progress-transition: var(--duration-fast) var(--easing-default);
+  --progress-indeterminate-duration: 1.5s;
 
   /* ═══════════════════════════════════════════════
      ALERT (inline callout)
@@ -425,6 +426,47 @@
   --list-item-transition: var(--duration-instant) var(--easing-default);
   --list-item-leading-gap: var(--space-xs);
   --list-item-trailing-gap: var(--space-xs);
+
+  /* ═══════════════════════════════════════════════
+     FILE UPLOAD
+     ═══════════════════════════════════════════════ */
+
+  --fileupload-border: var(--border-width-thick) dashed var(--color-border);
+  --fileupload-border-dragging: var(--border-width-thick) solid
+    var(--color-accent);
+  --fileupload-radius: var(--radius-md);
+  --fileupload-padding: var(--space-xl);
+  --fileupload-bg: transparent;
+  --fileupload-bg-dragging: var(--color-accent-subtle);
+  --fileupload-transition: var(--duration-fast) var(--easing-default);
+  --fileupload-icon-size: 32px;
+  --fileupload-icon-color: var(--color-text-muted);
+  --fileupload-icon-color-dragging: var(--color-accent);
+  --fileupload-text-font: var(--type-body-sm-font);
+  --fileupload-text-size: var(--type-body-sm-size);
+  --fileupload-text-color: var(--color-text-secondary);
+  --fileupload-hint-font: var(--type-caption-font);
+  --fileupload-hint-size: var(--type-caption-size);
+  --fileupload-hint-color: var(--color-text-muted);
+
+  /* ═══════════════════════════════════════════════
+     FILE UPLOAD ITEM
+     ═══════════════════════════════════════════════ */
+
+  --fileupload-item-padding: var(--space-sm) var(--space-md);
+  --fileupload-item-gap: var(--space-sm);
+  --fileupload-item-radius: var(--radius-sm);
+  --fileupload-item-bg: var(--color-surface);
+  --fileupload-item-border: var(--elevation-border);
+  --fileupload-item-name-font: var(--type-body-sm-font);
+  --fileupload-item-name-size: var(--type-body-sm-size);
+  --fileupload-item-name-color: var(--color-text);
+  --fileupload-item-size-font: var(--type-caption-font);
+  --fileupload-item-size-size: var(--type-caption-size);
+  --fileupload-item-size-color: var(--color-text-muted);
+  --fileupload-item-icon-size: 20px;
+  --fileupload-item-error-color: var(--color-destructive);
+  --fileupload-item-complete-color: var(--color-success);
 
   /* ═══════════════════════════════════════════════
      FOCUS RING (global)

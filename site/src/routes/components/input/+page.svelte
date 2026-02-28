@@ -9,6 +9,8 @@
 	import Checkbox from '$ui/Checkbox.svelte';
 	import Label from '$ui/Label.svelte';
 	import Textarea from '$ui/Textarea.svelte';
+	import FileUpload from '$ui/FileUpload.svelte';
+	import FileUploadItem from '$ui/FileUploadItem.svelte';
 
 	let toggleOn = $state(false);
 	let checked = $state(false);
@@ -29,7 +31,13 @@
 		'--toggle-bg-on: var(--color-accent)',
 		'--checkbox-bg-checked: var(--color-accent)',
 		'--textarea-min-height: 80px',
-		'--textarea-padding: var(--space-sm)'
+		'--textarea-padding: var(--space-sm)',
+		'--fileupload-border: dashed var(--color-border)',
+		'--fileupload-border-dragging: solid var(--color-accent)',
+		'--fileupload-bg-dragging: var(--color-accent-subtle)',
+		'--fileupload-item-border: var(--elevation-border)',
+		'--fileupload-item-error-color: var(--color-destructive)',
+		'--fileupload-item-complete-color: var(--color-success)'
 	];
 </script>
 
@@ -217,5 +225,101 @@
 	</DemoGrid>
 </section>
 
+<!-- File Upload -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">File Upload</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Drag-and-drop zone for file selection. Validates accept types and max size, then emits valid files via callback. Does not handle uploads — parent owns that logic.</p>
+	<DemoGrid columns="repeat(auto-fill, minmax(280px, 1fr))">
+		<StateCard label="DEFAULT">
+			<FileUpload
+				accept=".pdf,.docx,.txt,.csv"
+				maxSize={52_428_800}
+				onfiles={(files: File[]) => console.log('Files:', files)}
+			>
+				{#snippet icon()}
+					<svg viewBox="0 0 32 32" fill="none">
+						<path d="M16 20V6M16 6l-5 5M16 6l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+						<path d="M6 22v4a2 2 0 002 2h16a2 2 0 002-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				{/snippet}
+			</FileUpload>
+		</StateCard>
+
+		<StateCard label="NO CONSTRAINTS">
+			<FileUpload onfiles={(files: File[]) => console.log('Files:', files)}>
+				{#snippet icon()}
+					<svg viewBox="0 0 32 32" fill="none">
+						<path d="M16 20V6M16 6l-5 5M16 6l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+						<path d="M6 22v4a2 2 0 002 2h16a2 2 0 002-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				{/snippet}
+			</FileUpload>
+		</StateCard>
+
+		<StateCard label="DISABLED">
+			<FileUpload accept=".pdf" disabled>
+				{#snippet icon()}
+					<svg viewBox="0 0 32 32" fill="none">
+						<path d="M16 20V6M16 6l-5 5M16 6l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+						<path d="M6 22v4a2 2 0 002 2h16a2 2 0 002-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				{/snippet}
+			</FileUpload>
+		</StateCard>
+
+		<StateCard label="CUSTOM CONTENT">
+			<FileUpload onfiles={(files: File[]) => console.log('Files:', files)}>
+				{#snippet children()}
+					<div style="display: flex; flex-direction: column; align-items: center; gap: var(--space-xs);">
+						<span class="type-label">DRAG YOUR SPEC FILE</span>
+						<span class="type-caption" style="color: var(--color-text-muted);">Only .yaml and .json accepted</span>
+					</div>
+				{/snippet}
+			</FileUpload>
+		</StateCard>
+	</DemoGrid>
+</section>
+
+<!-- File Upload Item -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">File Upload Item</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Per-file progress row. Parent controls all state — this is a pure display component. Use in a list below a FileUpload zone.</p>
+	<div class="fileupload-item-demos">
+		<FileUploadItem
+			name="quarterly-report.pdf"
+			size={2_400_000}
+			status="pending"
+			onremove={() => {}}
+		/>
+		<FileUploadItem
+			name="customer-data-export-2026.csv"
+			size={8_500_000}
+			status="uploading"
+			progress={65}
+			onremove={() => {}}
+		/>
+		<FileUploadItem
+			name="meeting-notes.txt"
+			size={1_200}
+			status="complete"
+		/>
+		<FileUploadItem
+			name="oversized-backup.zip"
+			status="error"
+			error="File exceeds 50 MB limit"
+			onremove={() => {}}
+		/>
+	</div>
+</section>
+
 <!-- Token reference -->
 <TokenRef component="Inputs" file="components.css" tokens={inputTokens} />
+
+<style>
+	.fileupload-item-demos {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+		max-width: 480px;
+	}
+</style>

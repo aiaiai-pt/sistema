@@ -16,6 +16,7 @@
 		'--progress-height: 8px',
 		'--progress-fill: var(--color-accent)',
 		'--progress-radius: var(--radius-pill)',
+		'--progress-indeterminate-duration: 1.5s',
 		'--stepper-dot-size: 32px',
 		'--stepper-active-bg: var(--color-accent)',
 		'--stepper-complete-bg: var(--color-success)',
@@ -146,7 +147,7 @@
 <!-- Progress -->
 <section style="margin-bottom: var(--space-2xl);">
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Progress</h2>
-	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Determinate progress bar for sync, upload, and pipeline execution status.</p>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Determinate and indeterminate progress bars for sync, upload, and pipeline execution status.</p>
 	<div class="progress-demos">
 		<div class="progress-row">
 			<span class="type-label">UPLOADING</span>
@@ -162,6 +163,10 @@
 			<span class="type-label">COMPLETE</span>
 			<Progress value={100} />
 			<span class="type-data">100%</span>
+		</div>
+		<div class="progress-row">
+			<span class="type-label">PROCESSING</span>
+			<Progress indeterminate />
 		</div>
 	</div>
 </section>
