@@ -24,6 +24,8 @@
     label,
     /** @type {string | undefined} */
     id,
+    /** @type {(checked: boolean) => void} */
+    onchange,
     /** @type {string} */
     class: className = '',
     ...rest
@@ -35,6 +37,7 @@
   function handleClick() {
     if (!disabled) {
       checked = !checked;
+      onchange?.(checked);
     }
   }
 </script>
@@ -49,8 +52,8 @@
     role="switch"
     aria-checked={checked}
     aria-labelledby={label ? `${toggleId}-label` : undefined}
-    onclick={handleClick}
     {...rest}
+    onclick={handleClick}
   >
     <span class="toggle-knob"></span>
   </button>
