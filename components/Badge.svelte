@@ -12,7 +12,7 @@
 -->
 <script>
   /**
-   * @typedef {'neutral' | 'info' | 'success' | 'warning' | 'error'} Variant
+   * @typedef {'neutral' | 'info' | 'success' | 'warning' | 'error' | 'outline'} Variant
    */
 
   let {
@@ -23,9 +23,9 @@
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    icon,
+    icon = undefined,
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 </script>
@@ -78,6 +78,12 @@
   .badge-error {
     background: var(--color-destructive-subtle);
     color: var(--color-destructive);
+  }
+
+  .badge-outline {
+    background: transparent;
+    color: var(--color-text);
+    border: var(--border-width) solid var(--color-border);
   }
 
   .badge-dot {

@@ -1,5 +1,9 @@
 import adapter from "@sveltejs/adapter-static";
 import { mdsvex } from "mdsvex";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -13,6 +17,9 @@ const config = {
       precompress: true,
       strict: true,
     }),
+    alias: {
+      $ui: path.resolve(__dirname, "../components"),
+    },
   },
 };
 

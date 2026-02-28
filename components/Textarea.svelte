@@ -18,15 +18,15 @@
 <script>
   let {
     /** @type {string | undefined} */
-    label,
+    label = undefined,
     /** @type {string | undefined} */
-    placeholder,
+    placeholder = undefined,
     /** @type {string} */
     value = $bindable(''),
     /** @type {string | undefined} */
-    help,
+    help = undefined,
     /** @type {string | undefined} */
-    error,
+    error = undefined,
     /** @type {number} */
     rows = 3,
     /** @type {boolean} */
@@ -34,7 +34,7 @@
     /** @type {boolean} */
     readonly = false,
     /** @type {string | undefined} */
-    id,
+    id = undefined,
     /** @type {string} */
     class: className = '',
     ...rest

@@ -15,11 +15,11 @@
     /** @type {boolean} */
     removable = false,
     /** @type {(() => void) | undefined} */
-    onremove,
+    onremove = undefined,
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 </script>

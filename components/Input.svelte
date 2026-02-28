@@ -32,15 +32,15 @@
 
   let {
     /** @type {string | undefined} */
-    label,
+    label = undefined,
     /** @type {string | undefined} */
-    placeholder,
+    placeholder = undefined,
     /** @type {string} */
     value = $bindable(''),
     /** @type {string | undefined} */
-    help,
+    help = undefined,
     /** @type {string | undefined} */
-    error,
+    error = undefined,
     /** @type {Size} */
     size = 'md',
     /** @type {boolean} */
@@ -50,11 +50,11 @@
     /** @type {string} */
     type = 'text',
     /** @type {string | undefined} */
-    id,
+    id = undefined,
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    leadingIcon,
+    leadingIcon = undefined,
     ...rest
   } = $props();
 

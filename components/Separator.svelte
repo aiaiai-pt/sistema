@@ -24,7 +24,7 @@
 
 <div
   role={decorative ? 'none' : 'separator'}
-  aria-orientation={!decorative ? orientation : undefined}
+  aria-orientation={!decorative ? /** @type {'horizontal' | 'vertical'} */ (orientation) : undefined}
   class="separator separator-{orientation} {className}"
   {...rest}
 ></div>

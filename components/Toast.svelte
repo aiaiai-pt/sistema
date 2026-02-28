@@ -26,16 +26,17 @@
     /** @type {Variant} */
     variant = 'info',
     /** @type {string | undefined} */
-    actionLabel,
+    actionLabel = undefined,
     /** @type {(() => void) | undefined} */
-    onaction,
+    onaction = undefined,
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 
+  /** @type {Record<string, string>} */
   const accentColors = {
     info: 'var(--color-info)',
     success: 'var(--color-success)',

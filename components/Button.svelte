@@ -25,6 +25,7 @@
   /**
    * @typedef {'primary' | 'secondary' | 'ghost' | 'destructive'} Variant
    * @typedef {'sm' | 'md' | 'lg'} Size
+   * @typedef {'button' | 'submit' | 'reset'} ButtonType
    */
 
   let {
@@ -38,20 +39,22 @@
     disabled = false,
     /** @type {boolean} */
     iconOnly = false,
-    /** @type {string} */
+    /** @type {ButtonType} */
     type = 'button',
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    icon,
+    icon = undefined,
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
+
+  const buttonType = /** @type {'button' | 'submit' | 'reset'} */ ($derived(type));
 </script>
 
 <button
-  {type}
+  type={buttonType}
   class="btn btn-{variant} btn-{size} {className}"
   class:btn-icon-only={iconOnly}
   disabled={disabled || loading}

@@ -22,7 +22,7 @@
     /** @type {boolean} */
     circle = false,
     /** @type {string | undefined} */
-    radius,
+    radius = undefined,
     /** @type {string} */
     class: className = '',
     ...rest

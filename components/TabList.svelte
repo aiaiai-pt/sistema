@@ -15,7 +15,7 @@
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 </script>

@@ -35,9 +35,9 @@
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    header,
+    header = undefined,
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 

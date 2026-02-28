@@ -32,11 +32,11 @@
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    leading,
+    leading = undefined,
     /** @type {import('svelte').Snippet | undefined} */
-    trailing,
+    trailing = undefined,
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 </script>

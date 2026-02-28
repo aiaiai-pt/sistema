@@ -23,9 +23,9 @@
     /** @type {boolean} */
     disabled = false,
     /** @type {string | undefined} */
-    label,
+    label = undefined,
     /** @type {string | undefined} */
-    id,
+    id = undefined,
     /** @type {string} */
     class: className = '',
     ...rest

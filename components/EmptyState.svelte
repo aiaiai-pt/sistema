@@ -34,17 +34,17 @@
     /** @type {string} */
     heading,
     /** @type {string | undefined} */
-    body,
+    body = undefined,
     /** @type {string | undefined} */
-    actionLabel,
+    actionLabel = undefined,
     /** @type {'primary' | 'secondary'} */
     actionVariant = 'primary',
     /** @type {(() => void) | undefined} */
-    onaction,
+    onaction = undefined,
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    icon,
+    icon = undefined,
     ...rest
   } = $props();
 </script>

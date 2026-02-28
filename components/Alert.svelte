@@ -27,12 +27,13 @@
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    icon,
+    icon = undefined,
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 
+  /** @type {Record<string, string>} */
   const accentColors = {
     info: 'var(--color-info)',
     success: 'var(--color-success)',

@@ -32,15 +32,15 @@
     /** @type {boolean} */
     disabled = false,
     /** @type {string | undefined} */
-    href,
+    href = undefined,
     /** @type {string | number | undefined} */
-    badge,
+    badge = undefined,
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    icon,
+    icon = undefined,
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 

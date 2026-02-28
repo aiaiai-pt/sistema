@@ -13,13 +13,13 @@
 <script>
   let {
     /** @type {string | undefined} */
-    for: htmlFor,
+    for: htmlFor = undefined,
     /** @type {boolean} */
     disabled = false,
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 </script>

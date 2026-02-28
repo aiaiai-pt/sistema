@@ -21,11 +21,11 @@
     /** @type {boolean} */
     disabled = false,
     /** @type {string | undefined} */
-    label,
+    label = undefined,
     /** @type {string | undefined} */
-    id,
-    /** @type {(checked: boolean) => void} */
-    onchange,
+    id = undefined,
+    /** @type {((checked: boolean) => void) | undefined} */
+    onchange = undefined,
     /** @type {string} */
     class: className = '',
     ...rest

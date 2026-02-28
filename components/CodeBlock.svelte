@@ -23,9 +23,9 @@
 <script>
   let {
     /** @type {string | undefined} */
-    code,
+    code = undefined,
     /** @type {string | undefined} */
-    language,
+    language = undefined,
     /** @type {boolean} */
     lineNumbers = true,
     /** @type {boolean} */
@@ -33,7 +33,7 @@
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    content,
+    content = undefined,
     ...rest
   } = $props();
 

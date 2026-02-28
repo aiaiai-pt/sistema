@@ -23,19 +23,17 @@
   let {
     /** @type {string} */
     key,
-    /** @type {string | undefined} */
-    value: valueText,
+    /** @type {string | import('svelte').Snippet | undefined} */
+    value = undefined,
     /** @type {Layout} */
     layout = 'stacked',
     /** @type {string} */
     class: className = '',
-    /** @type {import('svelte').Snippet | undefined} */
-    value: valueSnippet,
     ...rest
   } = $props();
 
   // Determine if we got a snippet or a string for value
-  const hasSnippet = $derived(typeof valueSnippet === 'function');
+  const hasSnippet = $derived(typeof value === 'function');
 </script>
 
 <div
@@ -44,9 +42,9 @@
 >
   <span class="kv-key">{key}</span>
   {#if hasSnippet}
-    <span class="kv-value">{@render valueSnippet()}</span>
-  {:else if valueText != null}
-    <span class="kv-value">{valueText}</span>
+    <span class="kv-value">{@render /** @type {import('svelte').Snippet} */ (value)()}</span>
+  {:else if value != null}
+    <span class="kv-value">{value}</span>
   {/if}
 </div>
 

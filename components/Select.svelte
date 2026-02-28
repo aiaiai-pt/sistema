@@ -22,23 +22,23 @@
 
   let {
     /** @type {string | undefined} */
-    label,
+    label = undefined,
     /** @type {string | undefined} */
-    placeholder,
+    placeholder = undefined,
     /** @type {string} */
     value = $bindable(''),
     /** @type {Option[]} */
     options = [],
     /** @type {string | undefined} */
-    help,
+    help = undefined,
     /** @type {string | undefined} */
-    error,
+    error = undefined,
     /** @type {Size} */
     size = 'md',
     /** @type {boolean} */
     disabled = false,
     /** @type {string | undefined} */
-    id,
+    id = undefined,
     /** @type {string} */
     class: className = '',
     ...rest

@@ -19,12 +19,12 @@
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    children,
+    children = undefined,
     ...rest
   } = $props();
 
   /** @type {{ value: string, setValue: (v: string) => void } | undefined} */
-  const tabs = getContext('aiaiai-tabs');
+  const tabs = getContext('tabs');
   const isActive = $derived(tabs?.value === value);
 </script>
 

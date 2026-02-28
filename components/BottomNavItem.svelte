@@ -21,7 +21,7 @@
     /** @type {boolean} */
     disabled = false,
     /** @type {string | undefined} */
-    href,
+    href = undefined,
     /** @type {string} */
     label,
     /** @type {boolean} */
@@ -29,7 +29,7 @@
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
-    icon,
+    icon = undefined,
     ...rest
   } = $props();
 </script>
