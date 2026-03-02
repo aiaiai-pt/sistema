@@ -2,6 +2,7 @@
   @component Button
 
   Four variants, three sizes. Labels always mono (Berkeley Mono).
+  Renders as `<a>` when `href` is provided, `<button>` otherwise.
   Consumes --button-* tokens from components.css.
 
   @example
@@ -11,6 +12,11 @@
   <Button variant="secondary" size="sm">
     {#snippet icon()}<PhPlus size={16} />{/snippet}
     ADD ITEM
+  </Button>
+
+  @example As link
+  <Button variant="secondary" size="sm" href="/some/path">
+    GO THERE
   </Button>
 
   @example Loading
@@ -41,6 +47,8 @@
     iconOnly = false,
     /** @type {ButtonType} */
     type = 'button',
+    /** @type {string | undefined} */
+    href = undefined,
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
@@ -50,17 +58,12 @@
     ...rest
   } = $props();
 
-  const buttonType = /** @type {'button' | 'submit' | 'reset'} */ ($derived(type));
+  /** @type {'button' | 'submit' | 'reset'} — cast needed for svelte-check on <button type> */
+  const buttonType = $derived(/** @type {'button' | 'submit' | 'reset'} */ (type));
+  const classes = $derived(`btn btn-${variant} btn-${size} ${iconOnly ? 'btn-icon-only' : ''} ${className}`.trim());
 </script>
 
-<button
-  type={buttonType}
-  class="btn btn-{variant} btn-{size} {className}"
-  class:btn-icon-only={iconOnly}
-  disabled={disabled || loading}
-  aria-busy={loading || undefined}
-  {...rest}
->
+{#snippet content()}
   {#if loading}
     <span class="spinner" aria-hidden="true"></span>
   {/if}
@@ -70,7 +73,28 @@
   {#if children}
     <span class="btn-label">{@render children()}</span>
   {/if}
-</button>
+{/snippet}
+
+{#if href && !disabled}
+  <a
+    {href}
+    class={classes}
+    aria-busy={loading || undefined}
+    {...rest}
+  >
+    {@render content()}
+  </a>
+{:else}
+  <button
+    type={buttonType}
+    class={classes}
+    disabled={disabled || loading}
+    aria-busy={loading || undefined}
+    {...rest}
+  >
+    {@render content()}
+  </button>
+{/if}
 
 <style>
   /* ─── Base ─── */

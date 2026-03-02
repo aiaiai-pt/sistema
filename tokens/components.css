@@ -469,6 +469,39 @@
   --fileupload-item-complete-color: var(--color-success);
 
   /* ═══════════════════════════════════════════════
+     POPOVER
+     ═══════════════════════════════════════════════ */
+
+  --popover-bg: var(--raw-color-white);
+  --popover-border: var(--elevation-border-strong);
+  --popover-shadow: var(--elevation-overlay);
+  --popover-radius: var(--radius-md);
+  --popover-padding: var(--space-sm);
+  --popover-z: 50;
+  --popover-enter-offset: -4px;
+
+  /* ═══════════════════════════════════════════════
+     COMBOBOX
+     ═══════════════════════════════════════════════ */
+
+  --combobox-list-max-height: 240px;
+  --combobox-item-padding: var(--space-xs) var(--space-sm);
+  --combobox-item-radius: var(--radius-sm);
+  --combobox-item-hover-bg: var(--color-surface-secondary);
+  --combobox-item-active-bg: var(--color-accent-subtle);
+  --combobox-item-active-color: var(--color-accent);
+  --combobox-highlight-color: var(--color-accent);
+  --combobox-group-font: var(--type-overline-font);
+  --combobox-group-size: var(--type-overline-size);
+  --combobox-group-tracking: var(--type-overline-tracking);
+  --combobox-group-color: var(--color-text-muted);
+  --combobox-group-padding: var(--space-sm) var(--space-sm) var(--space-xs);
+  --combobox-description-font: var(--type-caption-font);
+  --combobox-description-size: var(--type-caption-size);
+  --combobox-description-color: var(--color-text-muted);
+  --combobox-empty-color: var(--color-text-muted);
+
+  /* ═══════════════════════════════════════════════
      FOCUS RING (global)
      ═══════════════════════════════════════════════ */
 
