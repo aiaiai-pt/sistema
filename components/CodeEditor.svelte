@@ -73,16 +73,16 @@
     const s = getComputedStyle(el);
     const get = (/** @type {string} */ prop) => s.getPropertyValue(prop).trim();
 
-    const bg = get('--code-bg') || '#f0ece8';
-    const text = get('--code-text') || '#1a1a1a';
+    const bg = get('--code-bg') || 'inherit';
+    const text = get('--code-text') || 'inherit';
     const font = get('--code-font') || 'monospace';
     const fontSize = get('--code-font-size') || '14px';
     const lineHeight = get('--code-line-height') || '1.6';
-    const gutterBg = get('--code-gutter-bg') || '#e8e4e0';
-    const gutterBorder = get('--code-gutter-border');
-    const lineNumColor = get('--code-line-number-color') || '#999';
-    const selectionBg = get('--code-selection-bg') || 'rgba(234,121,42,0.15)';
-    const cursorColor = get('--code-cursor-color') || '#ea792a';
+    const gutterBg = get('--code-gutter-bg') || 'inherit';
+    const gutterBorder = get('--code-gutter-border') || 'var(--elevation-border)';
+    const lineNumColor = get('--code-line-number-color') || 'inherit';
+    const selectionBg = get('--code-selection-bg') || 'rgba(0,0,0,0.1)';
+    const cursorColor = get('--code-cursor-color') || 'currentColor';
 
     return EditorView.theme({
       '&': {

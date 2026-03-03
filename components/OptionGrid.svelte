@@ -40,45 +40,38 @@
     ...rest
   } = $props();
 
-  const gridCols = $derived(
-    columns === 3 ? 'option-grid--3' : columns === 4 ? 'option-grid--4' : 'option-grid--2'
-  );
-
-  /**
-   * @param {string} val
-   */
-  function select(val) {
-    value = val;
-  }
+  /** @type {HTMLElement[]} */
+  let buttonRefs = [];
 
   /**
    * Handle keyboard navigation within the radiogroup.
    * @param {KeyboardEvent} e
    */
   function handleKeydown(e) {
-    const idx = options.findIndex((o) => o.value === value);
     let next = -1;
 
     switch (e.key) {
       case 'ArrowRight':
-      case 'ArrowDown':
+      case 'ArrowDown': {
         e.preventDefault();
+        const idx = options.findIndex((o) => o.value === value);
         next = idx < options.length - 1 ? idx + 1 : 0;
         break;
+      }
       case 'ArrowLeft':
-      case 'ArrowUp':
+      case 'ArrowUp': {
         e.preventDefault();
+        const idx = options.findIndex((o) => o.value === value);
         next = idx > 0 ? idx - 1 : options.length - 1;
         break;
+      }
       default:
         return;
     }
 
     if (next >= 0) {
       value = options[next].value;
-      const grid = e.currentTarget;
-      const cards = /** @type {HTMLElement} */ (grid).querySelectorAll('[role="radio"]');
-      /** @type {HTMLElement} */ (cards[next])?.focus();
+      buttonRefs[next]?.focus();
     }
   }
 </script>
@@ -86,19 +79,16 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_interactive_supports_focus -->
 <div
-  class="option-grid {gridCols} {className}"
+  class="option-grid {className}"
   class:option-grid--compact={compact}
+  style:--cols={columns}
   role="radiogroup"
   onkeydown={handleKeydown}
   {...rest}
 >
-  {#each options as option (option.value)}
+  {#each options as option, i (option.value)}
     {@const selected = value === option.value}
-    <Card
-      interactive
-      {selected}
-      class="option-card"
-    >
+    <Card {selected} class="option-card">
       {#snippet children()}
         <button
           type="button"
@@ -107,7 +97,8 @@
           role="radio"
           aria-checked={selected}
           tabindex={selected || (!value && options[0]?.value === option.value) ? 0 : -1}
-          onclick={() => select(option.value)}
+          onclick={() => value = option.value}
+          bind:this={buttonRefs[i]}
         >
           {#if option.icon}
             <span class="option-icon" class:option-icon--compact={compact}>
@@ -129,17 +120,8 @@
 <style>
   .option-grid {
     display: grid;
+    grid-template-columns: repeat(var(--cols, 2), 1fr);
     gap: var(--space-sm);
-  }
-
-  .option-grid--2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .option-grid--3 {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .option-grid--4 {
-    grid-template-columns: repeat(4, 1fr);
   }
 
   /* Remove Card's internal padding — button handles layout */

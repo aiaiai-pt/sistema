@@ -39,16 +39,8 @@
     ...rest
   } = $props();
 
-  // Initialize open from defaultOpen on first render
-  let initialized = $state(false);
-  $effect(() => {
-    if (!initialized) {
-      initialized = true;
-      if (defaultOpen && !open) {
-        open = defaultOpen;
-      }
-    }
-  });
+  // Seed open from defaultOpen at creation time (mount-only, no effect needed)
+  if (defaultOpen && !open) open = defaultOpen;
 
   /** @param {Event} e */
   function handleToggle(e) {
@@ -98,7 +90,7 @@
 
 <style>
   .collapsible-section {
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: var(--elevation-border);
   }
 
   .collapsible-summary {
