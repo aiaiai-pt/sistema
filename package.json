@@ -32,15 +32,5 @@
     "@codemirror/lang-python": "^6.0.0",
     "@codemirror/lang-json": "^6.0.0",
     "@lezer/highlight": "^1.0.0"
-  },
-  "devDependencies": {
-    "@codemirror/view": "^6.0.0",
-    "@codemirror/state": "^6.0.0",
-    "@codemirror/language": "^6.0.0",
-    "@codemirror/commands": "^6.0.0",
-    "@codemirror/lang-sql": "^6.0.0",
-    "@codemirror/lang-python": "^6.0.0",
-    "@codemirror/lang-json": "^6.0.0",
-    "@lezer/highlight": "^1.0.0"
   }
 }
