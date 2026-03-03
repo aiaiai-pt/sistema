@@ -124,7 +124,7 @@
   }
 
   .code-line {
-    /* Hover for line selection */
+    display: block;
   }
 
   .code-line-number {

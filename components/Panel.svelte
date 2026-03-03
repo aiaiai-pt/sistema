@@ -44,7 +44,7 @@
   const headerId = `panel-header-${_panelUid++}`;
 
   /** @type {HTMLElement | undefined} */
-  let panelEl;
+  let panelEl = $state();
 
   const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 

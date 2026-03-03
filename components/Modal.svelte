@@ -51,7 +51,7 @@
   const headerId = `modal-header-${_modalUid++}`;
 
   /** @type {HTMLElement | undefined} */
-  let modalEl;
+  let modalEl = $state();
 
   const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 

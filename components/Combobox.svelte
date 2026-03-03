@@ -64,7 +64,7 @@
   /** @type {HTMLInputElement | undefined} */
   let inputEl;
   /** @type {HTMLElement | undefined} */
-  let anchorEl;
+  let anchorEl = $state();
 
   let open = $state(false);
   let query = $state('');

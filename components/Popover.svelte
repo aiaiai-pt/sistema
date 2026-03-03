@@ -48,7 +48,7 @@
   const popoverId = `popover-${_popoverUid++}`;
 
   /** @type {HTMLElement | undefined} */
-  let popoverEl;
+  let popoverEl = $state();
 
   let posX = $state(0);
   let posY = $state(0);
