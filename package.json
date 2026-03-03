@@ -1,0 +1,46 @@
+{
+  "name": "@aiaiai/design-system",
+  "version": "0.1.0",
+  "type": "module",
+  "svelte": "./components/index.js",
+  "exports": {
+    ".": {
+      "svelte": "./components/index.js",
+      "default": "./components/index.js"
+    },
+    "./components": {
+      "svelte": "./components/index.js",
+      "default": "./components/index.js"
+    },
+    "./components/*": {
+      "svelte": "./components/*",
+      "default": "./components/*"
+    },
+    "./tokens/*": "./tokens/*"
+  },
+  "files": [
+    "components",
+    "tokens"
+  ],
+  "peerDependencies": {
+    "svelte": "^5.0.0",
+    "@codemirror/view": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/commands": "^6.0.0",
+    "@codemirror/lang-sql": "^6.0.0",
+    "@codemirror/lang-python": "^6.0.0",
+    "@codemirror/lang-json": "^6.0.0",
+    "@lezer/highlight": "^1.0.0"
+  },
+  "devDependencies": {
+    "@codemirror/view": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/commands": "^6.0.0",
+    "@codemirror/lang-sql": "^6.0.0",
+    "@codemirror/lang-python": "^6.0.0",
+    "@codemirror/lang-json": "^6.0.0",
+    "@lezer/highlight": "^1.0.0"
+  }
+}
