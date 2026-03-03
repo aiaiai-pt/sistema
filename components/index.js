@@ -37,6 +37,9 @@ export { default as Card } from "./Card.svelte";
 export { default as Panel } from "./Panel.svelte";
 export { default as Modal } from "./Modal.svelte";
 export { default as Popover } from "./Popover.svelte";
+export { default as Menu } from "./Menu.svelte";
+export { default as MenuItem } from "./MenuItem.svelte";
+export { default as MenuSeparator } from "./MenuSeparator.svelte";
 
 // Form controls — composite
 export { default as Combobox } from "./Combobox.svelte";

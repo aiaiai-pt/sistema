@@ -481,6 +481,25 @@
   --popover-enter-offset: -4px;
 
   /* ═══════════════════════════════════════════════
+     MENU
+     ═══════════════════════════════════════════════ */
+
+  --menu-min-width: 180px;
+  --menu-padding: var(--space-xs);
+  --menu-item-height: 32px;
+  --menu-item-padding-x: var(--space-sm);
+  --menu-item-padding-y: var(--space-xs);
+  --menu-item-radius: var(--radius-sm);
+  --menu-item-gap: var(--space-sm);
+  --menu-item-font-size: var(--type-body-sm-size);
+  --menu-item-bg-hover: var(--color-surface-secondary);
+  --menu-item-color: var(--color-text);
+  --menu-item-color-destructive: var(--color-destructive);
+  --menu-item-color-disabled: var(--color-text-tertiary);
+  --menu-separator-color: var(--color-border);
+  --menu-separator-spacing: var(--space-xs);
+
+  /* ═══════════════════════════════════════════════
      COMBOBOX
      ═══════════════════════════════════════════════ */
 
