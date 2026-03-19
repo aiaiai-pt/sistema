@@ -1,7 +1,16 @@
 {
-  "name": "@aiaiai/design-system",
-  "version": "0.1.0",
+  "name": "@aiaiai-pt/design-system",
+  "version": "0.2.0",
+  "description": "Design system tokens and Svelte components for aiaiai products",
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aiaiai-pt/sistema.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "svelte": "./components/index.js",
   "exports": {
     ".": {

@@ -279,6 +279,8 @@
   --panel-padding: var(--space-lg);
   --panel-transition: var(--duration-normal) var(--easing-enter);
   --panel-backdrop: var(--color-overlay);
+  --panel-close-size: 28px;
+  --panel-close-icon-size: 16px;
 
   /* ═══════════════════════════════════════════════
      STEPPER (wizard / multi-step flow)

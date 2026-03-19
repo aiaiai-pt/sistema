@@ -14,6 +14,8 @@
 	let showNarrowPanel = $state(false);
 	let showDefaultPanel = $state(false);
 	let showWidePanel = $state(false);
+	let showLeftPanel = $state(false);
+	let showPersistentPanel = $state(false);
 </script>
 
 <svelte:head>
@@ -113,13 +115,38 @@
 <!-- Panel -->
 <section style="margin-bottom: var(--space-2xl);">
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Panel</h2>
-	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Slide-over drawer for editing, detail views, and settings. Opens from the right. Focus-trapped with Escape key support.</p>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Slide-over drawer for editing, detail views, and settings. Opens from either edge. Focus-trapped with Escape key support. Can be made persistent for sidebar layouts.</p>
 
 	<div class="modal-triggers">
 		<Button variant="secondary" onclick={() => showNarrowPanel = true}>NARROW PANEL</Button>
 		<Button variant="primary" onclick={() => showDefaultPanel = true}>DEFAULT PANEL</Button>
 		<Button variant="secondary" onclick={() => showWidePanel = true}>WIDE PANEL</Button>
 	</div>
+
+	<h3 class="type-heading-sm" style="margin-top: var(--space-xl); margin-bottom: var(--space-md);">Side &amp; Persistent</h3>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Use <code class="type-data">side="left"</code> for navigation drawers and history panels. Use <code class="type-data">persistent</code> to render the panel inline without a backdrop — ideal for split-view layouts on wider screens.</p>
+
+	<div class="modal-triggers">
+		<Button variant="secondary" onclick={() => showLeftPanel = true}>LEFT PANEL</Button>
+		<Button variant="secondary" onclick={() => showPersistentPanel = !showPersistentPanel}>
+			{showPersistentPanel ? 'HIDE' : 'SHOW'} PERSISTENT PANEL
+		</Button>
+	</div>
+
+	{#if showPersistentPanel}
+		<div style="display: flex; border: var(--elevation-border); border-radius: var(--radius-md); overflow: hidden; height: 240px; margin-top: var(--space-md);">
+			<Panel open persistent side="left" width="narrow" title="History">
+				<div style="display: flex; flex-direction: column; gap: var(--space-xs);">
+					<div class="demo-session-item">API integration</div>
+					<div class="demo-session-item">Budget analysis</div>
+					<div class="demo-session-item">Onboarding help</div>
+				</div>
+			</Panel>
+			<div style="flex: 1; display: flex; align-items: center; justify-content: center; background: var(--color-surface-secondary);">
+				<span class="type-caption" style="color: var(--color-text-muted);">MAIN CONTENT AREA</span>
+			</div>
+		</div>
+	{/if}
 
 	<Panel open={showNarrowPanel} width="narrow" title="Settings" onclose={() => showNarrowPanel = false}>
 		<div style="display: flex; flex-direction: column; gap: var(--space-md);">
@@ -147,12 +174,23 @@
 			</div>
 		</div>
 	</Panel>
+
+	<Panel open={showLeftPanel} side="left" width="narrow" title="Conversations" onclose={() => showLeftPanel = false}>
+		<div style="display: flex; flex-direction: column; gap: var(--space-xs);">
+			<div class="demo-session-item">API integration</div>
+			<div class="demo-session-item">Budget analysis</div>
+			<div class="demo-session-item">Onboarding help</div>
+			<div class="demo-session-item">Data migration</div>
+		</div>
+	</Panel>
 </section>
 
-<!-- Panel Sizes -->
+<!-- Panel Props -->
 <section style="margin-bottom: var(--space-2xl);">
-	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Panel Sizes</h2>
-	<div class="size-table">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Panel Props</h2>
+
+	<h3 class="type-heading-sm" style="margin-bottom: var(--space-sm);">Width</h3>
+	<div class="size-table" style="margin-bottom: var(--space-lg);">
 		<div class="size-row">
 			<code class="type-data">narrow</code>
 			<span class="type-body-sm">360px — settings, simple forms</span>
@@ -164,6 +202,30 @@
 		<div class="size-row">
 			<code class="type-data">wide</code>
 			<span class="type-body-sm">640px — code editors, data tables, schema previews</span>
+		</div>
+	</div>
+
+	<h3 class="type-heading-sm" style="margin-bottom: var(--space-sm);">Side</h3>
+	<div class="size-table" style="margin-bottom: var(--space-lg);">
+		<div class="size-row">
+			<code class="type-data">right</code>
+			<span class="type-body-sm">Default. Slides from the right edge — edit forms, detail views, settings.</span>
+		</div>
+		<div class="size-row">
+			<code class="type-data">left</code>
+			<span class="type-body-sm">Slides from the left edge — navigation drawers, conversation history, sidebar content.</span>
+		</div>
+	</div>
+
+	<h3 class="type-heading-sm" style="margin-bottom: var(--space-sm);">Persistent</h3>
+	<div class="size-table">
+		<div class="size-row">
+			<code class="type-data">false</code>
+			<span class="type-body-sm">Default. Overlay mode — backdrop, focus trap, fixed position, Escape to close.</span>
+		</div>
+		<div class="size-row">
+			<code class="type-data">true</code>
+			<span class="type-body-sm">Inline mode — no backdrop, no focus trap, relative position. Use in flex layouts for split-view patterns.</span>
 		</div>
 	</div>
 </section>
@@ -257,5 +319,19 @@
 	.token-item {
 		font-size: var(--type-caption-size);
 		color: var(--color-text-secondary);
+	}
+
+	.demo-session-item {
+		padding: var(--space-xs) var(--space-sm);
+		border-radius: var(--radius-sm);
+		font-family: var(--type-body-font);
+		font-size: var(--type-body-sm-size);
+		color: var(--color-text);
+		cursor: pointer;
+		transition: background var(--duration-instant) var(--easing-default);
+	}
+
+	.demo-session-item:hover {
+		background: var(--color-surface-secondary);
 	}
 </style>

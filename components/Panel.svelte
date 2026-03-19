@@ -1,17 +1,22 @@
 <!--
   @component Panel
 
-  Slide-over drawer surface. Opens from the right edge.
+  Slide-over drawer surface. Opens from the left or right edge.
   Consumes --panel-* tokens from components.css.
 
-  @example
+  @example Right (default)
   <Panel open={showEditor} title="Edit Step" onclose={() => showEditor = false}>
     Panel content here
   </Panel>
 
-  @example Narrow
-  <Panel open width="narrow" title="Settings" onclose={close}>
-    Settings form
+  @example Left side
+  <Panel open side="left" title="History" onclose={() => showHistory = false}>
+    Navigation content
+  </Panel>
+
+  @example Persistent (no backdrop, inline layout)
+  <Panel open persistent side="left" title="History">
+    Always-visible sidebar content
   </Panel>
 -->
 <script module>
@@ -21,6 +26,7 @@
 <script>
   /**
    * @typedef {'default' | 'narrow' | 'wide'} Width
+   * @typedef {'left' | 'right'} Side
    */
 
   let {
@@ -30,6 +36,10 @@
     title,
     /** @type {Width} */
     width = 'default',
+    /** @type {Side} */
+    side = 'right',
+    /** @type {boolean} When true, removes backdrop and focus trap. Panel becomes an inline layout element. */
+    persistent = false,
     /** @type {(() => void) | undefined} */
     onclose,
     /** @type {string} */
@@ -49,8 +59,9 @@
   const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
   // Focus trap: save previous focus, trap Tab, restore on close
+  // Skipped in persistent mode (panel is inline, not modal)
   $effect(() => {
-    if (!open || !panelEl) return;
+    if (!open || !panelEl || persistent) return;
 
     const previouslyFocused = /** @type {HTMLElement | null} */ (document.activeElement);
 
@@ -95,19 +106,21 @@
 </script>
 
 {#if open}
-  <!-- Backdrop -->
-  <div
-    class="panel-backdrop"
-    onclick={handleBackdropClick}
-    aria-hidden="true"
-  ></div>
+  <!-- Backdrop (hidden in persistent mode) -->
+  {#if !persistent}
+    <div
+      class="panel-backdrop"
+      onclick={handleBackdropClick}
+      aria-hidden="true"
+    ></div>
+  {/if}
 
   <!-- Panel -->
   <aside
     bind:this={panelEl}
-    class="panel panel-{width} {className}"
-    role="dialog"
-    aria-modal="true"
+    class="panel panel-{width} panel-side-{side} {persistent ? 'panel-persistent' : ''} {className}"
+    role={persistent ? 'complementary' : 'dialog'}
+    aria-modal={persistent ? undefined : 'true'}
     aria-label={!header ? title : undefined}
     aria-labelledby={header ? headerId : undefined}
     {...rest}
@@ -118,15 +131,17 @@
       {:else if title}
         <h2 class="panel-title">{title}</h2>
       {/if}
-      <button
-        class="panel-close"
-        onclick={onclose}
-        aria-label="Close panel"
-      >
-        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </button>
+      {#if !persistent}
+        <button
+          class="panel-close"
+          onclick={onclose}
+          aria-label="Close panel"
+        >
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      {/if}
     </div>
 
     <div class="panel-body">
@@ -147,16 +162,36 @@
   .panel {
     position: fixed;
     top: 0;
-    right: 0;
     bottom: 0;
     background: var(--panel-bg);
-    border-left: var(--panel-border);
     box-shadow: var(--panel-shadow);
     border-radius: var(--panel-radius);
     z-index: 41;
     display: flex;
     flex-direction: column;
-    animation: slide-in var(--panel-transition);
+  }
+
+  .panel-side-right {
+    right: 0;
+    border-left: var(--panel-border);
+    animation: slide-in-right var(--panel-transition);
+  }
+
+  .panel-side-left {
+    left: 0;
+    border-right: var(--panel-border);
+    animation: slide-in-left var(--panel-transition);
+  }
+
+  .panel-persistent {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    z-index: auto;
+    box-shadow: none;
+    flex-shrink: 0;
+    height: 100%;
+    animation: none;
   }
 
   .panel-default {
@@ -198,8 +233,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: var(--panel-close-size);
+    height: var(--panel-close-size);
     border-radius: var(--radius-sm);
     color: var(--color-text-secondary);
     transition: all var(--duration-instant) var(--easing-default);
@@ -216,8 +251,8 @@
   }
 
   .panel-close svg {
-    width: 16px;
-    height: 16px;
+    width: var(--panel-close-icon-size);
+    height: var(--panel-close-icon-size);
   }
 
   .panel-body {
@@ -226,9 +261,18 @@
     padding: var(--panel-padding);
   }
 
-  @keyframes slide-in {
+  @keyframes slide-in-right {
     from {
       transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-in-left {
+    from {
+      transform: translateX(-100%);
     }
     to {
       transform: translateX(0);
@@ -245,7 +289,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .panel {
+    .panel-side-right,
+    .panel-side-left {
       animation: none;
     }
 
