@@ -155,7 +155,7 @@
     position: fixed;
     inset: 0;
     background: var(--panel-backdrop);
-    z-index: 40;
+    z-index: var(--panel-z-backdrop);
     animation: fade-in var(--duration-normal) var(--easing-enter);
   }
 
@@ -166,7 +166,7 @@
     background: var(--panel-bg);
     box-shadow: var(--panel-shadow);
     border-radius: var(--panel-radius);
-    z-index: 41;
+    z-index: var(--panel-z-panel);
     display: flex;
     flex-direction: column;
   }

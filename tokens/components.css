@@ -281,6 +281,8 @@
   --panel-backdrop: var(--color-overlay);
   --panel-close-size: 28px;
   --panel-close-icon-size: 16px;
+  --panel-z-backdrop: 200;
+  --panel-z-panel: 201;
 
   /* ═══════════════════════════════════════════════
      STEPPER (wizard / multi-step flow)
