@@ -40,6 +40,8 @@
     side = 'right',
     /** @type {boolean} When true, removes backdrop and focus trap. Panel becomes an inline layout element. */
     persistent = false,
+    /** @type {boolean} When false, body doesn't scroll — children manage their own overflow. */
+    scrollBody = true,
     /** @type {(() => void) | undefined} */
     onclose,
     /** @type {string} */
@@ -144,7 +146,7 @@
       {/if}
     </div>
 
-    <div class="panel-body">
+    <div class="panel-body" class:panel-body-no-scroll={!scrollBody}>
       {#if children}{@render children()}{/if}
     </div>
   </aside>
@@ -259,6 +261,12 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--panel-padding);
+  }
+
+  .panel-body-no-scroll {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   @keyframes slide-in-right {
