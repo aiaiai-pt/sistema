@@ -50,6 +50,8 @@
     header = undefined,
     /** @type {import('svelte').Snippet | undefined} */
     children = undefined,
+    /** @type {import('svelte').Snippet | undefined} */
+    footer = undefined,
     ...rest
   } = $props();
 
@@ -149,6 +151,12 @@
     <div class="panel-body" class:panel-body-no-scroll={!scrollBody}>
       {#if children}{@render children()}{/if}
     </div>
+
+    {#if footer}
+      <div class="panel-footer">
+        {@render footer()}
+      </div>
+    {/if}
   </aside>
 {/if}
 
@@ -259,14 +267,25 @@
 
   .panel-body {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: var(--panel-padding);
   }
 
   .panel-body-no-scroll {
     overflow: hidden;
+    padding: 0;
     display: flex;
     flex-direction: column;
+  }
+
+  .panel-footer {
+    flex-shrink: 0;
+    border-top: var(--panel-header-border);
+    padding: var(--space-md) var(--panel-padding);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
   }
 
   @keyframes slide-in-right {

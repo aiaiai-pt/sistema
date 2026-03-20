@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_FILE_PATH\" | grep -qE '\\.(css|svelte)$'; then cd /Users/carlos.oliveira/personal-projects/aiaiai-design-system/site && npx stylelint \"$CLAUDE_FILE_PATH\" 2>&1 || true; fi",
+            "blocking": false
+          }
+        ]
+      }
+    ]
+  }
+}
