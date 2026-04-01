@@ -68,3 +68,4 @@ export { default as CodeBlock } from "./CodeBlock.svelte";
 export { default as CodeEditor } from "./CodeEditor.svelte";
 export { default as CollapsibleSection } from "./CollapsibleSection.svelte";
 export { default as OptionGrid } from "./OptionGrid.svelte";
+export { default as ConditionTable } from "./ConditionTable.svelte";
