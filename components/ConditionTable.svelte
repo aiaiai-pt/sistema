@@ -87,15 +87,17 @@
   {#if conditions.length === 0}
     <p class="condition-table-empty">{emptyMessage}</p>
   {:else}
-    <div class="condition-table-grid" style:grid-template-columns={gridTemplate}>
-      <!-- Header -->
+    <!-- Header row — separate from data grid so row-gap only applies between data rows -->
+    <div class="condition-table-header-row" style:grid-template-columns={gridTemplate}>
       {#each columns as col}
         <span class="condition-table-header">{col.label}</span>
       {/each}
       <span class="condition-table-header"></span>
+    </div>
 
-      <!-- Rows -->
-      {#each conditions as row, rowIndex}
+    <!-- Data rows — each row is its own grid so row-gap creates visible separation -->
+    {#each conditions as row, rowIndex}
+      <div class="condition-table-row" style:grid-template-columns={gridTemplate}>
         {#each columns as col}
           <div class="condition-table-cell">
             {#if col.type === 'select'}
@@ -134,8 +136,8 @@
             {/snippet}
           </Button>
         </div>
-      {/each}
-    </div>
+      </div>
+    {/each}
   {/if}
 
   {#if canAdd}
@@ -165,9 +167,16 @@
     width: 100%;
   }
 
-  .condition-table-grid {
+  .condition-table-header-row {
     display: grid;
-    row-gap: var(--condition-table-row-gap);
+    column-gap: var(--condition-table-header-gap);
+    align-items: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .condition-table-row {
+    display: grid;
     column-gap: var(--condition-table-header-gap);
     align-items: center;
     overflow-x: auto;

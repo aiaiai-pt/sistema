@@ -51,79 +51,84 @@
 	description="Configurable condition-row editor for building rule-based filters. Composes Input, Select, and Button into an interactive grid. Supports any number of columns via the columns prop."
 />
 
-<DemoGrid columns="1fr">
-	<StateCard label="Default (3 columns)">
-		<div style="width: 100%;">
-			<ConditionTable
-				columns={[
-					{ key: 'field', label: 'Field', type: 'text', placeholder: 'data.field_name' },
-					{ key: 'operator', label: 'Operator', type: 'select', width: '10rem', options: operators },
-					{ key: 'value', label: 'Value', type: 'text', placeholder: 'value' },
-				]}
-				bind:conditions={basicConditions}
-			/>
-		</div>
-	</StateCard>
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Usage</h2>
+	<DemoGrid columns="1fr">
+		<StateCard label="Default (3 columns)">
+			<div style="width: 100%;">
+				<ConditionTable
+					columns={[
+						{ key: 'field', label: 'Field', type: 'text', placeholder: 'data.field_name' },
+						{ key: 'operator', label: 'Operator', type: 'select', width: '10rem', options: operators },
+						{ key: 'value', label: 'Value', type: 'text', placeholder: 'value' },
+					]}
+					bind:conditions={basicConditions}
+				/>
+			</div>
+		</StateCard>
 
-	<StateCard label="Empty state">
-		<div style="width: 100%;">
-			<ConditionTable
-				columns={[
-					{ key: 'field', label: 'Field', type: 'text' },
-					{ key: 'operator', label: 'Operator', type: 'select', options: operators },
-					{ key: 'value', label: 'Value', type: 'text' },
-				]}
-				bind:conditions={emptyConditions}
-				emptyMessage="No conditions defined. All items will match."
-			/>
-		</div>
-	</StateCard>
+		<StateCard label="Empty state">
+			<div style="width: 100%;">
+				<ConditionTable
+					columns={[
+						{ key: 'field', label: 'Field', type: 'text' },
+						{ key: 'operator', label: 'Operator', type: 'select', options: operators },
+						{ key: 'value', label: 'Value', type: 'text' },
+					]}
+					bind:conditions={emptyConditions}
+					emptyMessage="No conditions defined. All items will match."
+				/>
+			</div>
+		</StateCard>
 
-	<StateCard label="4 columns (with Action)">
-		<div style="width: 100%;">
-			<ConditionTable
-				columns={[
-					{ key: 'field', label: 'Field', type: 'text', placeholder: 'field_name' },
-					{ key: 'operator', label: 'Operator', type: 'select', width: '9rem', options: operators },
-					{ key: 'value', label: 'Value', type: 'text', placeholder: 'value' },
-					{ key: 'action', label: 'Action', type: 'select', width: '10rem', options: actionOptions },
-				]}
-				bind:conditions={fourColConditions}
-				addLabel="Add Rule"
-			/>
-		</div>
-	</StateCard>
-</DemoGrid>
+		<StateCard label="4 columns (with Action)">
+			<div style="width: 100%;">
+				<ConditionTable
+					columns={[
+						{ key: 'field', label: 'Field', type: 'text', placeholder: 'field_name' },
+						{ key: 'operator', label: 'Operator', type: 'select', width: '9rem', options: operators },
+						{ key: 'value', label: 'Value', type: 'text', placeholder: 'value' },
+						{ key: 'action', label: 'Action', type: 'select', width: '10rem', options: actionOptions },
+					]}
+					bind:conditions={fourColConditions}
+					addLabel="Add Rule"
+				/>
+			</div>
+		</StateCard>
+	</DemoGrid>
+</section>
 
-<DemoGrid columns="repeat(auto-fill, minmax(min(100%, 400px), 1fr))">
-	<StateCard label="Disabled">
-		<div style="width: 100%;">
-			<ConditionTable
-				columns={[
-					{ key: 'field', label: 'Field', type: 'text' },
-					{ key: 'operator', label: 'Operator', type: 'select', options: operators },
-					{ key: 'value', label: 'Value', type: 'text' },
-				]}
-				conditions={disabledConditions}
-				disabled
-			/>
-		</div>
-	</StateCard>
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">States</h2>
+	<DemoGrid columns="repeat(auto-fill, minmax(min(100%, 400px), 1fr))">
+		<StateCard label="Disabled">
+			<div style="width: 100%;">
+				<ConditionTable
+					columns={[
+						{ key: 'field', label: 'Field', type: 'text' },
+						{ key: 'operator', label: 'Operator', type: 'select', options: operators },
+						{ key: 'value', label: 'Value', type: 'text' },
+					]}
+					conditions={disabledConditions}
+					disabled
+				/>
+			</div>
+		</StateCard>
 
-	<StateCard label="Max rows (2)">
-		<div style="width: 100%;">
-			<ConditionTable
-				columns={[
-					{ key: 'field', label: 'Field', type: 'text' },
-					{ key: 'operator', label: 'Operator', type: 'select', options: operators },
-					{ key: 'value', label: 'Value', type: 'text' },
-				]}
-				bind:conditions={maxRowsConditions}
-				maxRows={2}
-			/>
-		</div>
-	</StateCard>
-</DemoGrid>
+		<StateCard label="Max rows (2)">
+			<div style="width: 100%;">
+				<ConditionTable
+					columns={[
+						{ key: 'field', label: 'Field', type: 'text' },
+						{ key: 'operator', label: 'Operator', type: 'select', options: operators },
+						{ key: 'value', label: 'Value', type: 'text' },
+					]}
+					bind:conditions={maxRowsConditions}
+					maxRows={2}
+				/>
+			</div>
+		</StateCard>
+	</DemoGrid>
+</section>
 
 <TokenRef {tokens} />
-
