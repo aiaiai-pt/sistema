@@ -35,6 +35,7 @@ export const navigation: NavSection[] = [
       { label: "Input", href: "/components/input" },
       { label: "Condition Table", href: "/components/condition-table" },
       { label: "Card", href: "/components/card" },
+      { label: "Page Container", href: "/components/page-container" },
       { label: "Layout", href: "/components/layout" },
       { label: "Navigation", href: "/components/navigation" },
       { label: "Data Display", href: "/components/data-display" },

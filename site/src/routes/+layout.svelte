@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { navigation } from '$lib/nav';
 	import { getTheme, getThemes, getThemeLabel, setTheme, initTheme } from '$lib/theme.svelte';
+	import PageContainer from '$ui/PageContainer.svelte';
 	import { onMount } from 'svelte';
 
 	let { children } = $props();
@@ -92,9 +93,9 @@
 
 	<!-- Main content (inert when mobile drawer is open for focus trap) -->
 	<main class="content" inert={sidebarOpen || undefined}>
-		<div class="content-inner">
+		<PageContainer>
 			{@render children()}
-		</div>
+		</PageContainer>
 	</main>
 </div>
 
@@ -361,12 +362,6 @@
 	.content {
 		flex: 1;
 		min-width: 0;
-	}
-
-	.content-inner {
-		max-width: var(--content-width);
-		margin: 0 auto;
-		padding: var(--content-padding-y) var(--content-padding-x);
 	}
 
 	/* ─── Reduced motion ─── */
