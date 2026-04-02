@@ -31,6 +31,7 @@ export { default as Separator } from "./Separator.svelte";
 export { default as Progress } from "./Progress.svelte";
 export { default as List } from "./List.svelte";
 export { default as ListItem } from "./ListItem.svelte";
+export { default as PageContainer } from "./PageContainer.svelte";
 
 // Containers
 export { default as Card } from "./Card.svelte";
