@@ -41,7 +41,7 @@
 
 	const tokens = [
 		'--condition-table-header-gap: var(--space-sm)',
-		'--condition-table-row-gap: var(--space-sm)',
+		'--condition-table-row-gap: var(--space-md)',
 		'--condition-table-empty-color: var(--color-text-secondary)',
 	];
 </script>
