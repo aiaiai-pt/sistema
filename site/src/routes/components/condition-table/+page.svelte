@@ -40,8 +40,8 @@
 	]);
 
 	const tokens = [
-		'--condition-table-header-gap: var(--space-xs)',
-		'--condition-table-row-gap: var(--space-xs)',
+		'--condition-table-header-gap: var(--space-sm)',
+		'--condition-table-row-gap: var(--space-sm)',
 		'--condition-table-empty-color: var(--color-text-secondary)',
 	];
 </script>
@@ -95,7 +95,7 @@
 	</StateCard>
 </DemoGrid>
 
-<DemoGrid columns="1fr 1fr">
+<DemoGrid columns="repeat(auto-fill, minmax(min(100%, 400px), 1fr))">
 	<StateCard label="Disabled">
 		<div style="width: 100%;">
 			<ConditionTable
@@ -126,3 +126,4 @@
 </DemoGrid>
 
 <TokenRef {tokens} />
+

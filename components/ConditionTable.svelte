@@ -170,6 +170,8 @@
     row-gap: var(--condition-table-row-gap);
     column-gap: var(--condition-table-header-gap);
     align-items: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .condition-table-header {

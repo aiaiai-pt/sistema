@@ -528,8 +528,8 @@
      CONDITION TABLE
      ═══════════════════════════════════════════════ */
 
-  --condition-table-header-gap: var(--space-xs);
-  --condition-table-row-gap: var(--space-xs);
+  --condition-table-header-gap: var(--space-sm);
+  --condition-table-row-gap: var(--space-sm);
   --condition-table-empty-color: var(--color-text-secondary);
 
   /* ═══════════════════════════════════════════════
