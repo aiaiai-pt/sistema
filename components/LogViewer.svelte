@@ -29,7 +29,6 @@
   import Alert from './Alert.svelte';
   import EmptyState from './EmptyState.svelte';
   import Skeleton from './Skeleton.svelte';
-  import Button from './Button.svelte';
 
   /**
    * @typedef {{ timestamp: string, level: string, message: string, context?: Record<string, unknown> }} LogEntry
@@ -46,8 +45,6 @@
     fallbackUrl = undefined,
     /** @type {boolean} */
     loading = false,
-    /** @type {boolean} */
-    autoScroll = true,
     /** @type {string} */
     emptyHeading = 'No log entries',
     /** @type {string} */
@@ -71,10 +68,6 @@
   let showWarning = $state(true);
   let showError = $state(true);
   let relativeTime = $state(true);
-  let pinToBottom = $state(autoScroll);
-
-  /** @type {HTMLDivElement | undefined} */
-  let scrollContainer;
 
   /* ─── Level normalization ─── */
   /** @param {string} level */
@@ -159,19 +152,6 @@
     }
   }
 
-  /* ─── Auto-scroll ─── */
-  $effect(() => {
-    // Re-run when entries length changes
-    const _ = entries.length;
-    if (pinToBottom && scrollContainer) {
-      // Use microtask to wait for DOM update
-      queueMicrotask(() => {
-        if (scrollContainer) {
-          scrollContainer.scrollTop = scrollContainer.scrollHeight;
-        }
-      });
-    }
-  });
 
 </script>
 
@@ -228,11 +208,15 @@
           </Input>
         </div>
 
+        <span class="log-viewer-toolbar-separator" aria-hidden="true"></span>
+
         <div class="log-viewer-filters">
           <Checkbox label="Info ({counts.INFO})" bind:checked={showInfo} />
           <Checkbox label="Warn ({counts.WARNING})" bind:checked={showWarning} />
           <Checkbox label="Error ({counts.ERROR})" bind:checked={showError} />
         </div>
+
+        <span class="log-viewer-toolbar-separator" aria-hidden="true"></span>
 
         <div class="log-viewer-toggle">
           <Toggle label="Relative" bind:checked={relativeTime} />
@@ -252,7 +236,6 @@
     <!-- Log entries -->
     <div
       class="log-viewer-entries"
-      bind:this={scrollContainer}
       role="log"
       aria-live="polite"
       aria-label="Log entries"
@@ -279,24 +262,6 @@
       <span class="log-viewer-status-text">
         {filteredEntries.length}{hasActiveFilters ? ` of ${entries.length}` : ''} entries
       </span>
-      <Button
-        variant="ghost"
-        size="sm"
-        onclick={() => { pinToBottom = !pinToBottom; }}
-        aria-label={pinToBottom ? 'Unpin from bottom' : 'Pin to bottom'}
-        aria-pressed={pinToBottom}
-      >
-        {#snippet icon()}
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            {#if pinToBottom}
-              <path d="M7 2v8M4 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            {:else}
-              <path d="M7 12V4M4 7l3-3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            {/if}
-          </svg>
-        {/snippet}
-        {pinToBottom ? 'PINNED' : 'PIN'}
-      </Button>
     </div>
   {/if}
 </div>
@@ -347,13 +312,18 @@
 
   .log-viewer-toggle {
     flex-shrink: 0;
-    margin-left: auto;
+  }
+
+  .log-viewer-toolbar-separator {
+    width: var(--border-width-default);
+    height: 20px;
+    background: var(--color-border);
+    flex-shrink: 0;
   }
 
   /* ─── Truncation alert ─── */
   .log-viewer-alert {
-    padding: var(--space-sm);
-    padding-top: 0;
+    padding: 0 var(--space-md) var(--space-sm);
   }
 
   /* ─── Entries ─── */
@@ -366,7 +336,7 @@
   .log-viewer-entry {
     display: flex;
     align-items: baseline;
-    gap: var(--space-sm);
+    gap: var(--space-md);
     padding: var(--log-viewer-entry-padding-y) var(--log-viewer-entry-padding-x);
     border-bottom: var(--log-viewer-entry-border);
     font-family: var(--log-viewer-entry-font);

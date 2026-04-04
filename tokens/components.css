@@ -542,13 +542,13 @@
   --log-viewer-max-height: 480px;
 
   /* Toolbar */
-  --log-viewer-toolbar-padding: var(--space-sm);
-  --log-viewer-toolbar-gap: var(--space-sm);
+  --log-viewer-toolbar-padding: var(--space-md);
+  --log-viewer-toolbar-gap: var(--space-lg);
   --log-viewer-toolbar-border: var(--elevation-border);
 
   /* Entry rows */
-  --log-viewer-entry-padding-x: var(--space-sm);
-  --log-viewer-entry-padding-y: var(--space-2xs);
+  --log-viewer-entry-padding-x: var(--space-md);
+  --log-viewer-entry-padding-y: var(--space-xs);
   --log-viewer-entry-font: var(--type-data-font);
   --log-viewer-entry-size: var(--type-data-size);
   --log-viewer-entry-leading: var(--type-data-leading);
@@ -569,7 +569,7 @@
   --log-viewer-status-font: var(--type-caption-font);
   --log-viewer-status-size: var(--type-caption-size);
   --log-viewer-status-color: var(--color-text-muted);
-  --log-viewer-status-padding: var(--space-xs) var(--space-sm);
+  --log-viewer-status-padding: var(--space-sm) var(--space-md);
 
   /* ═══════════════════════════════════════════════
      FOCUS RING (global)
