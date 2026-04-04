@@ -108,8 +108,8 @@
   }
 
   .stepper-check {
-    width: 12px;
-    height: 12px;
+    width: var(--icon-size-xs);
+    height: var(--icon-size-xs);
   }
 
   .stepper-label {

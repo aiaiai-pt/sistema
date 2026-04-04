@@ -121,8 +121,8 @@
   }
 
   .checkbox-icon {
-    width: 12px;
-    height: 12px;
+    width: var(--icon-size-xs);
+    height: var(--icon-size-xs);
     color: var(--checkbox-check-color);
   }
 

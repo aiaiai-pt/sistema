@@ -175,13 +175,13 @@
     all: unset;
     cursor: pointer;
     flex-shrink: 0;
-    width: 20px;
-    height: 20px;
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--color-text-muted);
-    font-size: 16px;
+    font-size: var(--icon-size-sm);
     line-height: 1;
     border-radius: var(--radius-sm);
   }

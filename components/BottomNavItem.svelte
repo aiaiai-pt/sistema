@@ -100,8 +100,8 @@
   }
 
   .bottom-nav-icon-wrap :global(svg) {
-    width: 20px;
-    height: 20px;
+    width: var(--icon-size-md);
+    height: var(--icon-size-md);
   }
 
   .bottom-nav-badge {

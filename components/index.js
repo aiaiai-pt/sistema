@@ -45,6 +45,11 @@ export { default as MenuSeparator } from "./MenuSeparator.svelte";
 // Form controls — composite
 export { default as Combobox } from "./Combobox.svelte";
 
+// Search
+export { default as SearchInput } from "./SearchInput.svelte";
+export { default as FilterBar } from "./FilterBar.svelte";
+export { default as CommandPalette } from "./CommandPalette.svelte";
+
 // Tabs
 export { default as Tabs } from "./Tabs.svelte";
 export { default as TabList } from "./TabList.svelte";

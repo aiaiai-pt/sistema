@@ -101,11 +101,11 @@
   --toggle-radius: var(--radius-pill);
   --toggle-bg-off: var(--color-surface-tertiary);
   --toggle-bg-on: var(--color-accent);
-  --toggle-knob-size: 16px;
+  --toggle-knob-size: var(--icon-size-sm);
   --toggle-knob-color: var(--color-surface);
 
   /* Checkbox */
-  --checkbox-size: 16px;
+  --checkbox-size: var(--icon-size-sm);
   --checkbox-radius: var(--radius-sm);
   --checkbox-border: var(--elevation-border-strong);
   --checkbox-bg-checked: var(--color-accent);
@@ -225,7 +225,7 @@
   --kv-gap: var(--space-xs);
 
   /* Status indicator */
-  --status-dot-size: 8px;
+  --status-dot-size: var(--space-sm);
   --status-font: var(--type-label-font);
   --status-size: var(--type-label-size);
   --status-gap: var(--space-xs);
@@ -245,7 +245,7 @@
   --toast-max-width: 360px;
 
   /* Empty state */
-  --empty-icon-size: 48px;
+  --empty-icon-size: var(--icon-size-2xl);
   --empty-icon-color: var(--color-text-muted);
   --empty-heading-font: var(--type-heading-font);
   --empty-heading-size: var(--type-heading-size);
@@ -280,7 +280,7 @@
   --panel-transition: var(--duration-normal) var(--easing-enter);
   --panel-backdrop: var(--color-overlay);
   --panel-close-size: 28px;
-  --panel-close-icon-size: 16px;
+  --panel-close-icon-size: var(--icon-size-sm);
   --panel-z-backdrop: 200;
   --panel-z-panel: 201;
 
@@ -288,7 +288,7 @@
      STEPPER (wizard / multi-step flow)
      ═══════════════════════════════════════════════ */
 
-  --stepper-dot-size: 32px;
+  --stepper-dot-size: var(--icon-size-xl);
   --stepper-dot-font: var(--type-label-font);
   --stepper-dot-size-text: var(--type-label-size);
   --stepper-dot-tracking: var(--type-label-tracking);
@@ -346,7 +346,7 @@
      PROGRESS
      ═══════════════════════════════════════════════ */
 
-  --progress-height: 8px;
+  --progress-height: var(--space-sm);
   --progress-radius: var(--radius-pill);
   --progress-bg: var(--color-surface-tertiary);
   --progress-fill: var(--color-accent);
@@ -443,7 +443,7 @@
   --fileupload-bg: transparent;
   --fileupload-bg-dragging: var(--color-accent-subtle);
   --fileupload-transition: var(--duration-fast) var(--easing-default);
-  --fileupload-icon-size: 32px;
+  --fileupload-icon-size: var(--icon-size-xl);
   --fileupload-icon-color: var(--color-text-muted);
   --fileupload-icon-color-dragging: var(--color-accent);
   --fileupload-text-font: var(--type-body-sm-font);
@@ -468,7 +468,7 @@
   --fileupload-item-size-font: var(--type-caption-font);
   --fileupload-item-size-size: var(--type-caption-size);
   --fileupload-item-size-color: var(--color-text-muted);
-  --fileupload-item-icon-size: 20px;
+  --fileupload-item-icon-size: var(--icon-size-md);
   --fileupload-item-error-color: var(--color-destructive);
   --fileupload-item-complete-color: var(--color-success);
 
@@ -570,6 +570,89 @@
   --log-viewer-status-size: var(--type-caption-size);
   --log-viewer-status-color: var(--color-text-muted);
   --log-viewer-status-padding: var(--space-sm) var(--space-md);
+
+  /* ═══════════════════════════════════════════════
+     SEARCH INPUT
+     ═══════════════════════════════════════════════ */
+
+  --search-icon-size-sm: var(--icon-size-sm);
+  --search-icon-size-md: var(--icon-size-sm);
+  --search-icon-size-lg: var(--icon-size-md);
+  --search-icon-color: var(--color-text-muted);
+  --search-icon-color-focus: var(--color-text-secondary);
+  --search-clear-color: var(--color-text-muted);
+  --search-clear-color-hover: var(--color-text);
+  --search-shortcut-font: var(--type-caption-font);
+  --search-shortcut-size: var(--type-caption-size);
+  --search-shortcut-color: var(--color-text-muted);
+  --search-shortcut-bg: var(--color-surface-secondary);
+  --search-shortcut-radius: var(--radius-sm);
+  --search-shortcut-padding: var(--space-2xs) var(--space-xs);
+  --search-spinner-color: var(--color-accent);
+  --search-collapse-transition: var(--duration-normal) var(--easing-default);
+
+  /* ═══════════════════════════════════════════════
+     FILTER BAR
+     ═══════════════════════════════════════════════ */
+
+  --filter-chip-font: var(--type-label-font);
+  --filter-chip-size: var(--type-label-size);
+  --filter-chip-tracking: var(--type-label-tracking);
+  --filter-chip-height: var(--button-sm-height);
+  --filter-chip-radius: var(--radius-pill);
+  --filter-chip-padding: 0 var(--space-sm);
+  --filter-chip-gap: var(--space-xs);
+  --filter-chip-bg: var(--color-surface);
+  --filter-chip-bg-hover: var(--color-surface-secondary);
+  --filter-chip-bg-active: var(--color-accent-subtle);
+  --filter-chip-color: var(--color-text-secondary);
+  --filter-chip-color-active: var(--color-accent);
+  --filter-chip-border: var(--elevation-border);
+  --filter-chip-border-active: var(--border-width) solid var(--color-accent);
+  --filter-chip-transition: var(--duration-instant) var(--easing-default);
+  --filter-bar-gap: var(--space-xs);
+  --filter-bar-clear-color: var(--color-text-muted);
+  --filter-bar-clear-color-hover: var(--color-text);
+
+  /* ═══════════════════════════════════════════════
+     COMMAND PALETTE
+     ═══════════════════════════════════════════════ */
+
+  --palette-top-offset: 20vh;
+  --palette-width: 560px;
+  --palette-max-height: 420px;
+  --palette-bg: var(--color-surface);
+  --palette-radius: var(--radius-lg);
+  --palette-shadow: var(--elevation-overlay);
+  --palette-backdrop: var(--color-overlay);
+  --palette-input-height: 48px;
+  --palette-input-padding: 0 var(--space-md);
+  --palette-input-font: var(--type-body-font);
+  --palette-input-size: var(--type-body-size);
+  --palette-input-border: var(--elevation-border);
+  --palette-list-max-height: 340px;
+  --palette-list-padding: var(--space-xs);
+  --palette-item-padding: var(--space-sm) var(--space-md);
+  --palette-item-radius: var(--radius-sm);
+  --palette-item-hover-bg: var(--color-surface-secondary);
+  --palette-item-active-bg: var(--color-accent-subtle);
+  --palette-item-active-color: var(--color-accent);
+  --palette-group-font: var(--type-overline-font);
+  --palette-group-size: var(--type-overline-size);
+  --palette-group-tracking: var(--type-overline-tracking);
+  --palette-group-color: var(--color-text-muted);
+  --palette-group-padding: var(--space-sm) var(--space-md) var(--space-xs);
+  --palette-shortcut-font: var(--type-caption-font);
+  --palette-shortcut-size: var(--type-caption-size);
+  --palette-shortcut-color: var(--color-text-muted);
+  --palette-shortcut-bg: var(--color-surface-secondary);
+  --palette-shortcut-radius: var(--radius-sm);
+  --palette-shortcut-padding: var(--space-2xs) var(--space-xs);
+  --palette-empty-color: var(--color-text-muted);
+  --palette-empty-font: var(--type-body-font);
+  --palette-empty-size: var(--type-body-size);
+  --palette-highlight-color: var(--color-accent);
+  --palette-transition: var(--duration-normal) var(--easing-enter);
 
   /* ═══════════════════════════════════════════════
      FOCUS RING (global)

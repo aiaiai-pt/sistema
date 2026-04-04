@@ -339,7 +339,7 @@
   .combobox-item {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-2xs);
     padding: var(--combobox-item-padding);
     border-radius: var(--combobox-item-radius);
     margin: 0 var(--space-xs);

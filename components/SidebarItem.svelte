@@ -122,8 +122,8 @@
   .nav-icon-wrap {
     display: flex;
     flex-shrink: 0;
-    width: 16px;
-    height: 16px;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
   }
 
   .nav-icon-wrap :global(svg) {

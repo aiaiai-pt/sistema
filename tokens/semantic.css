@@ -115,6 +115,23 @@
   --type-caption-tracking: var(--raw-tracking-wide);
   --type-caption-font: var(--font-sans);
 
+  --type-overline-size: var(--raw-font-size-11);
+  --type-overline-weight: var(--raw-font-weight-semibold);
+  --type-overline-leading: var(--raw-line-height-heading);
+  --type-overline-tracking: var(--raw-tracking-wider);
+  --type-overline-font: var(--font-mono);
+
+  /* ═══════════════════════════════════════════════
+     ICON SIZES
+     ═══════════════════════════════════════════════ */
+
+  --icon-size-xs: var(--raw-icon-12);
+  --icon-size-sm: var(--raw-icon-16);
+  --icon-size-md: var(--raw-icon-20);
+  --icon-size-lg: var(--raw-icon-24);
+  --icon-size-xl: var(--raw-icon-32);
+  --icon-size-2xl: var(--raw-icon-48);
+
   /* ═══════════════════════════════════════════════
      SPACING
      ═══════════════════════════════════════════════ */

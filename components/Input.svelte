@@ -205,8 +205,8 @@
     top: 50%;
     transform: translateY(-50%);
     display: flex;
-    width: 16px;
-    height: 16px;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
     color: var(--input-placeholder);
     pointer-events: none;
   }
@@ -217,6 +217,6 @@
   }
 
   .input-with-icon {
-    padding-left: calc(var(--input-md-padding-x) + 16px + var(--space-xs));
+    padding-left: calc(var(--input-md-padding-x) + var(--icon-size-sm) + var(--space-xs));
   }
 </style>

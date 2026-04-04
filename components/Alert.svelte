@@ -82,9 +82,9 @@
   .alert-icon {
     display: flex;
     flex-shrink: 0;
-    width: 16px;
-    height: 16px;
-    margin-top: 2px;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+    margin-top: var(--space-2xs);
   }
 
   .alert-icon :global(svg) {

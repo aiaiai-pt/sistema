@@ -223,8 +223,8 @@
   }
 
   .modal-close svg {
-    width: 16px;
-    height: 16px;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
   }
 
   .modal-body {
