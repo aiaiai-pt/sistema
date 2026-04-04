@@ -18,11 +18,13 @@
 <script>
   /**
    * @typedef {{ value: string, label: string }} SelectOption
-   * @typedef {{ key: string, label: string, type: 'text' | 'select', width?: string, options?: SelectOption[], placeholder?: string }} ColumnDef
+   * @typedef {{ value: string, label: string, group?: string, description?: string }} ComboboxItem
+   * @typedef {{ key: string, label: string, type: 'text' | 'select' | 'combobox', width?: string, options?: SelectOption[], items?: ComboboxItem[], placeholder?: string }} ColumnDef
    */
 
   import Input from './Input.svelte';
   import Select from './Select.svelte';
+  import Combobox from './Combobox.svelte';
   import Button from './Button.svelte';
 
   let {
@@ -108,6 +110,15 @@
                 placeholder={col.placeholder}
                 {disabled}
                 onchange={(e) => updateCell(rowIndex, col.key, e.target.value)}
+              />
+            {:else if col.type === 'combobox'}
+              <Combobox
+                size="sm"
+                value={row[col.key] ?? ''}
+                items={col.items ?? []}
+                placeholder={col.placeholder}
+                {disabled}
+                onchange={(v) => updateCell(rowIndex, col.key, v)}
               />
             {:else}
               <Input
