@@ -4,6 +4,10 @@
   Native select with label, help text, and error state.
   Consumes --input-* tokens from components.css.
 
+  Usage patterns:
+  - Two-way binding: `<Select bind:value={myVar} options={opts} />`
+  - Controlled: `<Select value={myVar} onchange={(val) => myVar = val} options={opts} />`
+
   @example
   <Select label="COUNTRY" placeholder="Select a country" options={[
     { value: 'pt', label: 'Portugal' },
@@ -25,10 +29,12 @@
     label = undefined,
     /** @type {string | undefined} */
     placeholder = undefined,
-    /** @type {string} */
-    value = $bindable(''),
+    /** @type {string | undefined} */
+    value = $bindable(),
     /** @type {Option[]} */
     options = [],
+    /** @type {((value: string) => void) | undefined} */
+    onchange = undefined,
     /** @type {string | undefined} */
     help = undefined,
     /** @type {string | undefined} */
@@ -48,6 +54,12 @@
   const selectId = $derived(id ?? fallbackId);
   const hintId = $derived(`${selectId}-hint`);
   const hasHint = $derived(!!error || !!help);
+
+  let mounted = false;
+  $effect(() => {
+    if (!mounted) { mounted = true; return; }
+    if (onchange && value !== undefined) onchange(value);
+  });
 </script>
 
 <div class="input-group {className}">
