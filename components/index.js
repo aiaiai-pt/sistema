@@ -76,3 +76,8 @@ export { default as CollapsibleSection } from "./CollapsibleSection.svelte";
 export { default as OptionGrid } from "./OptionGrid.svelte";
 export { default as ConditionTable } from "./ConditionTable.svelte";
 export { default as LogViewer } from "./LogViewer.svelte";
+
+// Data & navigation
+export { default as DataTable } from "./DataTable.svelte";
+export { default as Pagination } from "./Pagination.svelte";
+export { default as Breadcrumb } from "./Breadcrumb.svelte";

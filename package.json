@@ -1,6 +1,6 @@
 {
   "name": "@aiaiai-pt/design-system",
-  "version": "0.3.6",
+  "version": "0.4.0",
   "description": "Design system tokens and Svelte components for aiaiai products",
   "license": "MIT",
   "type": "module",
@@ -11,15 +11,26 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "build:types": "svelte-package --input . --output dist && cp dist/components/*.d.ts components/ && rm -rf dist",
+    "prepublishOnly": "npm run build:types"
+  },
   "svelte": "./components/index.js",
   "exports": {
     ".": {
+      "types": "./components/index.d.ts",
       "svelte": "./components/index.js",
       "default": "./components/index.js"
     },
     "./components": {
+      "types": "./components/index.d.ts",
       "svelte": "./components/index.js",
       "default": "./components/index.js"
+    },
+    "./components/*.svelte": {
+      "types": "./components/*.svelte.d.ts",
+      "svelte": "./components/*.svelte",
+      "default": "./components/*.svelte"
     },
     "./components/*": {
       "svelte": "./components/*",
@@ -41,5 +52,11 @@
     "@codemirror/view": "^6.40.0",
     "@lezer/highlight": "^1.0.0",
     "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/package": "^2.5.7",
+    "svelte": "^5.55.3",
+    "svelte-check": "^4.4.6",
+    "typescript": "^5.9.3"
   }
 }
