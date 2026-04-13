@@ -13,7 +13,7 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, cssVar } from './map-utils.js';
+  import { createTileLayer, cssVar, cssPx, renderMapError } from './map-utils.js';
 
   let {
     /** @type {MarkerData[]} */
@@ -45,7 +45,7 @@
     /** @type {import('ol/Map.js').default | undefined} */
     let map;
 
-    (async () => {
+    (async () => { try {
       const [
         { default: OlMap },
         { default: View },
@@ -83,11 +83,11 @@
 
       const clusterFill = cssVar(container, '--map-cluster-fill', '#ff6b35');
       const clusterTextColor = cssVar(container, '--map-cluster-text-fill', '#fff');
-      const clusterBaseRadius = parseFloat(cssVar(container, '--map-cluster-radius', '16'));
+      const clusterBaseRadius = cssPx(container, '--map-cluster-radius', 16);
       const markerFill = cssVar(container, '--map-marker-fill', '#ff6b35');
       const markerStrokeColor = cssVar(container, '--map-marker-stroke', '#fff');
-      const markerRadius = parseFloat(cssVar(container, '--map-marker-radius', '8'));
-      const markerStrokeWidth = parseFloat(cssVar(container, '--map-marker-stroke-width', '2'));
+      const markerRadius = cssPx(container, '--map-marker-radius', 8);
+      const markerStrokeWidth = cssPx(container, '--map-marker-stroke-width', 2);
       const clusterFont = cssVar(container, '--map-cluster-font', 'monospace');
       const clusterFontSize = cssVar(container, '--map-cluster-font-size', '12px');
 
@@ -215,7 +215,7 @@
           }
         });
       }
-    })();
+    } catch (err) { renderMapError(container, 'MapCluster', /** @type {Error} */ (err)); } })();
 
     return () => {
       disposed = true;

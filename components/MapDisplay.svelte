@@ -12,7 +12,7 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, cssVar } from './map-utils.js';
+  import { createTileLayer, cssVar, cssPx, renderMapError } from './map-utils.js';
 
   let {
     /** @type {[number, number]} — [longitude, latitude] WGS84 */
@@ -42,7 +42,7 @@
     /** @type {import('ol/Map.js').default | undefined} */
     let map;
 
-    (async () => {
+    (async () => { try {
       const [
         { default: OlMap },
         { default: View },
@@ -76,11 +76,11 @@
 
       const markerFill = cssVar(container, '--map-marker-fill', '#ff6b35');
       const markerStrokeColor = cssVar(container, '--map-marker-stroke', '#fff');
-      const markerRadius = parseFloat(cssVar(container, '--map-marker-radius', '8'));
-      const markerStrokeWidth = parseFloat(cssVar(container, '--map-marker-stroke-width', '2'));
+      const markerRadius = cssPx(container, '--map-marker-radius', 8);
+      const markerStrokeWidth = cssPx(container, '--map-marker-stroke-width', 2);
       const polyFill = cssVar(container, '--map-polygon-fill', 'rgba(255,107,53,0.2)');
       const polyStroke = cssVar(container, '--map-polygon-stroke', '#ff6b35');
-      const polyStrokeWidth = parseFloat(cssVar(container, '--map-polygon-stroke-width', '2'));
+      const polyStrokeWidth = cssPx(container, '--map-polygon-stroke-width', 2);
 
       /** @type {Feature[]} */
       const features = [];
@@ -124,7 +124,7 @@
         }),
         controls: [],
       });
-    })();
+    } catch (err) { renderMapError(container, 'MapDisplay', /** @type {Error} */ (err)); } })();
 
     return () => {
       disposed = true;
