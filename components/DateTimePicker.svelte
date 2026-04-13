@@ -1,7 +1,7 @@
 <!--
   @component DateTimePicker
 
-  Date + time selection. Composes DatePicker with a time input.
+  Date + time selection. Composes DatePicker with styled hour/minute selects.
   Values displayed in Berkeley Mono (data font).
   Consumes --datepicker-* and --input-* tokens from components.css.
 
@@ -62,18 +62,17 @@
 
   const fallbackId = `datetimepicker-${_datetimepickerUid++}`;
   const pickerId = $derived(id ?? fallbackId);
+  const hintId = $derived(`${pickerId}-hint`);
+  const hasHint = $derived(!!error || !!help);
 
   // Split value into date and time parts
   let selectedDate = $state(value ? new Date(value) : null);
   let hours = $state(value ? value.getHours() : 9);
   let minutes = $state(value ? value.getMinutes() : 0);
 
-  const timeValue = $derived(
-    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-  );
-
-  const displayValue = $derived(
-    value ? format(value, displayFormat, { locale }) : ''
+  // Generate minute options based on step
+  const minuteOptions = $derived(
+    Array.from({ length: Math.ceil(60 / minuteStep) }, (_, i) => i * minuteStep)
   );
 
   /** @param {Date} date */
@@ -83,14 +82,17 @@
   }
 
   /** @param {Event} e */
-  function handleTimeChange(e) {
-    const input = /** @type {HTMLInputElement} */ (e.target);
-    const [h, m] = input.value.split(':').map(Number);
+  function handleHourChange(e) {
+    const h = Number(/** @type {HTMLSelectElement} */ (e.target).value);
     hours = h;
+    if (selectedDate) syncValue(selectedDate, h, minutes);
+  }
+
+  /** @param {Event} e */
+  function handleMinuteChange(e) {
+    const m = Number(/** @type {HTMLSelectElement} */ (e.target).value);
     minutes = m;
-    if (selectedDate) {
-      syncValue(selectedDate, h, m);
-    }
+    if (selectedDate) syncValue(selectedDate, hours, m);
   }
 
   /** @param {Date} date @param {number} h @param {number} m */
@@ -113,7 +115,7 @@
 
 <div class="datetimepicker {className}" {...rest}>
   {#if label}
-    <label class="datetimepicker-label">{label}</label>
+    <label class="datetimepicker-label" for={pickerId}>{label}</label>
   {/if}
 
   <div class="datetimepicker-row">
@@ -132,23 +134,39 @@
       />
     </div>
 
-    <input
-      type="time"
-      class="datetimepicker-time datetimepicker-time-{size}"
-      class:datetimepicker-time-error={!!error}
-      value={timeValue}
-      step={minuteStep * 60}
-      {disabled}
-      {readonly}
-      onchange={handleTimeChange}
-      aria-label="Time"
-    />
+    <div class="datetimepicker-time">
+      <select
+        class="datetimepicker-select datetimepicker-select-{size}"
+        class:datetimepicker-select-error={!!error}
+        value={hours}
+        {disabled}
+        onchange={handleHourChange}
+        aria-label="Hour"
+      >
+        {#each Array.from({ length: 24 }, (_, i) => i) as h}
+          <option value={h}>{String(h).padStart(2, '0')}</option>
+        {/each}
+      </select>
+      <span class="datetimepicker-colon" aria-hidden="true">:</span>
+      <select
+        class="datetimepicker-select datetimepicker-select-{size}"
+        class:datetimepicker-select-error={!!error}
+        value={minutes}
+        {disabled}
+        onchange={handleMinuteChange}
+        aria-label="Minute"
+      >
+        {#each minuteOptions as m}
+          <option value={m}>{String(m).padStart(2, '0')}</option>
+        {/each}
+      </select>
+    </div>
   </div>
 
   {#if error}
-    <span class="datetimepicker-error-text" role="alert">{error}</span>
+    <span id={hintId} class="datetimepicker-error-text" role="alert">{error}</span>
   {:else if help}
-    <span class="datetimepicker-help">{help}</span>
+    <span id={hintId} class="datetimepicker-help">{help}</span>
   {/if}
 </div>
 
@@ -170,6 +188,7 @@
   .datetimepicker-row {
     display: flex;
     gap: var(--space-xs);
+    align-items: stretch;
   }
 
   .datetimepicker-date {
@@ -178,43 +197,61 @@
   }
 
   .datetimepicker-time {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  .datetimepicker-colon {
+    font-family: var(--input-font);
+    font-size: var(--input-font-size);
+    color: var(--color-text-secondary);
+    padding: 0 var(--space-2xs);
+    user-select: none;
+  }
+
+  .datetimepicker-select {
     font-family: var(--input-font);
     font-size: var(--input-font-size);
     border: var(--input-border);
     border-radius: var(--input-radius);
     background: var(--input-bg);
     color: var(--input-text);
+    cursor: pointer;
     transition: border var(--input-transition);
-    flex-shrink: 0;
-    width: auto;
+    appearance: none;
+    -webkit-appearance: none;
+    text-align: center;
+    width: 3.2em;
   }
 
-  .datetimepicker-time-sm {
+  .datetimepicker-select-sm {
     height: var(--input-sm-height);
-    padding: 0 var(--input-sm-padding-x);
+    padding: 0 var(--space-xs);
   }
 
-  .datetimepicker-time-md {
+  .datetimepicker-select-md {
     height: var(--input-md-height);
-    padding: 0 var(--input-md-padding-x);
+    padding: 0 var(--space-xs);
   }
 
-  .datetimepicker-time-lg {
+  .datetimepicker-select-lg {
     height: var(--input-lg-height);
-    padding: 0 var(--input-lg-padding-x);
+    padding: 0 var(--space-sm);
   }
 
-  .datetimepicker-time:focus {
+  .datetimepicker-select:focus {
     outline: none;
     border: var(--input-border-focus);
   }
 
-  .datetimepicker-time:disabled {
+  .datetimepicker-select:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
 
-  .datetimepicker-time-error {
+  .datetimepicker-select-error {
     border-color: var(--input-error-border-color);
   }
 
@@ -231,7 +268,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .datetimepicker-time {
+    .datetimepicker-select {
       transition: none;
     }
   }

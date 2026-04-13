@@ -192,7 +192,7 @@
     </svg>
   </button>
 
-  <Popover bind:open anchor={triggerEl} placement="bottom-start" matchWidth onclose={() => (open = false)}>
+  <Popover bind:open anchor={triggerEl} placement="bottom-start" onclose={() => (open = false)}>
     <div class="datepicker-calendar" role="application" aria-label="Calendar">
       <div class="datepicker-nav">
         <button type="button" class="datepicker-nav-btn" onclick={prevMonth} aria-label="Previous month">
