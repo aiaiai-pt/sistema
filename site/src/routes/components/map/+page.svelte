@@ -163,42 +163,41 @@
 
 	<div class="map-demo-grid">
 		<div>
-			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">STADIA TONER LITE</span>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">OSM (DEFAULT)</span>
 			<MapDisplay
 				center={[-9.139, 38.722]}
 				zoom={14}
 				marker={[-9.139, 38.722]}
-				tileSource={{ type: 'stadia', layer: 'stamen_toner_lite' }}
 				height="200px"
 			/>
 		</div>
 		<div>
-			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">STADIA ALIDADE SMOOTH</span>
-			<MapDisplay
-				center={[-9.139, 38.722]}
-				zoom={14}
-				marker={[-9.139, 38.722]}
-				tileSource={{ type: 'stadia', layer: 'alidade_smooth' }}
-				height="200px"
-			/>
-		</div>
-		<div>
-			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">STADIA DARK</span>
-			<MapDisplay
-				center={[-9.139, 38.722]}
-				zoom={14}
-				marker={[-9.139, 38.722]}
-				tileSource={{ type: 'stadia', layer: 'alidade_smooth_dark' }}
-				height="200px"
-			/>
-		</div>
-		<div>
-			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">CARTO POSITRON</span>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">CARTO POSITRON (LIGHT)</span>
 			<MapDisplay
 				center={[-9.139, 38.722]}
 				zoom={14}
 				marker={[-9.139, 38.722]}
 				tileSource={{ type: 'xyz', url: 'https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', attributions: '&copy; CARTO &copy; OpenStreetMap' }}
+				height="200px"
+			/>
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">CARTO DARK MATTER</span>
+			<MapDisplay
+				center={[-9.139, 38.722]}
+				zoom={14}
+				marker={[-9.139, 38.722]}
+				tileSource={{ type: 'xyz', url: 'https://{a-d}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png', attributions: '&copy; CARTO &copy; OpenStreetMap' }}
+				height="200px"
+			/>
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">CARTO VOYAGER</span>
+			<MapDisplay
+				center={[-9.139, 38.722]}
+				zoom={14}
+				marker={[-9.139, 38.722]}
+				tileSource={{ type: 'xyz', url: 'https://{a-d}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', attributions: '&copy; CARTO &copy; OpenStreetMap' }}
 				height="200px"
 			/>
 		</div>
@@ -214,8 +213,8 @@
 			<span class="type-body-sm">Default. Standard OpenStreetMap tiles.</span>
 		</div>
 		<div class="size-row">
-			<code class="type-data">{'{ type: "stadia", layer: "..." }'}</code>
-			<span class="type-body-sm">Stadia Maps. Free for web. Layers: stamen_toner_lite, alidade_smooth, alidade_smooth_dark, stamen_watercolor, outdoors, osm_bright.</span>
+			<code class="type-data">{'{ type: "stadia", layer: "...", apiKey: "..." }'}</code>
+			<span class="type-body-sm">Stadia Maps. Requires API key. Layers: stamen_toner_lite, alidade_smooth, alidade_smooth_dark, stamen_watercolor, outdoors, osm_bright.</span>
 		</div>
 		<div class="size-row">
 			<code class="type-data">{'{ type: "xyz", url: "..." }'}</code>

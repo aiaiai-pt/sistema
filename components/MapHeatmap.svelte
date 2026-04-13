@@ -83,22 +83,17 @@
 
       const vectorSource = new VectorSource({ features });
 
-      // Gradient: prop override > CSS tokens > OL default
+      // Gradient: prop override > CSS tokens > warm fallback
       const resolvedGradient = gradient ?? getHeatmapGradient(container);
 
-      /** @type {Record<string, any>} */
-      const heatmapOpts = {
+      const heatmapLayer = new Heatmap({
         source: vectorSource,
         blur,
         radius,
+        gradient: resolvedGradient,
         weight: (/** @type {import('ol/Feature.js').default} */ feature) =>
           feature.get('weight') ?? 0,
-      };
-      if (resolvedGradient) {
-        heatmapOpts.gradient = resolvedGradient;
-      }
-
-      const heatmapLayer = new Heatmap(heatmapOpts);
+      });
 
       const viewCenter = points.length > 0
         ? fromLonLat([
