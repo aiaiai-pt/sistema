@@ -95,3 +95,4 @@ export { default as MapDisplay } from "./MapDisplay.svelte";
 export { default as MapPicker } from "./MapPicker.svelte";
 export { default as MapCluster } from "./MapCluster.svelte";
 export { default as MapHeatmap } from "./MapHeatmap.svelte";
+export { default as MapPopup } from "./MapPopup.svelte";

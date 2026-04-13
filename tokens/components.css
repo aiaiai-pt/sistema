@@ -759,6 +759,21 @@
   --map-polygon-stroke: var(--color-accent);
   --map-polygon-stroke-width: var(--border-width-thick);
 
+  /* Heatmap */
+  --map-heatmap-stop-1: var(--color-info);
+  --map-heatmap-stop-2: var(--color-success);
+  --map-heatmap-stop-3: var(--color-warning);
+  --map-heatmap-stop-4: var(--color-destructive);
+
+  /* Popup (inherits card tokens) */
+  --map-popup-bg: var(--card-bg);
+  --map-popup-border: var(--elevation-border-strong);
+  --map-popup-radius: var(--card-radius);
+  --map-popup-padding: var(--space-sm);
+  --map-popup-shadow: var(--elevation-overlay);
+  --map-popup-arrow-size: var(--space-sm);
+  --map-popup-max-width: var(--content-width-narrow);
+
   /* Draw mode toolbar */
   --map-toolbar-bg: var(--color-surface);
   --map-toolbar-border: var(--elevation-border);

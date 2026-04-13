@@ -2,7 +2,7 @@
   @component MapPicker
 
   Interactive map for selecting a point or drawing a polygon.
-  OpenLayers with OSM tiles and Draw interaction.
+  OpenLayers with configurable tiles and Draw interaction.
   Consumes --map-* tokens from components.css.
 
   @example Point selection
@@ -17,6 +17,7 @@
 
 <script>
   import { fromLonLat, toLonLat } from 'ol/proj.js';
+  import { createTileLayer, cssVar } from './map-utils.js';
 
   /**
    * @typedef {'point' | 'polygon'} Mode
@@ -39,6 +40,8 @@
     error = undefined,
     /** @type {boolean} */
     disabled = false,
+    /** @type {import('./map-utils.js').TileSourceConfig} */
+    tileSource = { type: 'osm' },
     /** @type {((coords: [number, number] | number[][]) => void) | undefined} */
     onchange = undefined,
     /** @type {string} */
@@ -69,8 +72,6 @@
       const [
         { default: OlMap },
         { default: View },
-        { default: TileLayer },
-        { default: OSM },
         { default: VectorLayer },
         { default: VectorSource },
         { default: Feature },
@@ -83,8 +84,6 @@
       ] = await Promise.all([
         import('ol/Map.js'),
         import('ol/View.js'),
-        import('ol/layer/Tile.js'),
-        import('ol/source/OSM.js'),
         import('ol/layer/Vector.js'),
         import('ol/source/Vector.js'),
         import('ol/Feature.js'),
@@ -98,15 +97,19 @@
 
       if (disposed) return;
 
-      const styles = getComputedStyle(container);
-      const markerFill = styles.getPropertyValue('--map-marker-fill').trim() || '#ff6b35';
-      const markerStroke = styles.getPropertyValue('--map-marker-stroke').trim() || '#fff';
-      const polyFill = styles.getPropertyValue('--map-polygon-fill').trim() || 'rgba(255,107,53,0.2)';
-      const polyStroke = styles.getPropertyValue('--map-polygon-stroke').trim() || '#ff6b35';
+      const tileLayer = await createTileLayer(tileSource);
+      if (disposed) return;
+
+      const markerFill = cssVar(container, '--map-marker-fill', '#ff6b35');
+      const markerStrokeColor = cssVar(container, '--map-marker-stroke', '#fff');
+      const markerRadius = parseFloat(cssVar(container, '--map-marker-radius', '8'));
+      const markerStrokeWidth = parseFloat(cssVar(container, '--map-marker-stroke-width', '2'));
+      const polyFill = cssVar(container, '--map-polygon-fill', 'rgba(255,107,53,0.2)');
+      const polyStroke = cssVar(container, '--map-polygon-stroke', '#ff6b35');
+      const polyStrokeWidth = parseFloat(cssVar(container, '--map-polygon-stroke-width', '2'));
 
       const vectorSource = new VectorSource();
 
-      // Seed existing value
       if (value && mode === 'point') {
         vectorSource.addFeature(new Feature({ geometry: new Point(fromLonLat(value)) }));
       }
@@ -115,12 +118,12 @@
         source: vectorSource,
         style: new Style({
           image: new CircleStyle({
-            radius: 8,
+            radius: markerRadius,
             fill: new Fill({ color: markerFill }),
-            stroke: new Stroke({ color: markerStroke, width: 2 }),
+            stroke: new Stroke({ color: markerStrokeColor, width: markerStrokeWidth }),
           }),
           fill: new Fill({ color: polyFill }),
-          stroke: new Stroke({ color: polyStroke, width: 2 }),
+          stroke: new Stroke({ color: polyStroke, width: polyStrokeWidth }),
         }),
       });
 
@@ -131,7 +134,6 @@
       });
 
       drawInteraction.on('drawstart', () => {
-        // Clear previous feature (single selection)
         vectorSource.clear();
       });
 
@@ -155,10 +157,7 @@
 
       map = new OlMap({
         target: container,
-        layers: [
-          new TileLayer({ source: new OSM() }),
-          vectorLayer,
-        ],
+        layers: [tileLayer, vectorLayer],
         view: new View({
           center: initialCenter,
           zoom,
@@ -226,12 +225,11 @@
     border-radius: inherit;
   }
 
-  .map-picker-error .map-picker-canvas,
   .map-picker-canvas.map-picker-error {
     border-color: var(--input-error-border-color);
   }
 
-  .map-picker-disabled {
+  .map-picker-canvas.map-picker-disabled {
     opacity: 0.5;
     pointer-events: none;
     cursor: not-allowed;

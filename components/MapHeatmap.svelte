@@ -1,7 +1,8 @@
 <!--
   @component MapHeatmap
 
-  Density visualization layer using OpenLayers built-in Heatmap.
+  Density visualization using OpenLayers built-in Heatmap layer.
+  Gradient derived from DS semantic color tokens by default.
   Consumes --map-* tokens from components.css.
 
   @example
@@ -10,16 +11,16 @@
     center={[-9.14, 38.74]}
     zoom={10}
   />
+
+  @example Custom gradient
+  <MapHeatmap points={data} gradient={['#f7fbff', '#6baed6', '#2171b5', '#08306b']} />
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-
-  /**
-   * @typedef {{ lon: number, lat: number, weight?: number }} HeatPoint
-   */
+  import { createTileLayer, cssVar, getHeatmapGradient } from './map-utils.js';
 
   let {
-    /** @type {HeatPoint[]} */
+    /** @type {{ lon: number, lat: number, weight?: number }[]} */
     points = [],
     /** @type {[number, number]} — initial center [lon, lat] */
     center = [0, 0],
@@ -29,6 +30,10 @@
     blur = 15,
     /** @type {number} — point radius in pixels */
     radius = 8,
+    /** @type {string[] | undefined} — custom gradient overrides tokens */
+    gradient = undefined,
+    /** @type {import('./map-utils.js').TileSourceConfig} */
+    tileSource = { type: 'osm' },
     /** @type {string} */
     height = '100%',
     /** @type {string} */
@@ -50,8 +55,6 @@
       const [
         { default: OlMap },
         { default: View },
-        { default: TileLayer },
-        { default: OSM },
         { default: VectorSource },
         { default: Heatmap },
         { default: Feature },
@@ -59,8 +62,6 @@
       ] = await Promise.all([
         import('ol/Map.js'),
         import('ol/View.js'),
-        import('ol/layer/Tile.js'),
-        import('ol/source/OSM.js'),
         import('ol/source/Vector.js'),
         import('ol/layer/Heatmap.js'),
         import('ol/Feature.js'),
@@ -69,25 +70,35 @@
 
       if (disposed) return;
 
+      const tileLayer = await createTileLayer(tileSource);
+      if (disposed) return;
+
+      const maxWeight = Math.max(...points.map(p => p.weight ?? 1), 1);
+
       const features = points.map(p => {
         const f = new Feature({ geometry: new Point(fromLonLat([p.lon, p.lat])) });
-        f.set('weight', p.weight ?? 1);
+        f.set('weight', (p.weight ?? 1) / maxWeight);
         return f;
       });
 
       const vectorSource = new VectorSource({ features });
 
-      const heatmapLayer = new Heatmap({
+      // Gradient: prop override > CSS tokens > OL default
+      const resolvedGradient = gradient ?? getHeatmapGradient(container);
+
+      /** @type {Record<string, any>} */
+      const heatmapOpts = {
         source: vectorSource,
         blur,
         radius,
-        weight: (feature) => {
-          const w = feature.get('weight') ?? 1;
-          // Normalize to 0-1 range
-          const maxWeight = Math.max(...points.map(p => p.weight ?? 1), 1);
-          return w / maxWeight;
-        },
-      });
+        weight: (/** @type {import('ol/Feature.js').default} */ feature) =>
+          feature.get('weight') ?? 0,
+      };
+      if (resolvedGradient) {
+        heatmapOpts.gradient = resolvedGradient;
+      }
+
+      const heatmapLayer = new Heatmap(heatmapOpts);
 
       const viewCenter = points.length > 0
         ? fromLonLat([
@@ -98,10 +109,7 @@
 
       map = new OlMap({
         target: container,
-        layers: [
-          new TileLayer({ source: new OSM() }),
-          heatmapLayer,
-        ],
+        layers: [tileLayer, heatmapLayer],
         view: new View({
           center: viewCenter,
           zoom,

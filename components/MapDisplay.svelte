@@ -1,17 +1,18 @@
 <!--
   @component MapDisplay
 
-  Read-only map showing a point or polygon. OpenLayers with OSM tiles.
+  Read-only map showing a point or polygon. OpenLayers with configurable tiles.
   Consumes --map-* tokens from components.css.
 
   @example Point
-  <MapDisplay center={[-9.14, 38.74]} zoom={14} />
-
-  @example With marker
   <MapDisplay center={[-9.14, 38.74]} zoom={14} marker={[-9.14, 38.74]} />
+
+  @example Custom tiles
+  <MapDisplay center={[-9.14, 38.74]} tileSource={{ type: 'xyz', url: '...' }} />
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
+  import { createTileLayer, cssVar } from './map-utils.js';
 
   let {
     /** @type {[number, number]} — [longitude, latitude] WGS84 */
@@ -22,6 +23,8 @@
     marker = undefined,
     /** @type {number[][] | undefined} — polygon coords [[lon,lat], ...] */
     polygon = undefined,
+    /** @type {import('./map-utils.js').TileSourceConfig} */
+    tileSource = { type: 'osm' },
     /** @type {string} */
     height = '100%',
     /** @type {string} */
@@ -35,7 +38,6 @@
   $effect(() => {
     if (!container) return;
 
-    // Dynamic imports to keep OL tree-shakeable and SSR-safe
     let disposed = false;
     /** @type {import('ol/Map.js').default | undefined} */
     let map;
@@ -44,8 +46,6 @@
       const [
         { default: OlMap },
         { default: View },
-        { default: TileLayer },
-        { default: OSM },
         { default: VectorLayer },
         { default: VectorSource },
         { default: Feature },
@@ -58,8 +58,6 @@
       ] = await Promise.all([
         import('ol/Map.js'),
         import('ol/View.js'),
-        import('ol/layer/Tile.js'),
-        import('ol/source/OSM.js'),
         import('ol/layer/Vector.js'),
         import('ol/source/Vector.js'),
         import('ol/Feature.js'),
@@ -73,11 +71,16 @@
 
       if (disposed) return;
 
-      const styles = getComputedStyle(container);
-      const markerFill = styles.getPropertyValue('--map-marker-fill').trim() || '#ff6b35';
-      const markerStroke = styles.getPropertyValue('--map-marker-stroke').trim() || '#fff';
-      const polyFill = styles.getPropertyValue('--map-polygon-fill').trim() || 'rgba(255,107,53,0.2)';
-      const polyStroke = styles.getPropertyValue('--map-polygon-stroke').trim() || '#ff6b35';
+      const tileLayer = await createTileLayer(tileSource);
+      if (disposed) return;
+
+      const markerFill = cssVar(container, '--map-marker-fill', '#ff6b35');
+      const markerStrokeColor = cssVar(container, '--map-marker-stroke', '#fff');
+      const markerRadius = parseFloat(cssVar(container, '--map-marker-radius', '8'));
+      const markerStrokeWidth = parseFloat(cssVar(container, '--map-marker-stroke-width', '2'));
+      const polyFill = cssVar(container, '--map-polygon-fill', 'rgba(255,107,53,0.2)');
+      const polyStroke = cssVar(container, '--map-polygon-stroke', '#ff6b35');
+      const polyStrokeWidth = parseFloat(cssVar(container, '--map-polygon-stroke-width', '2'));
 
       /** @type {Feature[]} */
       const features = [];
@@ -99,25 +102,22 @@
           if (type === 'Point') {
             return new Style({
               image: new CircleStyle({
-                radius: 8,
+                radius: markerRadius,
                 fill: new Fill({ color: markerFill }),
-                stroke: new Stroke({ color: markerStroke, width: 2 }),
+                stroke: new Stroke({ color: markerStrokeColor, width: markerStrokeWidth }),
               }),
             });
           }
           return new Style({
             fill: new Fill({ color: polyFill }),
-            stroke: new Stroke({ color: polyStroke, width: 2 }),
+            stroke: new Stroke({ color: polyStroke, width: polyStrokeWidth }),
           });
         },
       });
 
       map = new OlMap({
         target: container,
-        layers: [
-          new TileLayer({ source: new OSM() }),
-          vectorLayer,
-        ],
+        layers: [tileLayer, vectorLayer],
         view: new View({
           center: fromLonLat(center),
           zoom,

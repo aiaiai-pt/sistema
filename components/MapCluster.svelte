@@ -1,8 +1,8 @@
 <!--
   @component MapCluster
 
-  Map with clustered markers for list views. OpenLayers with OSM tiles,
-  built-in Cluster source, and click-to-select callback.
+  Map with clustered markers, hover tooltips, and click-to-select.
+  OpenLayers with built-in Cluster source and OL Overlay for tooltips.
   Consumes --map-* tokens from components.css.
 
   @example
@@ -12,11 +12,8 @@
   />
 -->
 <script>
-  import { fromLonLat, toLonLat } from 'ol/proj.js';
-
-  /**
-   * @typedef {{ id: string, lon: number, lat: number, label?: string, [key: string]: any }} MarkerData
-   */
+  import { fromLonLat } from 'ol/proj.js';
+  import { createTileLayer, cssVar } from './map-utils.js';
 
   let {
     /** @type {MarkerData[]} */
@@ -27,6 +24,8 @@
     zoom = 6,
     /** @type {number} — cluster distance in pixels */
     distance = 40,
+    /** @type {import('./map-utils.js').TileSourceConfig} */
+    tileSource = { type: 'osm' },
     /** @type {((marker: MarkerData) => void) | undefined} */
     onclick = undefined,
     /** @type {string} */
@@ -50,13 +49,12 @@
       const [
         { default: OlMap },
         { default: View },
-        { default: TileLayer },
-        { default: OSM },
         { default: VectorLayer },
         { default: VectorSource },
         { default: Cluster },
         { default: Feature },
         { default: Point },
+        { default: Overlay },
         { default: Style },
         { default: CircleStyle },
         { default: Fill },
@@ -65,13 +63,12 @@
       ] = await Promise.all([
         import('ol/Map.js'),
         import('ol/View.js'),
-        import('ol/layer/Tile.js'),
-        import('ol/source/OSM.js'),
         import('ol/layer/Vector.js'),
         import('ol/source/Vector.js'),
         import('ol/source/Cluster.js'),
         import('ol/Feature.js'),
         import('ol/geom/Point.js'),
+        import('ol/Overlay.js'),
         import('ol/style/Style.js'),
         import('ol/style/Circle.js'),
         import('ol/style/Fill.js'),
@@ -81,11 +78,18 @@
 
       if (disposed) return;
 
-      const styles = getComputedStyle(container);
-      const clusterFill = styles.getPropertyValue('--map-cluster-fill').trim() || '#ff6b35';
-      const clusterText = styles.getPropertyValue('--map-cluster-text-fill').trim() || '#fff';
-      const markerFill = styles.getPropertyValue('--map-marker-fill').trim() || '#ff6b35';
-      const markerStroke = styles.getPropertyValue('--map-marker-stroke').trim() || '#fff';
+      const tileLayer = await createTileLayer(tileSource);
+      if (disposed) return;
+
+      const clusterFill = cssVar(container, '--map-cluster-fill', '#ff6b35');
+      const clusterTextColor = cssVar(container, '--map-cluster-text-fill', '#fff');
+      const clusterBaseRadius = parseFloat(cssVar(container, '--map-cluster-radius', '16'));
+      const markerFill = cssVar(container, '--map-marker-fill', '#ff6b35');
+      const markerStrokeColor = cssVar(container, '--map-marker-stroke', '#fff');
+      const markerRadius = parseFloat(cssVar(container, '--map-marker-radius', '8'));
+      const markerStrokeWidth = parseFloat(cssVar(container, '--map-marker-stroke-width', '2'));
+      const clusterFont = cssVar(container, '--map-cluster-font', 'monospace');
+      const clusterFontSize = cssVar(container, '--map-cluster-font-size', '12px');
 
       const features = markers.map(m => {
         const f = new Feature({ geometry: new Point(fromLonLat([m.lon, m.lat])) });
@@ -103,27 +107,50 @@
           if (size > 1) {
             return new Style({
               image: new CircleStyle({
-                radius: 16 + Math.min(size, 20),
+                radius: clusterBaseRadius + Math.min(size, 20),
                 fill: new Fill({ color: clusterFill }),
               }),
               text: new Text({
                 text: String(size),
-                fill: new Fill({ color: clusterText }),
-                font: '600 12px var(--type-label-font, monospace)',
+                fill: new Fill({ color: clusterTextColor }),
+                font: `600 ${clusterFontSize} ${clusterFont}`,
               }),
             });
           }
           return new Style({
             image: new CircleStyle({
-              radius: 8,
+              radius: markerRadius,
               fill: new Fill({ color: markerFill }),
-              stroke: new Stroke({ color: markerStroke, width: 2 }),
+              stroke: new Stroke({ color: markerStrokeColor, width: markerStrokeWidth }),
             }),
           });
         },
       });
 
-      // Auto-fit to markers if available
+      // Tooltip overlay
+      const tooltipEl = document.createElement('div');
+      tooltipEl.className = 'map-cluster-tooltip';
+      tooltipEl.style.cssText = `
+        background: var(--map-popup-bg, #fff);
+        border: var(--map-popup-border, 1px solid #ddd);
+        border-radius: var(--map-popup-radius, 4px);
+        padding: var(--map-popup-padding, 8px);
+        box-shadow: var(--map-popup-shadow, 0 2px 8px rgba(0,0,0,0.15));
+        font-family: var(--type-body-sm-font, sans-serif);
+        font-size: var(--type-body-sm-size, 13px);
+        color: var(--color-text, #2c2825);
+        pointer-events: none;
+        white-space: nowrap;
+      `;
+      tooltipEl.style.display = 'none';
+      container.appendChild(tooltipEl);
+
+      const tooltipOverlay = new Overlay({
+        element: tooltipEl,
+        positioning: 'bottom-center',
+        offset: [0, -12],
+      });
+
       const viewCenter = markers.length > 0
         ? fromLonLat([
             markers.reduce((s, m) => s + m.lon, 0) / markers.length,
@@ -133,16 +160,41 @@
 
       map = new OlMap({
         target: container,
-        layers: [
-          new TileLayer({ source: new OSM() }),
-          clusterLayer,
-        ],
+        layers: [tileLayer, clusterLayer],
+        overlays: [tooltipOverlay],
         view: new View({
           center: viewCenter,
           zoom,
         }),
       });
 
+      // Hover: show tooltip for single markers
+      map.on('pointermove', (evt) => {
+        const feature = map?.forEachFeatureAtPixel(evt.pixel, f => f);
+        if (!feature) {
+          tooltipEl.style.display = 'none';
+          if (container) container.style.cursor = '';
+          return;
+        }
+
+        const clustered = feature.get('features');
+        if (container) container.style.cursor = 'pointer';
+
+        if (clustered?.length === 1) {
+          const data = clustered[0].get('markerData');
+          if (data?.label) {
+            tooltipEl.textContent = data.label;
+            tooltipEl.style.display = 'block';
+            tooltipOverlay.setPosition(feature.getGeometry()?.getCoordinates());
+          }
+        } else {
+          tooltipEl.textContent = `${clustered?.length ?? 0} items`;
+          tooltipEl.style.display = 'block';
+          tooltipOverlay.setPosition(feature.getGeometry()?.getCoordinates());
+        }
+      });
+
+      // Click handler
       if (onclick) {
         map.on('click', (evt) => {
           const feature = map?.forEachFeatureAtPixel(evt.pixel, f => f);
@@ -153,7 +205,6 @@
             const data = clustered[0].get('markerData');
             if (data) onclick(data);
           } else if (clustered?.length > 1) {
-            // Zoom into cluster
             const view = map?.getView();
             const currentZoom = view?.getZoom() ?? zoom;
             view?.animate({
@@ -162,12 +213,6 @@
               duration: 300,
             });
           }
-        });
-
-        // Pointer cursor on features
-        map.on('pointermove', (evt) => {
-          const hit = map?.forEachFeatureAtPixel(evt.pixel, () => true);
-          if (container) container.style.cursor = hit ? 'pointer' : '';
         });
       }
     })();
@@ -194,6 +239,7 @@
     border: var(--map-border);
     border-radius: var(--map-radius);
     overflow: hidden;
+    position: relative;
   }
 
   .map-cluster :global(.ol-viewport) {
