@@ -655,6 +655,83 @@
   --palette-transition: var(--duration-normal) var(--easing-enter);
 
   /* ═══════════════════════════════════════════════
+     DATEPICKER
+     ═══════════════════════════════════════════════ */
+
+  --datepicker-calendar-padding: var(--space-sm);
+
+  /* Navigation bar */
+  --datepicker-nav-font: var(--type-label-font);
+  --datepicker-nav-size: var(--type-label-size);
+  --datepicker-nav-tracking: var(--type-label-tracking);
+  --datepicker-nav-color: var(--color-text);
+  --datepicker-nav-btn-size: 28px;
+  --datepicker-nav-btn-radius: var(--radius-sm);
+  --datepicker-nav-btn-hover-bg: var(--color-surface-secondary);
+
+  /* Weekday headers */
+  --datepicker-weekday-font: var(--type-label-font);
+  --datepicker-weekday-size: var(--type-caption-size);
+  --datepicker-weekday-tracking: var(--type-caption-tracking);
+  --datepicker-weekday-color: var(--color-text-muted);
+
+  /* Day cells */
+  --datepicker-day-size: 36px;
+  --datepicker-day-font: var(--type-data-font);
+  --datepicker-day-font-size: var(--type-body-sm-size);
+  --datepicker-day-radius: var(--radius-sm);
+  --datepicker-day-hover-bg: var(--color-surface-secondary);
+  --datepicker-day-selected-bg: var(--color-accent);
+  --datepicker-day-selected-text: var(--color-text-on-accent);
+  --datepicker-day-today-border: 1px solid var(--color-border-strong);
+  --datepicker-day-outside-opacity: 0.3;
+  --datepicker-day-disabled-opacity: 0.2;
+
+  /* Trigger (inherits --input-* for visual consistency) */
+  --datepicker-icon-size: var(--icon-size-sm);
+  --datepicker-icon-color: var(--color-text-muted);
+  --datepicker-placeholder-color: var(--input-placeholder);
+
+  /* ═══════════════════════════════════════════════
+     DATEPICKER
+     ═══════════════════════════════════════════════ */
+
+  --datepicker-calendar-padding: var(--space-sm);
+
+  /* Navigation bar */
+  --datepicker-nav-font: var(--type-label-font);
+  --datepicker-nav-size: var(--type-label-size);
+  --datepicker-nav-tracking: var(--type-label-tracking);
+  --datepicker-nav-color: var(--color-text);
+  --datepicker-nav-btn-size: var(--button-sm-height);
+  --datepicker-nav-btn-radius: var(--radius-sm);
+  --datepicker-nav-btn-hover-bg: var(--color-surface-secondary);
+
+  /* Weekday headers */
+  --datepicker-weekday-font: var(--type-label-font);
+  --datepicker-weekday-size: var(--type-caption-size);
+  --datepicker-weekday-tracking: var(--type-caption-tracking);
+  --datepicker-weekday-color: var(--color-text-muted);
+
+  /* Day cells */
+  --datepicker-day-size: var(--button-md-height);
+  --datepicker-day-font: var(--type-data-font);
+  --datepicker-day-font-size: var(--type-body-sm-size);
+  --datepicker-day-radius: var(--radius-sm);
+  --datepicker-day-hover-bg: var(--color-surface-secondary);
+  --datepicker-day-selected-bg: var(--color-accent);
+  --datepicker-day-selected-text: var(--color-text-on-accent);
+  --datepicker-day-today-border: var(--border-width) solid
+    var(--color-border-strong);
+  --datepicker-day-outside-opacity: 0.3;
+  --datepicker-day-disabled-opacity: 0.2;
+
+  /* Trigger (inherits --input-* for visual consistency) */
+  --datepicker-icon-size: var(--icon-size-sm);
+  --datepicker-icon-color: var(--color-text-muted);
+  --datepicker-placeholder-color: var(--input-placeholder);
+
+  /* ═══════════════════════════════════════════════
      FOCUS RING (global)
      ═══════════════════════════════════════════════ */
 

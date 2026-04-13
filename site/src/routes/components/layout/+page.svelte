@@ -4,8 +4,22 @@
 	import Separator from '$ui/Separator.svelte';
 	import List from '$ui/List.svelte';
 	import ListItem from '$ui/ListItem.svelte';
+	import CollapsibleSection from '$ui/CollapsibleSection.svelte';
+	import OptionGrid from '$ui/OptionGrid.svelte';
 	import Badge from '$ui/Badge.svelte';
 	import Toggle from '$ui/Toggle.svelte';
+	import Button from '$ui/Button.svelte';
+
+	let sectionOpen = $state(false);
+	let sectionOpenBadge = $state(true);
+	let selectedOption = $state('sync');
+
+	const gridOptions = [
+		{ value: 'sync', label: 'Sync', description: 'Real-time data synchronization between systems' },
+		{ value: 'transform', label: 'Transform', description: 'Clean, reshape, and enrich data before loading' },
+		{ value: 'extract', label: 'Extract', description: 'Pull data from external sources and APIs' },
+		{ value: 'aggregate', label: 'Aggregate', description: 'Combine and summarize data for reporting' },
+	];
 
 	const layoutTokens = [
 		'--separator-color: var(--color-border)',
@@ -156,6 +170,56 @@
 	</div>
 </section>
 
+<!-- CollapsibleSection -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">CollapsibleSection</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Progressive disclosure via native details/summary. Caret rotates on open. Optional badge count and action buttons.</p>
+	<div class="collapsible-demos">
+		<CollapsibleSection title="Pipeline Configuration" bind:open={sectionOpen}>
+			<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+				<span class="type-body-sm">Schedule: <code class="type-data">0 */6 * * *</code></span>
+				<span class="type-body-sm">Timeout: <code class="type-data">300s</code></span>
+				<span class="type-body-sm">Retries: <code class="type-data">3</code></span>
+			</div>
+		</CollapsibleSection>
+
+		<CollapsibleSection title="Recent Runs" bind:open={sectionOpenBadge} badge={12}>
+			{#snippet actions()}
+				<Button size="sm" variant="ghost" onclick={() => {}}>VIEW ALL</Button>
+			{/snippet}
+			<div style="display: flex; flex-direction: column; gap: var(--space-xs);">
+				<div class="context-row">
+					<span class="type-body-sm">Run #1247</span>
+					<Badge variant="success">PASSED</Badge>
+				</div>
+				<div class="context-row">
+					<span class="type-body-sm">Run #1246</span>
+					<Badge variant="error">FAILED</Badge>
+				</div>
+				<div class="context-row">
+					<span class="type-body-sm">Run #1245</span>
+					<Badge variant="success">PASSED</Badge>
+				</div>
+			</div>
+		</CollapsibleSection>
+	</div>
+</section>
+
+<!-- OptionGrid -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">OptionGrid</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Radio-group selection rendered as a card grid. Keyboard navigable (arrow keys). Compact mode hides descriptions.</p>
+	<div style="max-width: 560px;">
+		<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">PIPELINE TYPE</span>
+		<OptionGrid options={gridOptions} bind:value={selectedOption} columns={2} />
+		<div style="margin-top: var(--space-sm);">
+			<code class="type-data" style="font-size: var(--type-caption-size); color: var(--color-text-muted);">
+				selected: {selectedOption}
+			</code>
+		</div>
+	</div>
+</section>
+
 <!-- Token reference -->
 <TokenRef component="Layout components" file="components.css" tokens={layoutTokens} />
 
@@ -220,5 +284,19 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+	}
+
+	.collapsible-demos {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-md);
+		max-width: 480px;
+	}
+
+	.context-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--space-xs) 0;
 	}
 </style>

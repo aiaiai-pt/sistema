@@ -53,6 +53,10 @@
     size = 'md',
     /** @type {((value: string) => void) | undefined} */
     onchange = undefined,
+    /** @type {((query: string) => void) | undefined} — async search; when set, disables internal filtering */
+    onsearch = undefined,
+    /** @type {boolean} */
+    loading = false,
     /** @type {string} */
     class: className = '',
     ...rest
@@ -76,8 +80,21 @@
   // Selected item label for display
   const selectedItem = $derived(items.find(i => i.value === value));
 
-  // Filter items by query
+  // Debounced onsearch dispatch
+  let _searchTimer = 0;
+  $effect(() => {
+    // Subscribe to query changes; only fire if onsearch is set
+    const q = query;
+    if (!onsearch) return;
+    clearTimeout(_searchTimer);
+    if (!q) return;
+    _searchTimer = /** @type {any} */ (setTimeout(() => onsearch(q), 300));
+    return () => clearTimeout(_searchTimer);
+  });
+
+  // Filter items by query — skip when onsearch is set (parent controls items)
   const filtered = $derived.by(() => {
+    if (onsearch) return items;
     if (!query) return items;
     const q = query.toLowerCase();
     return items.filter(i =>
@@ -228,7 +245,11 @@
       role="listbox"
       aria-label={label ?? 'Options'}
     >
-      {#if filtered.length === 0}
+      {#if loading}
+        <li class="combobox-empty" role="option" aria-selected="false" aria-disabled="true">
+          Searching…
+        </li>
+      {:else if filtered.length === 0}
         <li class="combobox-empty" role="option" aria-selected="false" aria-disabled="true">
           No results found
         </li>

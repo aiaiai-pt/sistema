@@ -44,10 +44,14 @@ export { default as MenuSeparator } from "./MenuSeparator.svelte";
 
 // Form controls — composite
 export { default as Combobox } from "./Combobox.svelte";
+export { default as DatePicker } from "./DatePicker.svelte";
+export { default as DateTimePicker } from "./DateTimePicker.svelte";
+export { default as DateRangePicker } from "./DateRangePicker.svelte";
 
 // Search
 export { default as SearchInput } from "./SearchInput.svelte";
 export { default as FilterBar } from "./FilterBar.svelte";
+export { default as FilterPanel } from "./FilterPanel.svelte";
 export { default as CommandPalette } from "./CommandPalette.svelte";
 
 // Tabs

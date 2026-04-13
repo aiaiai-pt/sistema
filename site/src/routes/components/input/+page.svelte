@@ -11,8 +11,11 @@
 	import Textarea from '$ui/Textarea.svelte';
 	import FileUpload from '$ui/FileUpload.svelte';
 	import FileUploadItem from '$ui/FileUploadItem.svelte';
+	import CodeEditor from '$ui/CodeEditor.svelte';
 
 	let toggleOn = $state(false);
+	let sqlValue = $state('SELECT id, name, email\nFROM users\nWHERE active = true\nORDER BY created_at DESC;');
+	let jsonValue = $state('{\n  "name": "customer-enrichment",\n  "schedule": "0 */6 * * *",\n  "timeout": 300\n}');
 	let checked = $state(false);
 	let selectValue = $state('');
 
@@ -310,6 +313,25 @@
 			onremove={() => {}}
 		/>
 	</div>
+</section>
+
+<!-- Code Editor -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Code Editor</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">CodeMirror 6 wrapper with SQL, Python, and JSON syntax highlighting. Themed with DS tokens. Supports line numbers, readonly mode, and configurable height.</p>
+	<DemoGrid columns="1fr">
+		<StateCard label="SQL (EDITABLE)">
+			<CodeEditor bind:value={sqlValue} language="sql" minLines={4} />
+		</StateCard>
+
+		<StateCard label="JSON (EDITABLE)">
+			<CodeEditor bind:value={jsonValue} language="json" minLines={4} />
+		</StateCard>
+
+		<StateCard label="READ-ONLY">
+			<CodeEditor value="SELECT count(*) FROM pipeline_runs WHERE status = 'failed';" language="sql" readonly />
+		</StateCard>
+	</DemoGrid>
 </section>
 
 <!-- Token reference -->
