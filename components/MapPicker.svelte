@@ -3,6 +3,7 @@
 
   Interactive map for selecting a point or drawing a polygon.
   OpenLayers with configurable tiles and Draw interaction.
+  Draw sketch styled with DS tokens (not OL blue default).
   Consumes --map-* tokens from components.css.
 
   @example Point selection
@@ -17,14 +18,10 @@
 
 <script>
   import { fromLonLat, toLonLat } from 'ol/proj.js';
-  import { createTileLayer, cssVar, cssPx, renderMapError } from './map-utils.js';
-
-  /**
-   * @typedef {'point' | 'polygon'} Mode
-   */
+  import { createTileLayer, createMapStyles, renderMapError } from './map-utils.js';
 
   let {
-    /** @type {Mode} */
+    /** @type {'point' | 'polygon'} */
     mode = 'point',
     /** @type {[number, number]} — initial center [lon, lat] */
     center = [0, 0],
@@ -97,16 +94,11 @@
 
       if (disposed) return;
 
-      const tileLayer = await createTileLayer(tileSource);
+      const [tileLayer, styles] = await Promise.all([
+        createTileLayer(tileSource),
+        createMapStyles(container),
+      ]);
       if (disposed) return;
-
-      const markerFill = cssVar(container, '--map-marker-fill', '#ff6b35');
-      const markerStrokeColor = cssVar(container, '--map-marker-stroke', '#fff');
-      const markerRadius = cssPx(container, '--map-marker-radius', 8);
-      const markerStrokeWidth = cssPx(container, '--map-marker-stroke-width', 2);
-      const polyFill = cssVar(container, '--map-polygon-fill', 'rgba(255,107,53,0.2)');
-      const polyStroke = cssVar(container, '--map-polygon-stroke', '#ff6b35');
-      const polyStrokeWidth = cssPx(container, '--map-polygon-stroke-width', 2);
 
       const vectorSource = new VectorSource();
 
@@ -116,26 +108,17 @@
 
       const vectorLayer = new VectorLayer({
         source: vectorSource,
-        style: new Style({
-          image: new CircleStyle({
-            radius: markerRadius,
-            fill: new Fill({ color: markerFill }),
-            stroke: new Stroke({ color: markerStrokeColor, width: markerStrokeWidth }),
-          }),
-          fill: new Fill({ color: polyFill }),
-          stroke: new Stroke({ color: polyStroke, width: polyStrokeWidth }),
-        }),
+        style: (feature) => {
+          const type = feature.getGeometry()?.getType();
+          return type === 'Point' ? styles.marker : styles.polygon;
+        },
       });
 
-      const drawStyle = new Style({
-        image: new CircleStyle({
-          radius: markerRadius,
-          fill: new Fill({ color: markerFill }),
-          stroke: new Stroke({ color: markerStrokeColor, width: markerStrokeWidth }),
-        }),
-        fill: new Fill({ color: polyFill }),
-        stroke: new Stroke({ color: polyStroke, width: polyStrokeWidth }),
-      });
+      // Composite draw style: marker for vertices + polygon for fill/stroke
+      const drawStyle = [
+        styles.polygon,
+        styles.marker,
+      ];
 
       const drawType = mode === 'point' ? 'Point' : 'Polygon';
       const drawInteraction = new Draw({

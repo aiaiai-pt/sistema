@@ -156,6 +156,74 @@
 	/>
 </section>
 
+<!-- Styled Tiles -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Styled Tiles</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">All map components accept a tileSource prop. Default is OSM. Stadia Maps layers are free for web (no API key). XYZ supports Mapbox, CARTO, and any tile URL.</p>
+
+	<div class="map-demo-grid">
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">STADIA TONER LITE</span>
+			<MapDisplay
+				center={[-9.139, 38.722]}
+				zoom={14}
+				marker={[-9.139, 38.722]}
+				tileSource={{ type: 'stadia', layer: 'stamen_toner_lite' }}
+				height="200px"
+			/>
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">STADIA ALIDADE SMOOTH</span>
+			<MapDisplay
+				center={[-9.139, 38.722]}
+				zoom={14}
+				marker={[-9.139, 38.722]}
+				tileSource={{ type: 'stadia', layer: 'alidade_smooth' }}
+				height="200px"
+			/>
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">STADIA DARK</span>
+			<MapDisplay
+				center={[-9.139, 38.722]}
+				zoom={14}
+				marker={[-9.139, 38.722]}
+				tileSource={{ type: 'stadia', layer: 'alidade_smooth_dark' }}
+				height="200px"
+			/>
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">CARTO POSITRON</span>
+			<MapDisplay
+				center={[-9.139, 38.722]}
+				zoom={14}
+				marker={[-9.139, 38.722]}
+				tileSource={{ type: 'xyz', url: 'https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', attributions: '&copy; CARTO &copy; OpenStreetMap' }}
+				height="200px"
+			/>
+		</div>
+	</div>
+</section>
+
+<!-- Tile Source Reference -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Tile Source Config</h2>
+	<div class="size-table">
+		<div class="size-row">
+			<code class="type-data">{'{ type: "osm" }'}</code>
+			<span class="type-body-sm">Default. Standard OpenStreetMap tiles.</span>
+		</div>
+		<div class="size-row">
+			<code class="type-data">{'{ type: "stadia", layer: "..." }'}</code>
+			<span class="type-body-sm">Stadia Maps. Free for web. Layers: stamen_toner_lite, alidade_smooth, alidade_smooth_dark, stamen_watercolor, outdoors, osm_bright.</span>
+		</div>
+		<div class="size-row">
+			<code class="type-data">{'{ type: "xyz", url: "..." }'}</code>
+			<span class="type-body-sm">Any XYZ tile URL. Use for Mapbox, CARTO, or self-hosted tiles.</span>
+		</div>
+	</div>
+</section>
+
 <!-- Token reference -->
 <TokenRef component="Map components" file="components.css" tokens={mapTokens} />
 
@@ -170,5 +238,28 @@
 		.map-demo-grid {
 			grid-template-columns: 1fr 1fr;
 		}
+	}
+
+	.size-table {
+		border: var(--elevation-border);
+		border-radius: var(--radius-md);
+		overflow: hidden;
+	}
+
+	.size-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-lg);
+		padding: var(--space-sm) var(--space-md);
+		border-bottom: var(--elevation-border);
+	}
+
+	.size-row:last-child {
+		border-bottom: none;
+	}
+
+	.size-row code {
+		min-width: 200px;
+		flex-shrink: 0;
 	}
 </style>

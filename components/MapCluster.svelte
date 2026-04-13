@@ -3,6 +3,7 @@
 
   Map with clustered markers, hover tooltips, and click-to-select.
   OpenLayers with built-in Cluster source and OL Overlay for tooltips.
+  Styles cached via shared style factory for render performance.
   Consumes --map-* tokens from components.css.
 
   @example
@@ -13,10 +14,10 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, cssVar, cssPx, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, cssVar, renderMapError } from './map-utils.js';
 
   let {
-    /** @type {MarkerData[]} */
+    /** @type {{ id: string, lon: number, lat: number, label?: string, [key: string]: any }[]} */
     markers = [],
     /** @type {[number, number]} — initial center [lon, lat] */
     center = [0, 0],
@@ -26,7 +27,7 @@
     distance = 40,
     /** @type {import('./map-utils.js').TileSourceConfig} */
     tileSource = { type: 'osm' },
-    /** @type {((marker: MarkerData) => void) | undefined} */
+    /** @type {((marker: { id: string, lon: number, lat: number, label?: string }) => void) | undefined} */
     onclick = undefined,
     /** @type {string} */
     height = '100%',
@@ -55,11 +56,6 @@
         { default: Feature },
         { default: Point },
         { default: Overlay },
-        { default: Style },
-        { default: CircleStyle },
-        { default: Fill },
-        { default: Stroke },
-        { default: Text },
       ] = await Promise.all([
         import('ol/Map.js'),
         import('ol/View.js'),
@@ -69,27 +65,15 @@
         import('ol/Feature.js'),
         import('ol/geom/Point.js'),
         import('ol/Overlay.js'),
-        import('ol/style/Style.js'),
-        import('ol/style/Circle.js'),
-        import('ol/style/Fill.js'),
-        import('ol/style/Stroke.js'),
-        import('ol/style/Text.js'),
       ]);
 
       if (disposed) return;
 
-      const tileLayer = await createTileLayer(tileSource);
+      const [tileLayer, styles] = await Promise.all([
+        createTileLayer(tileSource),
+        createMapStyles(container),
+      ]);
       if (disposed) return;
-
-      const clusterFill = cssVar(container, '--map-cluster-fill', '#ff6b35');
-      const clusterTextColor = cssVar(container, '--map-cluster-text-fill', '#fff');
-      const clusterBaseRadius = cssPx(container, '--map-cluster-radius', 16);
-      const markerFill = cssVar(container, '--map-marker-fill', '#ff6b35');
-      const markerStrokeColor = cssVar(container, '--map-marker-stroke', '#fff');
-      const markerRadius = cssPx(container, '--map-marker-radius', 8);
-      const markerStrokeWidth = cssPx(container, '--map-marker-stroke-width', 2);
-      const clusterFont = cssVar(container, '--map-cluster-font', 'monospace');
-      const clusterFontSize = cssVar(container, '--map-cluster-font-size', '12px');
 
       const features = markers.map(m => {
         const f = new Feature({ geometry: new Point(fromLonLat([m.lon, m.lat])) });
@@ -104,32 +88,12 @@
         source: clusterSource,
         style: (feature) => {
           const size = feature.get('features')?.length ?? 1;
-          if (size > 1) {
-            return new Style({
-              image: new CircleStyle({
-                radius: clusterBaseRadius + Math.min(size, 20),
-                fill: new Fill({ color: clusterFill }),
-              }),
-              text: new Text({
-                text: String(size),
-                fill: new Fill({ color: clusterTextColor }),
-                font: `600 ${clusterFontSize} ${clusterFont}`,
-              }),
-            });
-          }
-          return new Style({
-            image: new CircleStyle({
-              radius: markerRadius,
-              fill: new Fill({ color: markerFill }),
-              stroke: new Stroke({ color: markerStrokeColor, width: markerStrokeWidth }),
-            }),
-          });
+          return styles.cluster(size);
         },
       });
 
       // Tooltip overlay
       const tooltipEl = document.createElement('div');
-      tooltipEl.className = 'map-cluster-tooltip';
       tooltipEl.style.cssText = `
         background: var(--map-popup-bg, #fff);
         border: var(--map-popup-border, 1px solid #ddd);
@@ -168,7 +132,7 @@
         }),
       });
 
-      // Hover: show tooltip for single markers
+      // Hover: show tooltip
       map.on('pointermove', (evt) => {
         const feature = map?.forEachFeatureAtPixel(evt.pixel, f => f);
         if (!feature) {

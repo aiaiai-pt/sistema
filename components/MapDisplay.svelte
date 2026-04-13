@@ -7,12 +7,12 @@
   @example Point
   <MapDisplay center={[-9.14, 38.74]} zoom={14} marker={[-9.14, 38.74]} />
 
-  @example Custom tiles
-  <MapDisplay center={[-9.14, 38.74]} tileSource={{ type: 'xyz', url: '...' }} />
+  @example Styled tiles
+  <MapDisplay center={[-9.14, 38.74]} tileSource={{ type: 'stadia', layer: 'stamen_toner_lite' }} />
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, cssVar, cssPx, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, renderMapError } from './map-utils.js';
 
   let {
     /** @type {[number, number]} — [longitude, latitude] WGS84 */
@@ -51,10 +51,6 @@
         { default: Feature },
         { default: Point },
         { default: Polygon },
-        { default: Style },
-        { default: CircleStyle },
-        { default: Fill },
-        { default: Stroke },
       ] = await Promise.all([
         import('ol/Map.js'),
         import('ol/View.js'),
@@ -63,24 +59,15 @@
         import('ol/Feature.js'),
         import('ol/geom/Point.js'),
         import('ol/geom/Polygon.js'),
-        import('ol/style/Style.js'),
-        import('ol/style/Circle.js'),
-        import('ol/style/Fill.js'),
-        import('ol/style/Stroke.js'),
       ]);
 
       if (disposed) return;
 
-      const tileLayer = await createTileLayer(tileSource);
+      const [tileLayer, styles] = await Promise.all([
+        createTileLayer(tileSource),
+        createMapStyles(container),
+      ]);
       if (disposed) return;
-
-      const markerFill = cssVar(container, '--map-marker-fill', '#ff6b35');
-      const markerStrokeColor = cssVar(container, '--map-marker-stroke', '#fff');
-      const markerRadius = cssPx(container, '--map-marker-radius', 8);
-      const markerStrokeWidth = cssPx(container, '--map-marker-stroke-width', 2);
-      const polyFill = cssVar(container, '--map-polygon-fill', 'rgba(255,107,53,0.2)');
-      const polyStroke = cssVar(container, '--map-polygon-stroke', '#ff6b35');
-      const polyStrokeWidth = cssPx(container, '--map-polygon-stroke-width', 2);
 
       /** @type {Feature[]} */
       const features = [];
@@ -99,19 +86,7 @@
         source: new VectorSource({ features }),
         style: (feature) => {
           const type = feature.getGeometry()?.getType();
-          if (type === 'Point') {
-            return new Style({
-              image: new CircleStyle({
-                radius: markerRadius,
-                fill: new Fill({ color: markerFill }),
-                stroke: new Stroke({ color: markerStrokeColor, width: markerStrokeWidth }),
-              }),
-            });
-          }
-          return new Style({
-            fill: new Fill({ color: polyFill }),
-            stroke: new Stroke({ color: polyStroke, width: polyStrokeWidth }),
-          });
+          return type === 'Point' ? styles.marker : styles.polygon;
         },
       });
 
