@@ -8,6 +8,11 @@ export default defineConfig({
   resolve: {
     alias: {
       $ui: path.resolve(__dirname, "../components"),
+      "date-fns": path.resolve(__dirname, "node_modules/date-fns"),
+      "date-fns/locale": path.resolve(
+        __dirname,
+        "node_modules/date-fns/locale",
+      ),
     },
   },
 });
