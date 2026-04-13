@@ -89,3 +89,9 @@ export { default as Breadcrumb } from "./Breadcrumb.svelte";
 // Stats
 export { default as StatCard } from "./StatCard.svelte";
 export { default as StatGrid } from "./StatGrid.svelte";
+
+// Maps (OpenLayers)
+export { default as MapDisplay } from "./MapDisplay.svelte";
+export { default as MapPicker } from "./MapPicker.svelte";
+export { default as MapCluster } from "./MapCluster.svelte";
+export { default as MapHeatmap } from "./MapHeatmap.svelte";

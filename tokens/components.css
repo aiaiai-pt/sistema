@@ -735,6 +735,37 @@
   --stat-grid-gap: var(--space-md);
 
   /* ═══════════════════════════════════════════════
+     MAP
+     ═══════════════════════════════════════════════ */
+
+  --map-radius: var(--radius-md);
+  --map-border: var(--elevation-border);
+
+  /* Marker */
+  --map-marker-radius: var(--space-sm);
+  --map-marker-fill: var(--color-accent);
+  --map-marker-stroke: var(--color-surface);
+  --map-marker-stroke-width: var(--border-width-thick);
+
+  /* Cluster */
+  --map-cluster-radius: var(--space-md);
+  --map-cluster-fill: var(--color-accent);
+  --map-cluster-text-fill: var(--color-text-on-accent);
+  --map-cluster-font: var(--type-label-font);
+  --map-cluster-font-size: var(--type-label-size);
+
+  /* Polygon / draw */
+  --map-polygon-fill: var(--color-accent-subtle);
+  --map-polygon-stroke: var(--color-accent);
+  --map-polygon-stroke-width: var(--border-width-thick);
+
+  /* Draw mode toolbar */
+  --map-toolbar-bg: var(--color-surface);
+  --map-toolbar-border: var(--elevation-border);
+  --map-toolbar-radius: var(--radius-sm);
+  --map-toolbar-padding: var(--space-2xs);
+
+  /* ═══════════════════════════════════════════════
      FOCUS RING (global)
      ═══════════════════════════════════════════════ */
 
