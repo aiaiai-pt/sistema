@@ -85,3 +85,7 @@ export { default as LogViewer } from "./LogViewer.svelte";
 export { default as DataTable } from "./DataTable.svelte";
 export { default as Pagination } from "./Pagination.svelte";
 export { default as Breadcrumb } from "./Breadcrumb.svelte";
+
+// Stats
+export { default as StatCard } from "./StatCard.svelte";
+export { default as StatGrid } from "./StatGrid.svelte";

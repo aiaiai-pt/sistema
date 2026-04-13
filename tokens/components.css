@@ -700,6 +700,41 @@
   --datepicker-range-endpoint-text: var(--color-text-on-accent);
 
   /* ═══════════════════════════════════════════════
+     STAT CARD
+     ═══════════════════════════════════════════════ */
+
+  --stat-padding: var(--space-lg);
+  --stat-radius: var(--radius-md);
+  --stat-border: var(--elevation-border);
+  --stat-bg: var(--color-surface);
+
+  /* Value (large number) */
+  --stat-value-font: var(--type-display-font);
+  --stat-value-size: var(--type-display-size);
+  --stat-value-weight: var(--type-display-weight);
+  --stat-value-tracking: var(--type-display-tracking);
+
+  /* Label */
+  --stat-label-font: var(--type-label-font);
+  --stat-label-size: var(--type-label-size);
+  --stat-label-tracking: var(--type-label-tracking);
+  --stat-label-color: var(--color-text-muted);
+
+  /* Trend */
+  --stat-trend-font: var(--type-body-sm-font);
+  --stat-trend-size: var(--type-body-sm-size);
+  --stat-trend-up-color: var(--color-success);
+  --stat-trend-down-color: var(--color-destructive);
+  --stat-trend-neutral-color: var(--color-text-muted);
+
+  /* Icon */
+  --stat-icon-size: var(--icon-size-lg);
+  --stat-icon-color: var(--color-text-muted);
+
+  /* Grid */
+  --stat-grid-gap: var(--space-md);
+
+  /* ═══════════════════════════════════════════════
      FOCUS RING (global)
      ═══════════════════════════════════════════════ */
 
