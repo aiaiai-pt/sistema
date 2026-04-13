@@ -755,7 +755,7 @@
   --map-cluster-font-size: var(--type-label-size);
 
   /* Polygon / draw */
-  --map-polygon-fill: var(--color-accent-subtle);
+  --map-polygon-fill: color-mix(in srgb, var(--color-accent) 20%, transparent);
   --map-polygon-stroke: var(--color-accent);
   --map-polygon-stroke-width: var(--border-width-thick);
 

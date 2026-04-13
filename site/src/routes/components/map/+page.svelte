@@ -52,7 +52,7 @@
 		'--map-cluster-radius: var(--space-md)',
 		'--map-cluster-fill: var(--color-accent)',
 		'--map-cluster-text-fill: var(--color-text-on-accent)',
-		'--map-polygon-fill: var(--color-accent-subtle)',
+		'--map-polygon-fill: color-mix(in srgb, var(--color-accent) 20%, transparent)',
 		'--map-polygon-stroke: var(--color-accent)',
 	];
 </script>
@@ -93,23 +93,37 @@
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">MapPicker</h2>
 	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Interactive map for form fields. Click to place a point or draw a polygon. Follows Input patterns (label, help, error).</p>
 
-	<div style="max-width: 560px;">
-		<MapPicker
-			label="EQUIPMENT LOCATION"
-			mode="point"
-			center={[-9.139, 38.722]}
-			zoom={14}
-			bind:value={pickedPoint}
-			help="Click on the map to set equipment location."
-			height="300px"
-		/>
-		{#if pickedPoint}
-			<div style="margin-top: var(--space-xs);">
-				<code class="type-data" style="font-size: var(--type-caption-size); color: var(--color-text-muted);">
-					{pickedPoint[1].toFixed(6)}, {pickedPoint[0].toFixed(6)}
-				</code>
-			</div>
-		{/if}
+	<div class="map-demo-grid">
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">POINT MODE</span>
+			<MapPicker
+				label="EQUIPMENT LOCATION"
+				mode="point"
+				center={[-9.139, 38.722]}
+				zoom={14}
+				bind:value={pickedPoint}
+				help="Click on the map to place a marker."
+				height="280px"
+			/>
+			{#if pickedPoint}
+				<div style="margin-top: var(--space-xs);">
+					<code class="type-data" style="font-size: var(--type-caption-size); color: var(--color-text-muted);">
+						{pickedPoint[1].toFixed(6)}, {pickedPoint[0].toFixed(6)}
+					</code>
+				</div>
+			{/if}
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">POLYGON MODE</span>
+			<MapPicker
+				label="SERVICE AREA"
+				mode="polygon"
+				center={[-9.145, 38.730]}
+				zoom={14}
+				help="Click vertices to draw a polygon. Double-click to finish."
+				height="280px"
+			/>
+		</div>
 	</div>
 </section>
 
