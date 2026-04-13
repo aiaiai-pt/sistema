@@ -11,6 +11,9 @@
   "publishConfig": {
     "access": "public"
   },
+  "workspaces": [
+    "site"
+  ],
   "scripts": {
     "build:types": "svelte-package --input . --output dist && cp dist/components/*.d.ts components/ && rm -rf dist",
     "prepublishOnly": "npm run build:types"
