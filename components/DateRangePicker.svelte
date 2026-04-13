@@ -322,7 +322,7 @@
   .daterange-trigger {
     display: flex;
     align-items: center;
-    gap: var(--space-xs);
+    gap: var(--space-sm);
     font-family: var(--input-font);
     font-size: var(--input-font-size);
     border: var(--input-border);
