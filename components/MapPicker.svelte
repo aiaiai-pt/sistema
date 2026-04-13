@@ -127,10 +127,21 @@
         }),
       });
 
+      const drawStyle = new Style({
+        image: new CircleStyle({
+          radius: markerRadius,
+          fill: new Fill({ color: markerFill }),
+          stroke: new Stroke({ color: markerStrokeColor, width: markerStrokeWidth }),
+        }),
+        fill: new Fill({ color: polyFill }),
+        stroke: new Stroke({ color: polyStroke, width: polyStrokeWidth }),
+      });
+
       const drawType = mode === 'point' ? 'Point' : 'Polygon';
       const drawInteraction = new Draw({
         source: vectorSource,
         type: drawType,
+        style: drawStyle,
       });
 
       drawInteraction.on('drawstart', () => {

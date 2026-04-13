@@ -144,5 +144,8 @@ export function getHeatmapGradient(el) {
     styles.getPropertyValue("--map-heatmap-stop-4").trim(),
   ].filter(Boolean);
 
-  return stops.length >= 2 ? ["transparent", ...stops] : undefined;
+  if (stops.length >= 2) return ["transparent", ...stops];
+
+  // Fallback: warm sequential ramp matching DS accent palette
+  return ["transparent", "#fef3c7", "#f59e0b", "#dc2626"];
 }
