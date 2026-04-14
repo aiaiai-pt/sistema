@@ -149,9 +149,8 @@
 	<MapHeatmap
 		points={heatPoints}
 		center={[-9.139, 38.722]}
-		zoom={15}
-		blur={30}
-		radius={20}
+		radius={30}
+		blur={15}
 		height="360px"
 	/>
 </section>
