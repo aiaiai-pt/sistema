@@ -14,7 +14,7 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, createMapStyles, cssVar, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {{ id: string, lon: number, lat: number, label?: string, [key: string]: any }[]} */
@@ -45,6 +45,8 @@
     let disposed = false;
     /** @type {import('ol/Map.js').default | undefined} */
     let map;
+    /** @type {(() => void) | undefined} */
+    let disposeTheme;
 
     (async () => { try {
       const [
@@ -179,10 +181,16 @@
           }
         });
       }
+
+      disposeTheme = watchTheme(() => {
+        styles.refresh();
+        clusterSource.changed();
+      });
     } catch (err) { renderMapError(container, 'MapCluster', /** @type {Error} */ (err)); } })();
 
     return () => {
       disposed = true;
+      disposeTheme?.();
       map?.setTarget(undefined);
     };
   });

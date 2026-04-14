@@ -18,7 +18,7 @@
 
 <script>
   import { fromLonLat, toLonLat } from 'ol/proj.js';
-  import { createTileLayer, createMapStyles, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {'point' | 'polygon'} */
@@ -64,6 +64,8 @@
     let disposed = false;
     /** @type {import('ol/Map.js').default | undefined} */
     let map;
+    /** @type {(() => void) | undefined} */
+    let disposeTheme;
 
     (async () => { try {
       const [
@@ -74,10 +76,6 @@
         { default: Feature },
         { default: Point },
         { default: Draw },
-        { default: Style },
-        { default: CircleStyle },
-        { default: Fill },
-        { default: Stroke },
       ] = await Promise.all([
         import('ol/Map.js'),
         import('ol/View.js'),
@@ -86,10 +84,6 @@
         import('ol/Feature.js'),
         import('ol/geom/Point.js'),
         import('ol/interaction/Draw.js'),
-        import('ol/style/Style.js'),
-        import('ol/style/Circle.js'),
-        import('ol/style/Fill.js'),
-        import('ol/style/Stroke.js'),
       ]);
 
       if (disposed) return;
@@ -159,10 +153,16 @@
       });
 
       map.addInteraction(drawInteraction);
+
+      disposeTheme = watchTheme(() => {
+        styles.refresh();
+        vectorSource.changed();
+      });
     } catch (err) { renderMapError(container, 'MapPicker', /** @type {Error} */ (err)); } })();
 
     return () => {
       disposed = true;
+      disposeTheme?.();
       map?.setTarget(undefined);
     };
   });

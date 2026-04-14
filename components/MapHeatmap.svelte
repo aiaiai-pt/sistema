@@ -17,7 +17,7 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, getHeatmapGradient, renderMapError } from './map-utils.js';
+  import { createTileLayer, getHeatmapGradient, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {{ lon: number, lat: number, weight?: number }[]} */
@@ -50,6 +50,8 @@
     let disposed = false;
     /** @type {import('ol/Map.js').default | undefined} */
     let map;
+    /** @type {(() => void) | undefined} */
+    let disposeTheme;
 
     (async () => { try {
       const [
@@ -110,10 +112,17 @@
           zoom,
         }),
       });
+
+      if (!gradient) {
+        disposeTheme = watchTheme(() => {
+          heatmapLayer.setGradient(getHeatmapGradient(container));
+        });
+      }
     } catch (err) { renderMapError(container, 'MapHeatmap', /** @type {Error} */ (err)); } })();
 
     return () => {
       disposed = true;
+      disposeTheme?.();
       map?.setTarget(undefined);
     };
   });

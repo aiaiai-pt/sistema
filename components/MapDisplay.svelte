@@ -12,7 +12,7 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, createMapStyles, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {[number, number]} — [longitude, latitude] WGS84 */
@@ -41,6 +41,8 @@
     let disposed = false;
     /** @type {import('ol/Map.js').default | undefined} */
     let map;
+    /** @type {(() => void) | undefined} */
+    let disposeTheme;
 
     (async () => { try {
       const [
@@ -99,10 +101,16 @@
         }),
         controls: [],
       });
+
+      disposeTheme = watchTheme(() => {
+        styles.refresh();
+        vectorLayer.getSource()?.changed();
+      });
     } catch (err) { renderMapError(container, 'MapDisplay', /** @type {Error} */ (err)); } })();
 
     return () => {
       disposed = true;
+      disposeTheme?.();
       map?.setTarget(undefined);
     };
   });
