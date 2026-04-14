@@ -116,6 +116,7 @@
       if (!gradient) {
         disposeTheme = watchTheme(() => {
           heatmapLayer.setGradient(getHeatmapGradient(container));
+          heatmapLayer.getSource()?.changed();
         });
       }
     } catch (err) { renderMapError(container, 'MapHeatmap', /** @type {Error} */ (err)); } })();
