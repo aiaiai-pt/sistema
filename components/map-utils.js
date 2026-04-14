@@ -247,13 +247,17 @@ export function getHeatmapGradient(el) {
     styles.getPropertyValue("--map-heatmap-stop-4").trim(),
   ].filter(Boolean);
 
-  // First stop must be the first color at zero alpha — NOT 'transparent'
-  // which is rgba(0,0,0,0) and causes dark interpolation artifacts in
-  // canvas gradient rendering.
+  // First stop: same hue as stop-1 at zero alpha. NOT 'transparent'
+  // (which is rgba(0,0,0,0) — transparent black — and causes dark
+  // interpolation artifacts in canvas gradient rendering).
   if (stops.length >= 2) {
-    return [`rgba(254, 243, 199, 0)`, ...stops];
+    const firstHex = stops[0];
+    const r = parseInt(firstHex.slice(1, 3), 16) || 254;
+    const g = parseInt(firstHex.slice(3, 5), 16) || 228;
+    const b = parseInt(firstHex.slice(5, 7), 16) || 142;
+    return [`rgba(${r}, ${g}, ${b}, 0)`, ...stops];
   }
 
-  // Fallback: warm sequential ramp matching DS accent palette
-  return ["rgba(254, 243, 199, 0)", "#fef3c7", "#f59e0b", "#dc2626"];
+  // Fallback: warm sequential ramp (amber → orange → red)
+  return ["rgba(251, 227, 142, 0)", "#fbe38e", "#fb923c", "#e85a28", "#ae2a1e"];
 }
