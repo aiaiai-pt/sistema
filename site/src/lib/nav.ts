@@ -38,6 +38,7 @@ export const navigation: NavSection[] = [
       { label: "Data Table", href: "/components/data-table" },
       { label: "Stat Card", href: "/components/stat-card" },
       { label: "Map", href: "/components/map" },
+      { label: "Calendar", href: "/components/calendar" },
       { label: "Card", href: "/components/card" },
       { label: "Layout", href: "/components/layout" },
       { label: "Navigation", href: "/components/navigation" },

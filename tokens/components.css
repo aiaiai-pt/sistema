@@ -785,6 +785,91 @@
   --map-toolbar-padding: var(--space-2xs);
 
   /* ═══════════════════════════════════════════════
+     CALENDAR
+     ═══════════════════════════════════════════════ */
+
+  /* Container */
+  --calendar-bg: var(--color-surface);
+  --calendar-border: var(--elevation-border);
+  --calendar-radius: var(--radius-md);
+  --calendar-padding: var(--space-md);
+
+  /* Toolbar */
+  --calendar-toolbar-gap: var(--space-sm);
+  --calendar-title-font: var(--type-heading-font);
+  --calendar-title-size: var(--type-heading-size);
+  --calendar-title-weight: var(--type-heading-weight);
+  --calendar-title-tracking: var(--type-heading-tracking);
+  --calendar-title-color: var(--color-text);
+
+  /* View toggle */
+  --calendar-toggle-font: var(--type-label-font);
+  --calendar-toggle-size: var(--type-label-size);
+  --calendar-toggle-tracking: var(--type-label-tracking);
+  --calendar-toggle-padding: var(--space-2xs) var(--space-sm);
+  --calendar-toggle-radius: var(--radius-sm);
+  --calendar-toggle-color: var(--color-text-secondary);
+  --calendar-toggle-hover-bg: var(--color-surface-secondary);
+  --calendar-toggle-active-bg: var(--color-accent);
+  --calendar-toggle-active-text: var(--color-text-on-accent);
+
+  /* Navigation buttons */
+  --calendar-nav-btn-size: var(--button-sm-height);
+  --calendar-nav-btn-radius: var(--radius-sm);
+  --calendar-nav-btn-hover-bg: var(--color-surface-secondary);
+
+  /* Weekday headers */
+  --calendar-weekday-font: var(--type-label-font);
+  --calendar-weekday-size: var(--type-caption-size);
+  --calendar-weekday-tracking: var(--type-caption-tracking);
+  --calendar-weekday-color: var(--color-text-muted);
+  --calendar-weekday-height: var(--space-xl);
+
+  /* Month cell */
+  --calendar-cell-min-height: var(--space-4xl);
+  --calendar-cell-border: var(--border-width) solid var(--color-border);
+  --calendar-cell-padding: var(--space-2xs);
+  --calendar-cell-hover-bg: var(--color-surface-secondary);
+  --calendar-cell-today-bg: var(--color-accent-subtle);
+
+  /* Day number */
+  --calendar-day-font: var(--type-data-font);
+  --calendar-day-size: var(--type-body-sm-size);
+  --calendar-day-color: var(--color-text);
+  --calendar-day-outside-opacity: 0.3;
+  --calendar-day-today-size: var(--space-lg);
+  --calendar-day-today-bg: var(--color-accent);
+  --calendar-day-today-text: var(--color-text-on-accent);
+
+  /* Time gutter (week/day views) */
+  --calendar-time-font: var(--type-data-font);
+  --calendar-time-size: var(--type-caption-size);
+  --calendar-time-color: var(--color-text-muted);
+  --calendar-time-width: var(--space-3xl);
+
+  /* Hour slot (week/day views) */
+  --calendar-slot-height: var(--space-2xl);
+  --calendar-slot-border: var(--border-width) solid var(--color-border);
+
+  /* Now indicator */
+  --calendar-now-color: var(--color-destructive);
+  --calendar-now-width: var(--border-width-thick);
+
+  /* Event block */
+  --calendar-event-font: var(--type-body-sm-font);
+  --calendar-event-size: var(--type-caption-size);
+  --calendar-event-weight: var(--type-body-sm-weight);
+  --calendar-event-radius: var(--radius-sm);
+  --calendar-event-padding: var(--space-2xs) var(--space-xs);
+  --calendar-event-default-bg: var(--color-accent);
+  --calendar-event-default-text: var(--color-text-on-accent);
+
+  /* Overflow indicator */
+  --calendar-overflow-font: var(--type-caption-font);
+  --calendar-overflow-size: var(--type-caption-size);
+  --calendar-overflow-color: var(--color-text-muted);
+
+  /* ═══════════════════════════════════════════════
      FOCUS RING (global)
      ═══════════════════════════════════════════════ */
 
