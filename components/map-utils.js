@@ -280,25 +280,57 @@ export function cssPx(el, prop, fallback) {
 }
 
 /**
+ * Resolves any CSS color expression (hex, rgb, color-mix, var refs)
+ * to a concrete rgb()/rgba() string via a probe element.
+ * Required because getComputedStyle doesn't resolve color-mix() on
+ * custom properties — only on applied styles like backgroundColor.
+ *
+ * @param {Element} el
+ * @param {string} value — raw CSS color expression
+ * @returns {string} — resolved rgb()/rgba() string
+ */
+function resolveColor(el, value) {
+  const probe = document.createElement("div");
+  probe.style.cssText = `position:absolute;visibility:hidden;background-color:${value}`;
+  el.appendChild(probe);
+  const resolved = getComputedStyle(probe).backgroundColor;
+  el.removeChild(probe);
+  return resolved || value;
+}
+
+/**
+ * Extracts RGB components from a resolved color string.
+ * Handles rgb(r, g, b) and rgba(r, g, b, a) formats.
+ *
+ * @param {string} color
+ * @returns {{ r: number, g: number, b: number }}
+ */
+function parseRgb(color) {
+  const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (match) return { r: +match[1], g: +match[2], b: +match[3] };
+  return { r: 254, g: 228, b: 142 };
+}
+
+/**
  * Reads heatmap gradient stops from CSS custom properties.
+ * Resolves color-mix() and other CSS color expressions to concrete
+ * rgb values that OL's canvas gradient can consume.
  *
  * @param {Element} el
  * @returns {string[]}
  */
 export function getHeatmapGradient(el) {
   const styles = getComputedStyle(el);
-  const stops = [
+  const rawStops = [
     styles.getPropertyValue("--map-heatmap-stop-1").trim(),
     styles.getPropertyValue("--map-heatmap-stop-2").trim(),
     styles.getPropertyValue("--map-heatmap-stop-3").trim(),
     styles.getPropertyValue("--map-heatmap-stop-4").trim(),
   ].filter(Boolean);
 
-  if (stops.length >= 2) {
-    const firstHex = stops[0];
-    const r = parseInt(firstHex.slice(1, 3), 16) || 254;
-    const g = parseInt(firstHex.slice(3, 5), 16) || 228;
-    const b = parseInt(firstHex.slice(5, 7), 16) || 142;
+  if (rawStops.length >= 2) {
+    const stops = rawStops.map((s) => resolveColor(el, s));
+    const { r, g, b } = parseRgb(stops[0]);
     return [`rgba(${r}, ${g}, ${b}, 0)`, ...stops];
   }
 

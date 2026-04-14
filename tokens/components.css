@@ -759,11 +759,15 @@
   --map-polygon-stroke: var(--color-accent);
   --map-polygon-stroke-width: var(--border-width-thick);
 
-  /* Heatmap (warm sequential ramp: light amber → accent → deep red) */
-  --map-heatmap-stop-1: var(--raw-color-amber-200);
-  --map-heatmap-stop-2: var(--raw-color-orange-400);
-  --map-heatmap-stop-3: var(--raw-color-orange-600);
-  --map-heatmap-stop-4: var(--raw-color-red-700);
+  /* Heatmap (accent-derived sequential ramp — follows theme) */
+  --map-heatmap-stop-1: var(--color-accent-subtle);
+  --map-heatmap-stop-2: color-mix(
+    in srgb,
+    var(--color-accent) 60%,
+    var(--color-accent-subtle)
+  );
+  --map-heatmap-stop-3: var(--color-accent);
+  --map-heatmap-stop-4: var(--color-accent-hover);
 
   /* Popup (inherits card tokens) */
   --map-popup-bg: var(--card-bg);
