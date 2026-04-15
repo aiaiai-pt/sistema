@@ -55,11 +55,9 @@
   const hintId = $derived(`${selectId}-hint`);
   const hasHint = $derived(!!error || !!help);
 
-  let mounted = false;
-  $effect(() => {
-    if (!mounted) { mounted = true; return; }
+  function handleChange() {
     if (onchange && value !== undefined) onchange(value);
-  });
+  }
 </script>
 
 <div class="input-group {className}">
@@ -76,6 +74,7 @@
       aria-describedby={hasHint ? hintId : undefined}
       {disabled}
       bind:value
+      onchange={handleChange}
       {...rest}
     >
       {#if placeholder}
