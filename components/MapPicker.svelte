@@ -4,10 +4,14 @@
   Interactive map for selecting a point or drawing a polygon.
   OpenLayers with configurable tiles and Draw interaction.
   Draw sketch styled with DS tokens (not OL blue default).
+  Built-in GeoSearch (Nominatim) for address lookup + pan.
   Consumes --map-* tokens from components.css.
 
-  @example Point selection
+  @example Point selection with search
   <MapPicker mode="point" onchange={(coords) => console.log(coords)} />
+
+  @example Without search
+  <MapPicker mode="point" search={false} onchange={(coords) => console.log(coords)} />
 
   @example Polygon drawing
   <MapPicker mode="polygon" onchange={(coords) => console.log(coords)} />
@@ -19,6 +23,7 @@
 <script>
   import { fromLonLat, toLonLat } from 'ol/proj.js';
   import { createTileLayer, createMapStyles, watchTheme, renderMapError } from './map-utils.js';
+  import GeoSearch from './GeoSearch.svelte';
 
   let {
     /** @type {'point' | 'polygon'} */
@@ -37,6 +42,12 @@
     error = undefined,
     /** @type {boolean} */
     disabled = false,
+    /** @type {boolean} — show GeoSearch bar above map */
+    search = true,
+    /** @type {string} — Nominatim-compatible search endpoint */
+    searchProviderUrl = undefined,
+    /** @type {[number, number, number, number] | undefined} — viewbox bias for search */
+    searchViewbox = undefined,
     /** @type {import('./map-utils.js').TileSourceConfig} */
     tileSource = { type: 'osm' },
     /** @type {((coords: [number, number] | number[][]) => void) | undefined} */
@@ -57,6 +68,45 @@
 
   /** @type {HTMLElement | undefined} */
   let container = $state();
+  /** @type {import('ol/Map.js').default | undefined} */
+  let _map = $state();
+  /** @type {any} — VectorSource for placing markers via search */
+  let _vectorSource;
+  /** @type {any} */
+  let _Feature;
+  /** @type {any} */
+  let _Point;
+
+  // Bidirectional coords for GeoSearch: search → map, map click → reverse geocode
+  let searchCoords = $state(/** @type {[number, number] | undefined} */ (undefined));
+  let initialReverseDone = false;
+
+  // Set searchCoords from initial value (triggers reverse geocode in GeoSearch)
+  $effect(() => {
+    if (!initialReverseDone && value) {
+      searchCoords = /** @type {[number, number]} */ ([...value]);
+      initialReverseDone = true;
+    }
+  });
+
+  function handleGeoLocation(lon, lat) {
+    if (!_map) return;
+    const view = _map.getView();
+    if (view) view.animate({ center: fromLonLat([lon, lat]), zoom: 16, duration: 400 });
+
+    // In point mode, also place a marker and emit the value
+    if (mode === 'point' && _vectorSource && _Feature && _Point) {
+      _vectorSource.clear();
+      _vectorSource.addFeature(new _Feature({ geometry: new _Point(fromLonLat([lon, lat])) }));
+      value = [lon, lat];
+      onchange?.([lon, lat]);
+    }
+  }
+
+  /** Called by MapPicker when user clicks to place a point — triggers reverse geocoding */
+  function handleMapPointPlaced(lon, lat) {
+    searchCoords = [lon, lat];
+  }
 
   $effect(() => {
     if (!container || disabled) return;
@@ -95,6 +145,9 @@
       if (disposed) return;
 
       const vectorSource = new VectorSource();
+      _vectorSource = vectorSource;
+      _Feature = Feature;
+      _Point = Point;
 
       if (value && mode === 'point') {
         vectorSource.addFeature(new Feature({ geometry: new Point(fromLonLat(value)) }));
@@ -133,6 +186,7 @@
           const coords = /** @type {import('ol/geom/Point.js').default} */ (geom).getCoordinates();
           const wgs84 = /** @type {[number, number]} */ (toLonLat(coords));
           value = wgs84;
+          handleMapPointPlaced(wgs84[0], wgs84[1]);
           onchange?.(wgs84);
         } else {
           const coords = /** @type {import('ol/geom/Polygon.js').default} */ (geom).getCoordinates()[0];
@@ -153,6 +207,7 @@
       });
 
       map.addInteraction(drawInteraction);
+      _map = map;
 
       disposeTheme = watchTheme(() => {
         styles.refresh();
@@ -171,6 +226,17 @@
 <div class="map-picker {className}" {...rest}>
   {#if label}
     <label class="map-picker-label" for={pickerId}>{label}</label>
+  {/if}
+
+  {#if search && !disabled}
+    <GeoSearch
+      placeholder="Search address or place..."
+      providerUrl={searchProviderUrl}
+      viewbox={searchViewbox}
+      onlocation={handleGeoLocation}
+      bind:coords={searchCoords}
+      size="sm"
+    />
   {/if}
 
   <div
