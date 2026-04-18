@@ -476,7 +476,7 @@
      POPOVER
      ═══════════════════════════════════════════════ */
 
-  --popover-bg: var(--raw-color-white);
+  --popover-bg: var(--color-surface);
   --popover-border: var(--elevation-border-strong);
   --popover-shadow: var(--elevation-overlay);
   --popover-radius: var(--radius-md);

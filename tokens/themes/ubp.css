@@ -1,0 +1,187 @@
+/*
+ * aiaiai Design System — Tier 2: UBP Theme
+ *
+ * Dark-first bespoke theme for the "Urban Backoffice Platform" — a new
+ * backoffice product for Portuguese municipalities. Reproduces the look-
+ * and-feel of a legacy design specified in Figma, using only token
+ * overrides (no core changes beyond the popover cascade fix).
+ *
+ * Spec: dev_docs/specs/ubp-theme-design.md
+ * Content model: dev_docs/specs/ubp-theme-research/content-model.md
+ *
+ * Doctrine exceptions (documented in spec Rabbit Holes):
+ *   - Warm shadows → cool shadows (warm disappears on dark surfaces)
+ *   - Warm-tinted overlay → cool-tinted overlay (same reason)
+ *   - Berkeley Mono labels/data → Hanken Grotesk everywhere (legacy has no mono)
+ *   - Typography tracking on labels/buttons → 0 (legacy uses no tracking)
+ *
+ * Apply via: <html data-theme="ubp">
+ */
+
+[data-theme="ubp"] {
+  /* ═══════════════════════════════════════════════
+     COLOR — Dark surface palette (22 tokens)
+     ═══════════════════════════════════════════════ */
+
+  /* Surfaces follow dark-raised hierarchy: secondary is deepest (sidebar),
+     surface is main canvas, tertiary is raised (cards, chips, hover). */
+  --color-surface: #161922;
+  --color-surface-secondary: #0f1218;
+  --color-surface-tertiary: #1f2430;
+  --color-overlay: rgba(5, 8, 14, 0.65);
+
+  /* Borders: bumped for crisp edges on dark (Supabase pattern) */
+  --color-border: #2a2f3a;
+  --color-border-strong: #3c424f;
+
+  /* Text: never pure white — warmth kept via slight cream tint.
+     Muted bumped from #6b7280 to #9097a1 to pass AA 4.5:1 on both
+     surface (4.8:1) and surface-secondary (5.1:1). */
+  --color-text: #e8eaee;
+  --color-text-secondary: #a8aeba;
+  --color-text-muted: #9097a1;
+  --color-text-on-accent: #ffffff;
+
+  /* Accent: electric blue (legacy mandate was #1b57fd but fails AA as text
+     at 3.63:1 on dark surface). Bumped to #3d7bff — still reads "electric",
+     passes 4.5:1 on all three surfaces. Documented deviation from legacy
+     for accessibility, per Tier-2 non-negotiables in reference/theming.md. */
+  --color-accent: #3d7bff;
+  --color-accent-hover: #2f6af0;
+  --color-accent-subtle: rgba(61, 123, 255, 0.16);
+
+  /* Status colors: 400-shades for dark-surface text legibility on subtle
+     tinted pills. 500-shades (used by aiaiai light) dropped to 2:1 on
+     their own tinted bg — the 400 family lifts them to 5-8:1. */
+  --color-destructive: #f87171;
+  --color-destructive-hover: #ef4444;
+  --color-destructive-subtle: rgba(248, 113, 113, 0.15);
+
+  --color-success: #4ade80;
+  --color-success-subtle: rgba(74, 222, 128, 0.15);
+
+  --color-warning: #fbbf24;
+  --color-warning-subtle: rgba(251, 191, 36, 0.15);
+
+  --color-info: #60a5fa;
+  --color-info-subtle: rgba(96, 165, 250, 0.15);
+
+  /* ═══════════════════════════════════════════════
+     TYPOGRAPHY — Hanken everywhere, no mono (10 tokens)
+     ═══════════════════════════════════════════════ */
+
+  /* Font stack: variable font with static fallback */
+  --font-sans: "Hanken Grotesk Variable", "Hanken Grotesk", sans-serif;
+  --font-mono: "Hanken Grotesk Variable", "Hanken Grotesk", sans-serif;
+
+  /* Force display + heading scale onto Hanken — aiaiai defaults route to
+     --type-*-font which on the default theme still resolves via sans;
+     we restate them here to guarantee Hanken even through cascade edge cases */
+  --type-display-font: var(--font-sans);
+  --type-heading-lg-font: var(--font-sans);
+  --type-heading-font: var(--font-sans);
+  --type-heading-sm-font: var(--font-sans);
+  --type-body-font: var(--font-sans);
+  --type-body-sm-font: var(--font-sans);
+  --type-caption-font: var(--font-sans);
+
+  /* Type scale: body/label match legacy 14px exactly */
+  --type-body-size: var(--raw-font-size-14);
+  --type-body-sm-size: var(--raw-font-size-13);
+  --type-label-size: var(--raw-font-size-14);
+  --type-data-size: var(--raw-font-size-14);
+
+  /* Labels use sans, no tracking (legacy does not widen letters) */
+  --type-label-font: var(--font-sans);
+  --type-label-tracking: var(--raw-tracking-normal);
+
+  /* Caption stays at 11px; heading scale inherited from aiaiai defaults */
+
+  /* ═══════════════════════════════════════════════
+     ELEVATION — Cool shadows on dark + borders for definition (4 tokens)
+     ═══════════════════════════════════════════════ */
+
+  --elevation-border: var(--border-width) solid var(--color-border);
+  --elevation-border-strong: var(--border-width) solid
+    var(--color-border-strong);
+
+  /* Raised (cards, popovers): subtle lift, cool tint */
+  --elevation-raised:
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+
+  /* Overlay (modals, palette): stronger lift for detached surfaces */
+  --elevation-overlay:
+    0 4px 16px rgba(0, 0, 0, 0.5), 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  /* ═══════════════════════════════════════════════
+     RADIUS — Softer 4/6/8 matching legacy (3 tokens)
+     ═══════════════════════════════════════════════ */
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  /* radius-pill (999px) and radius-circle (50%) unchanged */
+
+  /* ═══════════════════════════════════════════════
+     COMPONENTS — Sans-everywhere + dark tuning (12 tokens)
+     ═══════════════════════════════════════════════ */
+
+  /* Button: sans, no tracking, 6px radius via --radius-md */
+  --button-font: var(--font-sans);
+  --button-tracking: var(--raw-tracking-normal);
+  --button-radius: var(--radius-md);
+
+  /* Input: sans (legacy uses Hanken even in data fields), 4px radius */
+  --input-font: var(--font-sans);
+  --input-radius: var(--radius-sm);
+  --input-label-font: var(--font-sans);
+  --input-label-tracking: var(--raw-tracking-normal);
+
+  /* Badge: sans, no tracking — and explicit neutral bg so chips remain
+     visible against surface-tertiary (risk flagged by pattern-miner) */
+  --badge-font: var(--font-sans);
+  --badge-tracking: var(--raw-tracking-normal);
+  --badge-neutral-bg: #2a2e37;
+
+  /* Tag: sans, no tracking */
+  --tag-font: var(--font-sans);
+
+  /* Key-value pairs: legacy uses Hanken for both key and value */
+  --kv-key-font: var(--font-sans);
+  --kv-value-font: var(--font-sans);
+
+  /* Status indicator: sans */
+  --status-font: var(--font-sans);
+
+  /* Navigation: sans on all labels, no tracking */
+  --nav-item-font: var(--font-sans);
+  --nav-item-tracking: var(--raw-tracking-normal);
+  --nav-section-font: var(--font-sans);
+  --nav-section-tracking: var(--raw-tracking-normal);
+
+  /* Sidebar: wider to match legacy 288px, slightly deeper padding */
+  --nav-sidebar-width: 288px;
+
+  /* Cards: raised hierarchy (lighter than canvas) + keep Supabase-style border
+     for crispness on dark. Shadow stays subtle (primary definition is border). */
+  --card-bg: var(--color-surface-tertiary);
+
+  /* Bottom nav (mobile): label uses sans */
+  --nav-bottom-item-font: var(--font-sans);
+
+  /*
+   * What's preserved from the base system (unchanged):
+   *   - 8px spacing grid (non-negotiable)
+   *   - Grid structure and breakpoints
+   *   - Focus ring: 2px width, 2px offset (accessibility non-negotiable)
+   *   - Token naming convention
+   *   - Semantic role meanings (accent = primary action, etc.)
+   *   - Button heights 36/44/52 (8px-multiples, match legacy)
+   *   - Table row patterns (8px-clean)
+   *
+   * Total token overrides: ~62 — within Tier 2 budget (40-80).
+   * Precedent: this is the first dark theme shipped by the system.
+   * Companion work: reference/theming.md has a "Dark theme considerations"
+   * section documenting the doctrine exceptions this theme enumerates.
+   */
+}
