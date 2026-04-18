@@ -63,7 +63,9 @@ export { default as TabPanel } from "./TabPanel.svelte";
 // Feedback
 export { default as Alert } from "./Alert.svelte";
 export { default as Toast } from "./Toast.svelte";
+export { default as ToastManager } from "./ToastManager.svelte";
 export { default as EmptyState } from "./EmptyState.svelte";
+export { default as NotificationBell } from "./NotificationBell.svelte";
 
 // Navigation
 export { default as Sidebar } from "./Sidebar.svelte";
@@ -96,6 +98,7 @@ export { default as MapPicker } from "./MapPicker.svelte";
 export { default as MapCluster } from "./MapCluster.svelte";
 export { default as MapHeatmap } from "./MapHeatmap.svelte";
 export { default as MapPopup } from "./MapPopup.svelte";
+export { default as GeoSearch } from "./GeoSearch.svelte";
 
 // Scheduling
 export { default as Calendar } from "./Calendar.svelte";

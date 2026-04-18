@@ -91,7 +91,7 @@
 
   // Position + close listeners
   $effect(() => {
-    if (!open || !popoverEl) return;
+    if (!open || !popoverEl || !anchor) return;
 
     requestAnimationFrame(() => reposition());
 

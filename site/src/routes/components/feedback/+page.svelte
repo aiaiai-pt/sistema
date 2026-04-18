@@ -2,6 +2,8 @@
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import TokenRef from '$lib/components/TokenRef.svelte';
 	import Toast from '$ui/Toast.svelte';
+	import ToastManager from '$ui/ToastManager.svelte';
+	import NotificationBell from '$ui/NotificationBell.svelte';
 	import EmptyState from '$ui/EmptyState.svelte';
 	import Skeleton from '$ui/Skeleton.svelte';
 	import Progress from '$ui/Progress.svelte';
@@ -9,10 +11,37 @@
 
 	let progressValue = $state(65);
 
+	let toastManagerRef: any;
+
+	// NotificationBell demo data
+	/** @type {Array<{id: string; message: string; eventType: string; createdAt: string; read: boolean}>} */
+	let demoNotifications = $state([
+		{ id: '1', message: 'Maintenance completed: Pump A repair', eventType: 'maintenance_completed', createdAt: new Date(Date.now() - 5 * 60000).toISOString(), read: false },
+		{ id: '2', message: 'Reservation approved: Training drill equipment', eventType: 'reservation_approved', createdAt: new Date(Date.now() - 30 * 60000).toISOString(), read: false },
+		{ id: '3', message: 'Inspection completed: Hydraulic Press routine', eventType: 'inspection_completed', createdAt: new Date(Date.now() - 2 * 3600000).toISOString(), read: true },
+		{ id: '4', message: 'Maintenance started: Generator B overhaul', eventType: 'maintenance_started', createdAt: new Date(Date.now() - 5 * 3600000).toISOString(), read: true },
+	]);
+
+	let demoUnreadCount = $derived(demoNotifications.filter(n => !n.read).length);
+
+	function markRead(id: string) {
+		demoNotifications = demoNotifications.map(n => n.id === id ? { ...n, read: true } : n);
+	}
+
+	function markAllRead() {
+		demoNotifications = demoNotifications.map(n => ({ ...n, read: true }));
+	}
+
 	const feedbackTokens = [
 		'--toast-radius: var(--radius-md)',
 		'--toast-shadow: var(--elevation-overlay)',
 		'--toast-max-width: 360px',
+		'--toast-manager-z: 60',
+		'--toast-manager-gap: var(--space-sm)',
+		'--toast-manager-padding: var(--space-lg)',
+		'--toast-manager-enter-offset: 16px',
+		'--notification-panel-width: 360px',
+		'--notification-panel-max-height: 420px',
 		'--progress-height: 8px',
 		'--progress-fill: var(--color-accent)',
 		'--progress-radius: var(--radius-pill)',
@@ -62,6 +91,71 @@
 		<Toast variant="info" actionLabel="UNDO" onaction={() => {}}>
 			<strong>Message archived.</strong>
 		</Toast>
+	</div>
+</section>
+
+<!-- Toast Manager -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Toast Manager</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Lifecycle wrapper for Toast — positioning, stacking, auto-dismiss (5s default), max 5 visible. Mount once in root layout, call <code>push()</code> from anywhere.</p>
+	<div class="demo-row" style="gap: var(--space-sm);">
+		<button class="demo-trigger" onclick={() => toastManagerRef?.push({ variant: 'info', message: '<strong>Sync complete.</strong> All changes saved.' })}>
+			<span class="type-label">INFO</span>
+		</button>
+		<button class="demo-trigger" onclick={() => toastManagerRef?.push({ variant: 'success', message: '<strong>Maintenance completed.</strong> Pump A repair.' })}>
+			<span class="type-label">SUCCESS</span>
+		</button>
+		<button class="demo-trigger" onclick={() => toastManagerRef?.push({ variant: 'warning', message: '<strong>Deadline approaching.</strong> 2 days remaining.' })}>
+			<span class="type-label">WARNING</span>
+		</button>
+		<button class="demo-trigger" onclick={() => toastManagerRef?.push({ variant: 'error', message: '<strong>Action failed.</strong> Could not start maintenance.' })}>
+			<span class="type-label">ERROR</span>
+		</button>
+		<button class="demo-trigger" onclick={() => toastManagerRef?.push({ variant: 'info', message: '<strong>Reservation approved.</strong>', actionLabel: 'VIEW', onaction: () => {} })}>
+			<span class="type-label">WITH ACTION</span>
+		</button>
+		<button class="demo-trigger demo-trigger--muted" onclick={() => toastManagerRef?.clear()}>
+			<span class="type-label">CLEAR ALL</span>
+		</button>
+	</div>
+</section>
+
+<ToastManager bind:this={toastManagerRef} />
+
+<!-- Notification Bell -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Notification Bell</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Bell icon with unread badge and dropdown panel. Composes Button, Badge, Popover, and EmptyState. Click the bell to open.</p>
+	<div class="bell-demos">
+		<div class="bell-demo-card">
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">WITH NOTIFICATIONS</span>
+			<div style="display: flex; justify-content: center;">
+				<NotificationBell
+					notifications={demoNotifications}
+					unreadCount={demoUnreadCount}
+					onmarkread={markRead}
+					onmarkallread={markAllRead}
+				/>
+			</div>
+		</div>
+		<div class="bell-demo-card">
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">EMPTY STATE</span>
+			<div style="display: flex; justify-content: center;">
+				<NotificationBell
+					notifications={[]}
+					unreadCount={0}
+				/>
+			</div>
+		</div>
+		<div class="bell-demo-card">
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">HIGH COUNT</span>
+			<div style="display: flex; justify-content: center;">
+				<NotificationBell
+					notifications={demoNotifications}
+					unreadCount={142}
+				/>
+			</div>
+		</div>
 	</div>
 </section>
 
@@ -346,6 +440,50 @@
 		flex-direction: column;
 		gap: var(--space-sm);
 		max-width: 360px;
+	}
+
+	.demo-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-md);
+		padding: var(--space-lg);
+		border: var(--elevation-border);
+		border-radius: var(--radius-md);
+	}
+
+	.demo-trigger {
+		all: unset;
+		cursor: pointer;
+		padding: var(--space-xs) var(--space-md);
+		border: var(--elevation-border);
+		border-radius: var(--radius-sm);
+		background: var(--color-surface);
+		transition: background var(--duration-instant) var(--easing-default);
+	}
+
+	.demo-trigger:hover {
+		background: var(--color-surface-secondary);
+	}
+
+	.demo-trigger:focus-visible {
+		outline: var(--focus-ring-width) solid var(--focus-ring-color);
+		outline-offset: var(--focus-ring-offset);
+	}
+
+	.demo-trigger--muted {
+		opacity: 0.6;
+	}
+
+	.bell-demos {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: var(--space-md);
+	}
+
+	.bell-demo-card {
+		border: var(--elevation-border);
+		border-radius: var(--radius-md);
+		padding: var(--space-lg);
 	}
 
 	.empty-grid {

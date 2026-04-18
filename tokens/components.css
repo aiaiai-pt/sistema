@@ -244,6 +244,16 @@
   --toast-font-size: var(--type-body-sm-size);
   --toast-max-width: 360px;
 
+  /* Toast Manager */
+  --toast-manager-z: 60;
+  --toast-manager-gap: var(--space-sm);
+  --toast-manager-padding: var(--space-lg);
+  --toast-manager-enter-offset: 16px;
+
+  /* Notification Bell */
+  --notification-panel-width: 360px;
+  --notification-panel-max-height: 420px;
+
   /* Empty state */
   --empty-icon-size: var(--icon-size-2xl);
   --empty-icon-color: var(--color-text-muted);

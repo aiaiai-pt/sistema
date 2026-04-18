@@ -49,6 +49,8 @@
     type = 'button',
     /** @type {string | undefined} */
     href = undefined,
+    /** @type {HTMLElement | undefined} — bindable ref to the underlying <button> or <a> element */
+    ref = $bindable(undefined),
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
@@ -77,6 +79,7 @@
 
 {#if href && !disabled}
   <a
+    bind:this={ref}
     {href}
     class={classes}
     aria-busy={loading || undefined}
@@ -86,6 +89,7 @@
   </a>
 {:else}
   <button
+    bind:this={ref}
     type={buttonType}
     class={classes}
     disabled={disabled || loading}
