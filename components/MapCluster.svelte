@@ -39,6 +39,40 @@
   /** @type {HTMLElement | undefined} */
   let container = $state();
 
+  // Hoisted references for reactive effects
+  /** @type {import('ol/Map.js').default | undefined} */
+  let _map = $state();
+  /** @type {any} — VectorSource */
+  let _vectorSource = $state();
+  /** @type {any} — Cluster source */
+  let _clusterSource = $state();
+  /** @type {any} — Feature constructor */
+  let _Feature;
+  /** @type {any} — Point constructor */
+  let _Point;
+
+  // Reactive: animate to new center/zoom when props change
+  $effect(() => {
+    if (!_map) return;
+    const view = _map.getView();
+    if (!view) return;
+    const targetCenter = fromLonLat(center);
+    view.animate({ center: targetCenter, zoom, duration: 300 });
+  });
+
+  // Reactive: update markers when props change
+  $effect(() => {
+    if (!_vectorSource || !_Feature || !_Point) return;
+    const features = markers.map(m => {
+      const f = new _Feature({ geometry: new _Point(fromLonLat([m.lon, m.lat])) });
+      f.set('markerData', m);
+      return f;
+    });
+    _vectorSource.clear();
+    _vectorSource.addFeatures(features);
+    _clusterSource?.refresh();
+  });
+
   $effect(() => {
     if (!container) return;
 
@@ -85,6 +119,12 @@
 
       const vectorSource = new VectorSource({ features });
       const clusterSource = new Cluster({ distance, source: vectorSource });
+
+      // Store refs for reactive effects
+      _vectorSource = vectorSource;
+      _clusterSource = clusterSource;
+      _Feature = Feature;
+      _Point = Point;
 
       const clusterLayer = new VectorLayer({
         source: clusterSource,
@@ -133,6 +173,7 @@
           zoom,
         }),
       });
+      _map = map;
 
       // Hover: show tooltip
       map.on('pointermove', (evt) => {
