@@ -243,12 +243,12 @@
 		background: var(--color-surface-tertiary);
 	}
 
+	/* Legacy UBP uses Title Case throughout — no uppercase section labels. */
 	.page-label {
 		color: var(--color-accent);
 		font-size: var(--type-caption-size);
 		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: var(--raw-tracking-wide);
+		letter-spacing: var(--raw-tracking-normal);
 	}
 
 	.page-title {
@@ -297,8 +297,7 @@
 		color: var(--color-accent);
 		font-size: var(--type-caption-size);
 		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: var(--raw-tracking-wide);
+		letter-spacing: var(--raw-tracking-normal);
 	}
 
 	.note p {

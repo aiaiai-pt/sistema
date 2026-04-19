@@ -153,11 +153,15 @@
   /* Status indicator: sans */
   --status-font: var(--font-sans);
 
-  /* Navigation: sans on all labels, no tracking */
+  /* Navigation: sans on all labels, no tracking, no case transform.
+     Legacy uses Hanken SemiBold Title Case for section headers — never
+     uppercase. Override from aiaiai's "uppercase" default to "none". */
   --nav-item-font: var(--font-sans);
   --nav-item-tracking: var(--raw-tracking-normal);
   --nav-section-font: var(--font-sans);
   --nav-section-tracking: var(--raw-tracking-normal);
+  --nav-section-transform: none;
+  --nav-section-size: var(--raw-font-size-13);
 
   /* Sidebar: wider to match legacy 288px, slightly deeper padding */
   --nav-sidebar-width: 288px;

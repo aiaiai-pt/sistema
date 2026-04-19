@@ -394,6 +394,7 @@ The aiaiai system shipped light-first. As of the UBP theme (first dark theme in 
 | Never pure white (`#fff` / `--raw-color-white`) in text | Pure `#ffffff` allowed for `--color-text-on-accent` when accent is a saturated dark-surface color (e.g., electric blue) | Warm cream on saturated blue reads yellowish at button scale; pure white reads neutral. Applies only to text *on* accent, not body text. |
 | Mono font for labels/data (Berkeley Mono) | Sans font allowed for `--type-label-font` and `--type-data-font` | If the dark theme derives from a product whose legacy has no mono, preserving mono creates a hybrid that doesn't exist in the reference. |
 | Borders-first elevation | Borders PLUS optional soft shadow | On dark surfaces, 1px borders give crisp definition (Supabase pattern); shadows remain for detached surfaces (popover, modal, palette). |
+| Nav section titles uppercase | Title Case allowed via `--nav-section-transform: none` | Some product voices (municipal, editorial, soft-tech) never uppercase labels; uppercase section headers fight the voice. Token lets themes choose. |
 
 Each exception above must be enumerated in the theme file header as a conscious override. See `tokens/themes/ubp.css` for the reference pattern.
 

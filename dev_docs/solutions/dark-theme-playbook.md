@@ -88,6 +88,11 @@ Copy-paste starting point. Every `var(...)` reference must either cascade correc
 
   /* Badge neutral — explicit override so it doesn't blend with card bg */
   --badge-neutral-bg: #...; /* slightly elevated from surface-tertiary */
+
+  /* Nav section title case — uppercase is aiaiai default; some voices
+     (municipal, editorial) want Title Case. Override to "none" to keep
+     the Hanken SemiBold section headers in their natural case. */
+  --nav-section-transform: none;
 }
 ```
 

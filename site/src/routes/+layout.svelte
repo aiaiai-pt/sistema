@@ -58,7 +58,7 @@
 
 		<!-- Theme switcher -->
 		<div class="theme-switcher">
-			<span class="type-caption" style="text-transform: uppercase;">Theme</span>
+			<span class="type-caption theme-switcher-label">Theme</span>
 			<div class="theme-buttons">
 				{#each getThemes() as theme}
 					<button
@@ -312,9 +312,10 @@
 		gap: var(--border-width);
 	}
 
-	.nav-section-title {
+	.nav-section-title,
+	.theme-switcher-label {
 		padding: var(--space-sm) var(--space-sm) var(--space-xs);
-		text-transform: uppercase;
+		text-transform: var(--nav-section-transform);
 		color: var(--color-text-muted);
 	}
 
