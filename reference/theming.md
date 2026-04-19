@@ -378,3 +378,50 @@ Run this checklist after creating any new theme.
 - [ ] Skeleton loading shimmer is visible against skeleton background
 - [ ] Toast is visible (not lost against background)
 - [ ] Button text is legible on all button variant backgrounds
+
+---
+
+## Dark Theme Considerations
+
+The aiaiai system shipped light-first. As of the UBP theme (first dark theme in the system, 2026-04), the following doctrine exceptions and verification items are codified for any future dark theme. These do not weaken the warmth-over-sterility principle in general — they only apply when `--color-surface` is below ~10% luminance.
+
+### Documented doctrine exceptions (allowed in dark themes only)
+
+| Rule normally in force | Dark-theme exception | Reason |
+|------------------------|----------------------|--------|
+| Warm shadows only (`rgba(44,40,37,...)`) | Cool/neutral shadows allowed (`rgba(0,0,0,0.35-0.5)`) | Warm brown vanishes on dark surfaces; cool shadows retain contrast. |
+| Overlay is warm-tinted (`rgba(44,40,37,0.5)`) | Cool-tinted overlay allowed (`rgba(5,8,14,0.6-0.7)`) | Same rationale as shadows; overlay must visibly darken beneath modals/drawers. |
+| Never pure white (`#fff` / `--raw-color-white`) in text | Pure `#ffffff` allowed for `--color-text-on-accent` when accent is a saturated dark-surface color (e.g., electric blue) | Warm cream on saturated blue reads yellowish at button scale; pure white reads neutral. Applies only to text *on* accent, not body text. |
+| Mono font for labels/data (Berkeley Mono) | Sans font allowed for `--type-label-font` and `--type-data-font` | If the dark theme derives from a product whose legacy has no mono, preserving mono creates a hybrid that doesn't exist in the reference. |
+| Borders-first elevation | Borders PLUS optional soft shadow | On dark surfaces, 1px borders give crisp definition (Supabase pattern); shadows remain for detached surfaces (popover, modal, palette). |
+| Nav section titles uppercase | Title Case allowed via `--nav-section-transform: none` | Some product voices (municipal, editorial, soft-tech) never uppercase labels; uppercase section headers fight the voice. Token lets themes choose. |
+
+Each exception above must be enumerated in the theme file header as a conscious override. See `tokens/themes/ubp.css` for the reference pattern.
+
+### Dark-specific verification additions
+
+Append to the Tier 2 checklist when the theme overrides surfaces to < 10% luminance:
+
+- [ ] `--color-surface-secondary` is the DARKEST surface (recessed — used for sidebar, deep wells). Inverts light-theme semantics where secondary is typically a mid-tone.
+- [ ] `--color-surface-tertiary` is LIGHTER than `--color-surface` (raised — used for cards, hover states, chips).
+- [ ] Components that default `--card-bg` to `--color-surface` must be explicitly remapped to `--color-surface-tertiary` via a component-token override, OR cards must rely on border-only definition against an identical surface.
+- [ ] `--color-accent-subtle` alpha is tuned for dark: starts at 0.12-0.18 (vs ~0.08 on light themes) because darker surfaces swallow low-alpha tints.
+- [ ] Semantic-state subtle backgrounds (`--color-destructive-subtle`, `--color-success-subtle`, etc.) use alpha values in the 0.12-0.18 range. Solid fills (e.g., `rgba(239,68,68,1)`) must NEVER be used as chip/pill backgrounds — parity with success matters.
+- [ ] No hardcoded `--raw-color-white` references leak through the component tier. Before adopting the theme, verify `tokens/components.css` contains zero literal `var(--raw-color-white)` references (the popover fix landed with UBP).
+- [ ] Warm shadow primitives (`--raw-shadow-sm`, `--raw-shadow-md`) are NOT used directly by any component — all shadow reads must go through `--elevation-raised` / `--elevation-overlay` so the theme's cool override cascades.
+- [ ] Text-on-accent contrast verified at 3:1 with the actual accent color (not assumed from light-theme).
+- [ ] Accent-subtle visibility stress-tested: pick a card hover state using `--color-accent-subtle` and confirm it is distinguishable from `--color-surface-tertiary` at a glance.
+- [ ] Badge neutral variant (`--badge-neutral-bg`) does NOT default to `--color-surface-tertiary` if cards are ALSO on `--color-surface-tertiary` — badges would blend into cards. Use a slightly-elevated tone (e.g., `#2a2e37`).
+- [ ] Focus ring color (typically `var(--color-accent)`) remains visible against ALL three surface tiers on dark. Run a quick tab-through of buttons in sidebar (surface-secondary), content (surface), and a card (surface-tertiary).
+
+### Light/dark pairing (future)
+
+Themes are not required to ship light+dark pairs. When they do, use the `-light` / `-dark` suffix and a shared base file imported by both:
+
+```css
+/* tokens/themes/myproduct-base.css — shared color roles, typography, radius */
+/* tokens/themes/myproduct-light.css — @import base + light surface/text values */
+/* tokens/themes/myproduct-dark.css — @import base + dark surface/text values + doctrine exceptions */
+```
+
+`data-theme="myproduct-light"` and `data-theme="myproduct-dark"` are independent selectors; no `prefers-color-scheme` auto-switching is built into the system (consumer apps may wire it at their layer).

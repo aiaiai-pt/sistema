@@ -1,10 +1,11 @@
-const THEMES = ["aiaiai", "branded-example", "bespoke-example"] as const;
+const THEMES = ["aiaiai", "branded-example", "bespoke-example", "ubp"] as const;
 type Theme = (typeof THEMES)[number];
 
 const THEME_LABELS: Record<Theme, string> = {
   aiaiai: "aiaiai (Default)",
   "branded-example": "Branded (Tier 1)",
   "bespoke-example": "Bespoke (Tier 2)",
+  ubp: "UBP (Bespoke · Dark)",
 };
 
 let current = $state<Theme>("aiaiai");

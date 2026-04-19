@@ -57,6 +57,8 @@
     icon = undefined,
     /** @type {import('svelte').Snippet | undefined} */
     children = undefined,
+    /** @type {HTMLButtonElement | HTMLAnchorElement | undefined} */
+    ref = $bindable(),
     ...rest
   } = $props();
 

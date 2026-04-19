@@ -464,6 +464,11 @@
 		border: none;
 		padding: 0;
 		flex-shrink: 0;
+		/* Neutralise UA button line-height so absolute-positioned children
+		   use the padding box as their positioning reference, not a baseline
+		   offset derived from the inherited font metrics. */
+		line-height: 0;
+		font-size: 0;
 	}
 
 	.toggle-on {
@@ -472,8 +477,8 @@
 
 	.toggle-knob {
 		position: absolute;
-		top: var(--space-2xs);
-		left: var(--space-2xs);
+		top: calc((var(--toggle-height) - var(--toggle-knob-size)) / 2);
+		left: calc((var(--toggle-height) - var(--toggle-knob-size)) / 2);
 		width: var(--toggle-knob-size);
 		height: var(--toggle-knob-size);
 		border-radius: var(--radius-circle);
@@ -482,7 +487,7 @@
 	}
 
 	.toggle-on .toggle-knob {
-		transform: translateX(calc(var(--toggle-width) - var(--toggle-knob-size) - calc(2 * var(--space-2xs))));
+		transform: translateX(calc(var(--toggle-width) - var(--toggle-height)));
 	}
 
 	.control-actions {

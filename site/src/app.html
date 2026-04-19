@@ -7,6 +7,18 @@
     <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>aiaiai Design System</title>
+    <script>
+      // Set data-theme before hydration to avoid FOUC. Priority:
+      // 1. cookie (persisted user selection from the switcher)
+      // 2. /themes/ubp/* pin — deep-links to the UBP demo always land in UBP
+      // 3. "aiaiai" default (baked into prerender otherwise)
+      (function () {
+        var m = document.cookie.match(/(?:^|;\s*)theme=([^;]+)/);
+        var t = (m && m[1]) || null;
+        if (!t && location.pathname.indexOf("/themes/ubp") === 0) t = "ubp";
+        if (t) document.documentElement.setAttribute("data-theme", t);
+      })();
+    </script>
     %sveltekit.head%
   </head>
   <body data-sveltekit-preload-data="hover">

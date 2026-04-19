@@ -90,6 +90,10 @@
   }
 
   // Position + close listeners
+  // Explicitly read `anchor` here so Svelte 5 tracks it as a reactive
+  // dependency. Without this direct read, anchor is only consumed inside the
+  // reposition() closure — closures don't register reactive reads — so the
+  // effect never re-fires when bind:this delivers the anchor after open flips.
   $effect(() => {
     if (!open || !popoverEl || !anchor) return;
 

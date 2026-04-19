@@ -165,6 +165,7 @@
   --nav-section-tracking: var(--type-caption-tracking);
   --nav-section-color: var(--color-text-muted);
   --nav-section-margin-top: var(--space-md);
+  --nav-section-transform: uppercase;
 
   /* ═══════════════════════════════════════════════
      NAVIGATION — MOBILE HEADER
@@ -486,7 +487,7 @@
      POPOVER
      ═══════════════════════════════════════════════ */
 
-  --popover-bg: var(--raw-color-white);
+  --popover-bg: var(--color-surface);
   --popover-border: var(--elevation-border-strong);
   --popover-shadow: var(--elevation-overlay);
   --popover-radius: var(--radius-md);

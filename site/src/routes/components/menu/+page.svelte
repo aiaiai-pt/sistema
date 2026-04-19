@@ -11,14 +11,14 @@
 	import Input from '$ui/Input.svelte';
 
 	let menuOpen = $state(false);
-	let menuAnchor: HTMLElement;
+	let menuAnchor = $state<HTMLElement>();
 	let destructiveMenuOpen = $state(false);
-	let destructiveAnchor: HTMLElement;
+	let destructiveAnchor = $state<HTMLElement>();
 
 	let popoverOpen = $state(false);
-	let popoverAnchor: HTMLElement;
+	let popoverAnchor = $state<HTMLElement>();
 	let matchWidthOpen = $state(false);
-	let matchWidthAnchor: HTMLElement;
+	let matchWidthAnchor = $state<HTMLElement>();
 
 	const menuTokens = [
 		'--menu-padding: var(--space-xs)',
