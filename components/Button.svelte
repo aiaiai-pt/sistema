@@ -55,6 +55,8 @@
     icon = undefined,
     /** @type {import('svelte').Snippet | undefined} */
     children = undefined,
+    /** @type {HTMLButtonElement | HTMLAnchorElement | undefined} */
+    ref = $bindable(),
     ...rest
   } = $props();
 
@@ -77,6 +79,7 @@
 
 {#if href && !disabled}
   <a
+    bind:this={ref}
     {href}
     class={classes}
     aria-busy={loading || undefined}
@@ -86,6 +89,7 @@
   </a>
 {:else}
   <button
+    bind:this={ref}
     type={buttonType}
     class={classes}
     disabled={disabled || loading}

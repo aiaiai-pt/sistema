@@ -86,6 +86,11 @@
     border: none;
     padding: 0;
     flex-shrink: 0;
+    /* Neutralise UA button line-height so absolute-positioned children
+       use the padding box as their positioning reference, not a baseline
+       offset derived from the inherited font metrics. */
+    line-height: 0;
+    font-size: 0;
   }
 
   .toggle:focus-visible {
@@ -102,10 +107,13 @@
     cursor: not-allowed;
   }
 
+  /* Center the knob explicitly from the track dimensions so it stays on
+     the axis even if a theme overrides --toggle-height / --toggle-knob-size
+     to values that aren't an exact multiple of --space-2xs. */
   .toggle-knob {
     position: absolute;
-    top: var(--space-2xs);
-    left: var(--space-2xs);
+    top: calc((var(--toggle-height) - var(--toggle-knob-size)) / 2);
+    left: calc((var(--toggle-height) - var(--toggle-knob-size)) / 2);
     width: var(--toggle-knob-size);
     height: var(--toggle-knob-size);
     border-radius: var(--radius-circle);
@@ -113,9 +121,10 @@
     transition: transform var(--duration-fast) var(--easing-default);
   }
 
+  /* On-state: travel the track minus the symmetric gaps on both sides. */
   .toggle-on .toggle-knob {
     transform: translateX(
-      calc(var(--toggle-width) - var(--toggle-knob-size) - calc(2 * var(--space-2xs)))
+      calc(var(--toggle-width) - var(--toggle-height))
     );
   }
 
