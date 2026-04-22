@@ -442,6 +442,25 @@
   --list-item-trailing-gap: var(--space-xs);
 
   /* ═══════════════════════════════════════════════
+     TREE
+     ═══════════════════════════════════════════════ */
+
+  --tree-gap: var(--space-2xs);
+  --tree-indent: var(--space-md);
+  --tree-node-padding-x: var(--space-sm);
+  --tree-node-padding-y: var(--space-xs);
+  --tree-node-radius: var(--radius-sm);
+  --tree-node-font: var(--type-body-font);
+  --tree-node-font-size: var(--type-body-size);
+  --tree-node-color: var(--color-text);
+  --tree-node-color-hover: var(--color-text);
+  --tree-node-color-selected: var(--color-text);
+  --tree-node-bg-hover: var(--color-surface-secondary);
+  --tree-node-bg-selected: var(--color-surface-tertiary);
+  --tree-node-caret-color: var(--color-text-secondary);
+  --tree-node-transition: var(--duration-instant) var(--easing-default);
+
+  /* ═══════════════════════════════════════════════
      FILE UPLOAD
      ═══════════════════════════════════════════════ */
 

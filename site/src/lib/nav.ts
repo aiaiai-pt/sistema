@@ -49,6 +49,7 @@ export const navigation: NavSection[] = [
       { label: "Feedback", href: "/components/feedback" },
       { label: "Condition Table", href: "/components/condition-table" },
       { label: "Log Viewer", href: "/components/log-viewer" },
+      { label: "Tree", href: "/components/tree" },
       { label: "Page Container", href: "/components/page-container" },
     ],
   },
