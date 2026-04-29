@@ -27,6 +27,21 @@
 
   @example Loading
   <DataTable {columns} rows={[]} loading />
+
+  @example Custom cell rendering (badges, chips, components)
+  Pass a `cell` snippet to override the default per-cell text rendering.
+  The default behavior (using `column.render` to produce a string) is
+  preserved when no `cell` snippet is provided.
+
+  <DataTable {columns} {rows}>
+    {#snippet cell({ row, column, value })}
+      {#if column.key === 'status'}
+        <Badge variant={statusVariant(value)}>{value}</Badge>
+      {:else}
+        {value ?? '-'}
+      {/if}
+    {/snippet}
+  </DataTable>
 -->
 <script>
   /**
@@ -65,6 +80,23 @@
     on_select = undefined,
     /** @type {((row: Record<string, unknown>) => void) | undefined} */
     on_row_click = undefined,
+    /**
+     * Optional per-cell render override. When provided, called for every td
+     * with `{ row, column, value }`; the snippet's output replaces the
+     * default text rendering. When omitted, the default text path runs
+     * (`column.render` then `String(value)`) so existing consumers keep
+     * working unchanged.
+     *
+     * Why a snippet rather than passing a Svelte component class via
+     * `column.render`: snippets accept the full row context (not just the
+     * value), let consumers compose any DS primitive (Badge, Tag, Status,
+     * Button) without bringing those imports into the DS surface, and
+     * Svelte 5's snippet API is the canonical way to parameterize child
+     * rendering. `column.render` stays for the common string case.
+     *
+     * @type {import('svelte').Snippet<[{ row: Record<string, unknown>, column: ColumnDef, value: unknown }]> | undefined}
+     */
+    cell = undefined,
     /** @type {import('svelte').Snippet | undefined} */
     children = undefined,
     /** @type {string} */
@@ -258,7 +290,11 @@
               {/if}
               {#each columns as col}
                 <td class="table-td">
-                  {render_cell(col, row[col.key], row)}
+                  {#if cell}
+                    {@render cell({ row, column: col, value: row[col.key] })}
+                  {:else}
+                    {render_cell(col, row[col.key], row)}
+                  {/if}
                 </td>
               {/each}
             </tr>
