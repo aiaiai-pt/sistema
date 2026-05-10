@@ -1,0 +1,8 @@
+# Keep test files out of the published tarball — they're for the
+# repo, not for consumers. The package.json `files` whitelist
+# already restricts to components/ and tokens/, but it can't filter
+# nested patterns by extension.
+**/*.test.js
+**/*.test.ts
+**/*.test.d.ts
+**/*.test.svelte

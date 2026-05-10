@@ -76,6 +76,11 @@ export { default as BottomNavItem } from "./BottomNavItem.svelte";
 
 // Complex
 export { default as Stepper } from "./Stepper.svelte";
+export { default as ValueSourcePicker } from "./ValueSourcePicker.svelte";
+export {
+  serializeValueSource,
+  parseValueSource,
+} from "./ValueSourcePicker.helpers.js";
 export { default as CodeBlock } from "./CodeBlock.svelte";
 export { default as CodeEditor } from "./CodeEditor.svelte";
 export { default as CollapsibleSection } from "./CollapsibleSection.svelte";

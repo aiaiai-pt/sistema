@@ -50,6 +50,7 @@ export const navigation: NavSection[] = [
       { label: "Condition Table", href: "/components/condition-table" },
       { label: "Log Viewer", href: "/components/log-viewer" },
       { label: "Tree", href: "/components/tree" },
+      { label: "Value Source Picker", href: "/components/value-source-picker" },
       { label: "Page Container", href: "/components/page-container" },
     ],
   },
