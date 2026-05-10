@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {
   serializeValueSource,
   parseValueSource,
-} from "./ValueSourcePicker.helpers.js";
+} from "../components/ValueSourcePicker.helpers.js";
 
 // ---------------------------------------------------------------------------
 // Canonical wire formats — these MUST match admin-api/app/actions/refs.py.
