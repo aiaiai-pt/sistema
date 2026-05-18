@@ -43,12 +43,19 @@
 </script>
 
 <div class="toggle-group {className}">
+  <!--
+    type="button" is critical: a default <button> inside a <form> is
+    type="submit", so every Toggle click inside a form was silently
+    submitting it. Declared BEFORE {...rest} so the consumer can still
+    override (e.g. type="submit" if they really want submit semantics).
+  -->
   <button
     id={toggleId}
     class="toggle"
     class:toggle-on={checked}
     class:toggle-disabled={disabled}
     {disabled}
+    type="button"
     role="switch"
     aria-checked={checked}
     aria-labelledby={label ? `${toggleId}-label` : undefined}
