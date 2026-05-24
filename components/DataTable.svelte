@@ -28,6 +28,13 @@
   @example Loading
   <DataTable {columns} rows={[]} loading />
 
+  @example Responsive (default)
+  Tables card-stack below `card_breakpoint` (default 768px) so columns
+  don't scroll off-screen on phones/tablets. The first column becomes the
+  card title; the rest render as label:value rows. Opt out with
+  `responsive={false}`, or raise the breakpoint for wide tables.
+  <DataTable {columns} {rows} card_breakpoint={1024} />
+
   @example Custom cell rendering (badges, chips, components)
   Pass a `cell` snippet to override the default per-cell text rendering.
   The default behavior (using `column.render` to produce a string) is
@@ -70,6 +77,21 @@
     selected_rows = $bindable(new Set()),
     /** @type {string} */
     row_key = 'id',
+    /**
+     * Responsive card mode. When true (the default), the table restyles
+     * into a stack of cards below `card_breakpoint` so its columns don't
+     * scroll off-screen on narrow viewports. Set false to keep the table
+     * layout at every width (e.g. tables that are already narrow).
+     * @type {boolean}
+     */
+    responsive = true,
+    /**
+     * Viewport width (px) at/below which `responsive` switches to cards.
+     * A prop rather than a fixed media query so consumers with wider
+     * tables (many columns) can raise it.
+     * @type {number}
+     */
+    card_breakpoint = 768,
     /** @type {string} */
     empty_heading = 'No data',
     /** @type {string} */
@@ -105,6 +127,22 @@
   } = $props();
 
   const SKELETON_ROWS = 5;
+
+  // Responsive card mode is toggled by a CLASS driven by matchMedia, not
+  // a static @media query — that keeps `card_breakpoint` a runtime prop
+  // while still rendering a SINGLE table DOM (the cells are restyled, not
+  // duplicated). SSR renders the table (is_card=false); the effect flips
+  // it after mount, so the initial client render matches SSR (no
+  // hydration mismatch) and narrow viewports get a CSS-only restyle.
+  let is_card = $state(false);
+  $effect(() => {
+    if (!responsive || typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia(`(max-width: ${card_breakpoint}px)`);
+    const sync = () => (is_card = mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  });
 
   const all_selected = $derived(
     rows.length > 0 &&
@@ -176,7 +214,7 @@
   }
 </script>
 
-<div class="table-wrap {className}" {...rest}>
+<div class="table-wrap {className}" class:is-card={responsive && is_card} {...rest}>
   {#if children}
     <div class="table-toolbar">
       {@render children()}
@@ -288,8 +326,12 @@
                   />
                 </td>
               {/if}
-              {#each columns as col}
-                <td class="table-td">
+              {#each columns as col, col_index}
+                <td
+                  class="table-td"
+                  class:table-td-card-title={col_index === 0}
+                  data-label={col.label}
+                >
                   {#if cell}
                     {@render cell({ row, column: col, value: row[col.key] })}
                   {:else}
@@ -452,5 +494,84 @@
     accent-color: var(--color-accent);
     cursor: pointer;
     display: block;
+  }
+
+  /* ─── Responsive card mode ───
+     Toggled by `.is-card` (set via matchMedia against `card_breakpoint`,
+     not a static @media query, so the breakpoint stays a prop). The SAME
+     table is restyled into a stack of cards — one DOM, no duplicate text
+     nodes — so getByText / the a11y tree see a single set of cells. Each
+     row becomes a card; each cell a `label : value` line whose label is
+     the column header surfaced via `data-label`; the first column renders
+     as the card title. */
+  .table-wrap.is-card {
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .table-wrap.is-card .table-scroll {
+    overflow: visible;
+  }
+
+  .table-wrap.is-card .table,
+  .table-wrap.is-card .table-body {
+    display: block;
+  }
+
+  .table-wrap.is-card .table-head {
+    display: none;
+  }
+
+  .table-wrap.is-card .table-row {
+    display: block;
+    padding: var(--space-md);
+    border: var(--elevation-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    margin-bottom: var(--space-sm);
+  }
+
+  /* Cards are uniform — drop the table's zebra striping. */
+  .table-wrap.is-card .table-row-even {
+    background: var(--color-surface);
+  }
+
+  .table-wrap.is-card .table-td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-2xs) 0;
+    border-bottom: none;
+  }
+
+  .table-wrap.is-card .table-td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-family: var(--type-label-font);
+    font-size: var(--type-label-size);
+    letter-spacing: var(--type-label-tracking);
+    color: var(--color-text-secondary);
+  }
+
+  /* First column → full-width card heading, no label prefix. */
+  .table-wrap.is-card .table-td-card-title {
+    display: block;
+    padding: 0 0 var(--space-2xs);
+    font-weight: var(--raw-font-weight-medium, 500);
+  }
+
+  .table-wrap.is-card .table-td-card-title::before {
+    content: none;
+  }
+
+  /* Selection checkbox keeps its own line; no empty label pseudo. */
+  .table-wrap.is-card .table-td-check {
+    justify-content: flex-start;
+  }
+
+  .table-wrap.is-card .table-td-check::before {
+    content: none;
   }
 </style>
