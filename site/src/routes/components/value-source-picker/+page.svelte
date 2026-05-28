@@ -67,6 +67,7 @@
 	// ---- Per-card state ----
 
 	let empty = $state<any>(null);
+	let literalDefault = $state<any>(null);
 	let literal = $state<any>({ mode: 'literal', value: 'closed' });
 	let parameter = $state<any>({ mode: 'parameter', key: 'assignee_id' });
 	let entityField = $state<any>({ mode: 'entity-field', field: 'state' });
@@ -122,6 +123,16 @@
 			<ValueSourcePicker
 				label="VALUE"
 				bind:value={empty}
+				allowed={['literal', 'parameter', 'entity-field', 'user-field', 'now', 'function']}
+				context={fullContext}
+			/>
+		</StateCard>
+
+		<StateCard label="LITERAL-DEFAULT (defaultMode='literal')">
+			<ValueSourcePicker
+				label="VALUE"
+				bind:value={literalDefault}
+				defaultMode="literal"
 				allowed={['literal', 'parameter', 'entity-field', 'user-field', 'now', 'function']}
 				context={fullContext}
 			/>
