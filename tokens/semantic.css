@@ -97,11 +97,18 @@
   --type-body-sm-tracking: var(--raw-tracking-micro);
   --type-body-sm-font: var(--font-sans);
 
+  /* Form labels (#63 typography). Was uppercase-monospace-light-wider —
+     the dev-tool look the action-editor walk flagged as the
+     highest-leverage single change. Now sentence-case body sans, medium
+     weight, normal tracking. Monospace is reserved for code tokens
+     (keys, layout codes, template placeholders), NOT labels. Consumers
+     should pass labels as `"Field name"`, not `"FIELD NAME"`. See
+     dev_docs/specs/typography-form-labels.md (ADR). */
   --type-label-size: var(--raw-font-size-12);
-  --type-label-weight: var(--raw-font-weight-regular);
+  --type-label-weight: var(--raw-font-weight-medium);
   --type-label-leading: var(--raw-line-height-heading);
-  --type-label-tracking: var(--raw-tracking-wider);
-  --type-label-font: var(--font-mono);
+  --type-label-tracking: var(--raw-tracking-normal);
+  --type-label-font: var(--font-sans);
 
   --type-data-size: var(--raw-font-size-14);
   --type-data-weight: var(--raw-font-weight-regular);
