@@ -81,6 +81,15 @@
       "function",
       "expression",
     ],
+    /**
+     * Mode pre-selected when `value === null`, so the operator lands
+     * on an editable affordance instead of a "Pick a source"
+     * placeholder. The bound `value` stays `null` until the operator
+     * interacts — form dirty-tracking and consumer-side null intent
+     * survive. The default is forbidden if it isn't in `allowed`.
+     * @type {ValueSourceMode | null}
+     */
+    defaultMode = null,
     /** @type {ValueSourceContext} */
     context = {},
     /** @type {string | undefined} */
@@ -137,6 +146,19 @@
     currentMode !== null && !allowed.includes(currentMode),
   );
 
+  // Effective view of the picker — uses `defaultMode` as a fallback
+  // when there's no stored value, so the operator sees a mode +
+  // affordance pre-selected. Read-only: `value` stays null until the
+  // operator interacts. Forbidden defaults silently fall back to the
+  // null placeholder rather than rendering a mode that isn't allowed.
+  const effectiveValue = $derived.by(() => {
+    if (value !== null) return value;
+    if (defaultMode === null) return null;
+    if (!allowed.includes(defaultMode)) return null;
+    return makeBlankForMode(defaultMode);
+  });
+  const effectiveMode = $derived(effectiveValue?.mode ?? null);
+
   function emit(next) {
     value = next;
     onchange?.(next);
@@ -144,7 +166,9 @@
 
   function pickMode(/** @type {string} */ next) {
     const mode = /** @type {ValueSourceMode} */ (next);
-    if (mode === currentMode) return;
+    // Compare against the effective mode so re-picking the
+    // pre-selected default is a no-op rather than an emit.
+    if (mode === effectiveMode) return;
     emit(makeBlankForMode(mode));
   }
 
@@ -374,8 +398,8 @@
       <Select
         id={`${groupId}-mode`}
         size="sm"
-        placeholder={value === null ? "Pick a source" : undefined}
-        value={currentMode ?? ""}
+        placeholder={effectiveValue === null ? "Pick a source" : undefined}
+        value={effectiveMode ?? ""}
         options={modeOptions}
         onchange={pickMode}
         {disabled}
@@ -388,90 +412,90 @@
           <Badge variant="error">no longer allowed: {MODE_LABEL[value.mode]}</Badge>
           <Button variant="ghost" size="sm" onclick={clear}>Clear</Button>
         </div>
-      {:else if value === null}
+      {:else if effectiveValue === null}
         <span class="vsp-placeholder">{MODE_DESCRIPTION[allowed[0]] ?? ""}</span>
-      {:else if value.mode === "literal"}
+      {:else if effectiveValue.mode === "literal"}
         <Input
           size="sm"
           placeholder={literalPlaceholder(expectedType)}
-          value={String(value.value ?? "")}
+          value={String(effectiveValue.value ?? "")}
           oninput={(e) => emit({ mode: "literal", value: coerceLiteral(/** @type {HTMLInputElement} */ (e.target).value, expectedType) })}
           {disabled}
         />
-      {:else if value.mode === "parameter"}
+      {:else if effectiveValue.mode === "parameter"}
         <Combobox
           size="sm"
           placeholder="Pick a parameter"
           items={paramOptions()}
-          value={value.key}
+          value={effectiveValue.key}
           onchange={(k) => emit({ mode: "parameter", key: k })}
           {disabled}
         />
-      {:else if value.mode === "entity-field"}
+      {:else if effectiveValue.mode === "entity-field"}
         <Combobox
           size="sm"
           placeholder="Pick a field"
           items={entityFieldOptions()}
-          value={value.field}
+          value={effectiveValue.field}
           onchange={(f) => emit({ mode: "entity-field", field: f })}
           {disabled}
         />
-      {:else if value.mode === "user-field"}
+      {:else if effectiveValue.mode === "user-field"}
         <Combobox
           size="sm"
           placeholder="Pick a user claim"
           items={userFieldOptions()}
-          value={value.key}
+          value={effectiveValue.key}
           onchange={(k) => emit({ mode: "user-field", key: k })}
           {disabled}
         />
-      {:else if value.mode === "now"}
+      {:else if effectiveValue.mode === "now"}
         <Badge variant="info">$now — current UTC timestamp</Badge>
-      {:else if value.mode === "source-id"}
+      {:else if effectiveValue.mode === "source-id"}
         <Badge variant="info">$source.id — id of the entity being acted upon</Badge>
-      {:else if value.mode === "config-list"}
+      {:else if effectiveValue.mode === "config-list"}
         <Combobox
           size="sm"
           placeholder="Pick a config type"
           items={configTypeOptions()}
-          value={value.configType}
+          value={effectiveValue.configType}
           onchange={(c) => emit({ mode: "config-list", configType: c })}
           {disabled}
         />
         <Badge variant="neutral">list</Badge>
-      {:else if value.mode === "expression"}
+      {:else if effectiveValue.mode === "expression"}
         <Input
           size="sm"
           placeholder="$entity.X + 1"
-          value={value.expr}
+          value={effectiveValue.expr}
           oninput={(e) => emit({ mode: "expression", expr: /** @type {HTMLInputElement} */ (e.target).value })}
           {disabled}
         />
-      {:else if value.mode === "created-field"}
+      {:else if effectiveValue.mode === "created-field"}
         <div class="vsp-inline">
           <Combobox
             size="sm"
             placeholder="prior create"
             items={priorCreateOptions()}
-            value={String(value.index)}
-            onchange={(i) => emit({ mode: "created-field", index: Number(i), field: value.field })}
+            value={String(effectiveValue.index)}
+            onchange={(i) => emit({ mode: "created-field", index: Number(i), field: /** @type {{mode:'created-field',index:number,field:string}} */ (effectiveValue).field })}
             {disabled}
           />
           <Combobox
             size="sm"
             placeholder="field"
             items={priorCreateFieldOptions()}
-            value={value.field}
-            onchange={(f) => emit({ mode: "created-field", index: value.index, field: f })}
+            value={effectiveValue.field}
+            onchange={(f) => emit({ mode: "created-field", index: /** @type {{mode:'created-field',index:number,field:string}} */ (effectiveValue).index, field: f })}
             {disabled}
           />
         </div>
-      {:else if value.mode === "function"}
+      {:else if effectiveValue.mode === "function"}
         <Combobox
           size="sm"
           placeholder="Pick a function"
           items={functionOptions()}
-          value={value.name}
+          value={effectiveValue.name}
           onchange={(n) => emit({ mode: "function", name: n, args: {} })}
           {disabled}
         />
