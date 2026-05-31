@@ -33,6 +33,16 @@ export { default as List } from "./List.svelte";
 export { default as ListItem } from "./ListItem.svelte";
 export { default as PageContainer } from "./PageContainer.svelte";
 
+// Public site shell (locked a11y chrome — citizen portal, #7/#71)
+export { default as AppFrame } from "./AppFrame.svelte";
+export { default as SiteHeader } from "./SiteHeader.svelte";
+export { default as SiteFooter } from "./SiteFooter.svelte";
+export { default as SkipLink } from "./SkipLink.svelte";
+export { default as ServiceNavigation } from "./ServiceNavigation.svelte";
+export { default as Link } from "./Link.svelte";
+export { default as Hero } from "./Hero.svelte";
+export { default as ContentBlock } from "./ContentBlock.svelte";
+
 // Containers
 export { default as Card } from "./Card.svelte";
 export { default as Panel } from "./Panel.svelte";

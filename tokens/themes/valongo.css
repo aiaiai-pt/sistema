@@ -1,0 +1,44 @@
+/*
+ * aiaiai Design System — Tier 1: Tenant Theme — Município de Valongo
+ *
+ * Example citizen-portal tenant theme (#7 portal template system). Demonstrates
+ * the Tier-1 contract: a municipality re-skins brand tokens only; structure,
+ * typography, spacing, motion, radius, and a11y stay frozen and
+ * conformance-checkable (Designers Italia "Modello Comuni" model).
+ *
+ * In production these overrides come from the tenant's `portal` ontology row
+ * and are injected at runtime by the portal's hooks.server.ts; this static
+ * file is the seed/example.
+ *
+ * Tier-1 rules: override < 20 semantic tokens; change accent + surface tint;
+ * keep everything else.
+ *
+ * Apply via: <html data-theme="valongo">
+ */
+
+[data-theme="valongo"] {
+  /* ─── Accent: Valongo civic green ─── */
+  --color-accent: #2e7d32;
+  --color-accent-hover: #1b5e20;
+  --color-accent-subtle: #eaf4ea;
+
+  /* ─── Surface: warm neutral ─── */
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f4f6f3;
+  --color-surface-tertiary: #e8ece6;
+
+  /* ─── Borders ─── */
+  --color-border: #d7ded3;
+  --color-border-strong: #abb8a4;
+
+  /* ─── Text ─── */
+  --color-text: #1c241b;
+  --color-text-secondary: #44513f;
+  --color-text-muted: #71806b;
+
+  /* ─── Overlay + focus follow the brand ─── */
+  --color-overlay: rgba(28, 36, 27, 0.5);
+  --focus-ring-color: var(--color-accent);
+
+  /* Total overrides: 14 tokens. Still an aiaiai product, in Valongo's colours. */
+}
