@@ -52,6 +52,7 @@ export const navigation: NavSection[] = [
       { label: "Tree", href: "/components/tree" },
       { label: "Value Source Picker", href: "/components/value-source-picker" },
       { label: "Page Container", href: "/components/page-container" },
+      { label: "Portal shell", href: "/components/portal-shell" },
     ],
   },
   {
