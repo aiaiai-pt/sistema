@@ -42,6 +42,9 @@ export { default as ServiceNavigation } from "./ServiceNavigation.svelte";
 export { default as Link } from "./Link.svelte";
 export { default as Hero } from "./Hero.svelte";
 export { default as ContentBlock } from "./ContentBlock.svelte";
+export { default as StatusTimeline } from "./StatusTimeline.svelte";
+export { default as WidgetGrid } from "./WidgetGrid.svelte";
+export { default as VotingWidget } from "./VotingWidget.svelte";
 
 // Containers
 export { default as Card } from "./Card.svelte";

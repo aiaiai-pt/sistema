@@ -6,6 +6,25 @@
   import ContentBlock from "$ui/ContentBlock.svelte";
   import SiteHeader from "$ui/SiteHeader.svelte";
   import SiteFooter from "$ui/SiteFooter.svelte";
+  import StatusTimeline from "$ui/StatusTimeline.svelte";
+  import WidgetGrid from "$ui/WidgetGrid.svelte";
+  import Card from "$ui/Card.svelte";
+  import StatCard from "$ui/StatCard.svelte";
+  import VotingWidget from "$ui/VotingWidget.svelte";
+
+  const proposals = [
+    { id: "riverside", label: "Riverside walking path", votes: 412 },
+    { id: "playground", label: "School playground renewal", votes: 268 },
+    { id: "lighting", label: "Old-town street lighting", votes: 153 },
+  ];
+  let demoVote = $state<string | undefined>(undefined);
+
+  const timelineSteps = [
+    { label: "Submitted", status: "complete" as const, timestamp: "12 May 2026" },
+    { label: "Under review", status: "complete" as const, timestamp: "13 May 2026" },
+    { label: "In progress", status: "current" as const, description: "A crew has been assigned to your street." },
+    { label: "Resolved", status: "upcoming" as const },
+  ];
 
   // Demo hrefs are external placeholders so the statically-prerendered docs
   // site doesn't crawl/validate portal routes that only exist in the portal app.
@@ -79,4 +98,81 @@
       {#snippet meta()}© 2026 Município de Valongo{/snippet}
     </SiteFooter>
   </div>
+</section>
+
+<section style="margin-bottom: var(--space-2xl);">
+  <h2 class="type-heading" style="margin-bottom: var(--space-md);">StatusTimeline</h2>
+  <p style="margin-bottom: var(--space-md);">
+    Ordered <code>&lt;ol&gt;</code> progress timeline for the <code>tracker</code> page. The current step gets
+    <code>aria-current="step"</code>; each step announces a visually-hidden state label (localizable for the portal's i18n).
+  </p>
+  <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-xl); max-width: var(--content-width-narrow);">
+    <StatusTimeline label="Report progress" steps={timelineSteps} />
+  </div>
+</section>
+
+<section style="margin-bottom: var(--space-2xl);">
+  <h2 class="type-heading" style="margin-bottom: var(--space-md);">WidgetGrid</h2>
+  <p style="margin-bottom: var(--space-md);">
+    Dashboard layout for <code>landing</code> / information-portal pages. Children opt into width with
+    <code>widget-span-2</code> / <code>widget-span-full</code>. Resize to see it fold to two columns, then one.
+  </p>
+  <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-xl);">
+    <WidgetGrid columns="3">
+      <Card class="widget-span-2">
+        <Hero title="Participate in Valongo" subtitle="Open consultations, reports, and local budget voting." />
+      </Card>
+      <StatCard value="1 284" label="Reports resolved" variant="success" />
+      <StatCard value="7" label="Open consultations" variant="info" />
+      <StatCard value="312" label="Votes this week" variant="neutral" />
+      <Card class="widget-span-full">
+        <strong>Recent activity</strong>
+        <p style="margin: var(--space-xs) 0 0; color: var(--color-text-secondary);">
+          A full-width widget — e.g. a map or an activity feed spanning the whole row.
+        </p>
+      </Card>
+    </WidgetGrid>
+  </div>
+</section>
+
+<section style="margin-bottom: var(--space-2xl);">
+  <h2 class="type-heading" style="margin-bottom: var(--space-md);">VotingWidget</h2>
+  <p style="margin-bottom: var(--space-md);">
+    Valongo V10 participation primitive. A <code>&lt;fieldset&gt;</code> radio group; the portal wires
+    <code>onsubmit</code> to the BFF voting placement and renders the bot challenge into the <code>captcha</code> slot.
+  </p>
+  <WidgetGrid columns="3">
+    <Card>
+      <VotingWidget
+        question="Which project should Valongo fund first?"
+        name="demo-open"
+        options={proposals}
+        bind:selected={demoVote}
+      />
+    </Card>
+    <Card>
+      <VotingWidget
+        question="Results so far"
+        name="demo-results"
+        options={proposals}
+        submitted
+        showResults
+        submittedLabel="Thanks — your vote is counted."
+      >
+        {#snippet receipt()}
+          <code style="font-size: var(--type-data-size); color: var(--color-text-muted);">Receipt: vlg-7f3a-9c21</code>
+        {/snippet}
+      </VotingWidget>
+    </Card>
+    <Card>
+      <VotingWidget
+        question="Should the market move to Saturdays?"
+        name="demo-closed"
+        options={[{ id: "yes", label: "Yes", votes: 640 }, { id: "no", label: "No", votes: 210 }]}
+        closed
+        showResults
+        closedLabel="Voting closed on 30 May 2026."
+      />
+    </Card>
+  </WidgetGrid>
 </section>
