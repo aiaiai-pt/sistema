@@ -294,20 +294,31 @@
       oninput={(event: Event) => setValue(key, (event.target as HTMLInputElement).value)}
     />
   {/if}
-  <p class="field-meta">
-    {String(parameter.required ? "Required" : "Optional")} / {type}
-  </p>
+  {#if mode === "public-submit"}
+    <!-- Citizen-facing: just a quiet required hint, no operator type debug. -->
+    {#if parameter.required}<p class="field-meta">Required</p>{/if}
+  {:else}
+    <p class="field-meta">
+      {String(parameter.required ? "Required" : "Optional")} / {type}
+    </p>
+  {/if}
 {/snippet}
 
 <div class="renderer" data-testid={`action-form-renderer-${mode}`} data-layout={resolvedLayout.key}>
   <div class="renderer-header">
     <div>
-      <p class="eyebrow">{mode === "public-submit" ? "Public portal" : "Placement preview"}</p>
+      <!-- The placement-preview eyebrow + surface badge are operator chrome —
+           hidden in public-submit so a citizen sees a clean form title. -->
+      {#if mode !== "public-submit"}
+        <p class="eyebrow">Placement preview</p>
+      {/if}
       <h3>{String(renderedAction?.label ?? renderedAction?.key ?? "Select an action")}</h3>
     </div>
-    <Badge variant={renderedPlacement ? "info" : "neutral"}>
-      {String(renderedPlacement?.surface ?? "No placement")}
-    </Badge>
+    {#if mode !== "public-submit"}
+      <Badge variant={renderedPlacement ? "info" : "neutral"}>
+        {String(renderedPlacement?.surface ?? "No placement")}
+      </Badge>
+    {/if}
   </div>
 
   {#if !renderedAction}
