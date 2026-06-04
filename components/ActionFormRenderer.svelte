@@ -2,10 +2,13 @@
   // DS-internal sibling imports (this component lives in the DS now, #73 73f —
   // converged so admin preview AND portal runtime mount the SAME renderer).
   import Badge from "./Badge.svelte";
+  import Button from "./Button.svelte";
+  import Alert from "./Alert.svelte";
   import CodeBlock from "./CodeBlock.svelte";
   import Input from "./Input.svelte";
   import Select from "./Select.svelte";
   import Tag from "./Tag.svelte";
+  import type { Snippet } from "svelte";
   import {
     buildActionPayload,
     placementConsequenceRows as buildPlacementConsequenceRows,
@@ -39,6 +42,15 @@
     criteria?: Entity[];
   };
 
+  /**
+   * The `apply` seam (see dev_docs/adl/action-form-apply-seam.md). The renderer
+   * owns the form + validation + submit button + state; the CONSUMER injects how
+   * to actually send it. Foundry's `applyAction` model: every consumer converges
+   * on the one action engine; only transport/auth/captcha differ. Receives the
+   * normalized ActionPayload; resolves `{ ok }` (and may navigate on success).
+   */
+  type ApplyResult = { ok: boolean; status?: number; error?: string };
+
   interface Props {
     action: Entity | null;
     placement?: Entity | null;
@@ -46,6 +58,13 @@
     criteria?: Entity[];
     mode?: RendererMode;
     schema?: ActionSchema | null;
+    /** Injected apply. Required for a working submit button; absent → no button
+     *  (so admin-preview / adapter-preview stay read-only). */
+    onApply?: (payload: Record<string, unknown>) => Promise<ApplyResult>;
+    /** Environment-specific captcha (e.g. Turnstile), rendered above the button
+     *  in submit modes. */
+    captcha?: Snippet;
+    submitLabel?: string;
   }
 
   let {
@@ -55,9 +74,23 @@
     criteria = [],
     mode = "admin-preview",
     schema = null,
+    onApply = undefined,
+    captcha = undefined,
+    submitLabel = "Submit",
   }: Props = $props();
 
   let values = $state<Record<string, unknown>>({});
+
+  // Submit state (apply seam). Only meaningful in submit modes with an onApply.
+  let submitting = $state(false);
+  let submitError = $state<string | null>(null);
+  let submitted = $state(false);
+
+  // A form is a SUBMIT form (button shown) only in the submit modes AND when the
+  // consumer wired an apply. Preview modes (admin-preview/adapter-preview) and a
+  // missing onApply stay read-only — the button never renders.
+  const isSubmitMode = $derived(mode === "public-submit" || mode === "admin-execute");
+  const showSubmit = $derived(isSubmitMode && onApply !== undefined);
 
   const renderedAction = $derived((schema?.action as Entity | null | undefined) ?? action);
   const renderedPlacement = $derived((schema?.placement as Entity | null | undefined) ?? placement);
@@ -80,6 +113,36 @@
   const sections = $derived(schemaSections ?? groupIntoSections(visibleParameters));
   const payload = $derived(buildPayload());
   const payloadJson = $derived(JSON.stringify(payload, null, 2));
+
+  // Client-side submit gate (layer 1 — see the ADL): every required, visible
+  // parameter must have a non-empty value. Server-side submission criteria are
+  // enforced by the BFF on submit and surfaced via `submitError`.
+  function isEmpty(value: unknown): boolean {
+    return value === undefined || value === null || value === "";
+  }
+  const canSubmit = $derived(
+    visibleParameters
+      .filter((parameter) => parameter.required)
+      .every((parameter) => !isEmpty(values[parameterKey(parameter)])),
+  );
+
+  async function handleSubmit(): Promise<void> {
+    if (!onApply || submitting || !canSubmit) return;
+    submitError = null;
+    submitting = true;
+    try {
+      const result = await onApply(buildPayload());
+      if (result.ok) {
+        submitted = true; // a consumer that navigates (portal → tracker) supersedes this
+      } else {
+        submitError = result.error ?? "We couldn't submit your form. Please try again.";
+      }
+    } catch {
+      submitError = "Something went wrong. Please try again.";
+    } finally {
+      submitting = false;
+    }
+  }
   const criteriaSummary = $derived(
     renderedCriteria
       .filter((criterion) => criterion.is_active !== false)
@@ -332,6 +395,31 @@
     </form>
   {/if}
 
+  <!-- Submit (apply seam) — only in submit modes with an injected onApply, so
+       preview modes never render a button. Captcha snippet sits above it. -->
+  {#if showSubmit && renderedAction && orderedParameters.length > 0}
+    <div class="submit-area">
+      {#if submitted}
+        <Alert variant="success">Your submission was received.</Alert>
+      {:else}
+        {#if submitError}
+          <Alert variant="error">{submitError}</Alert>
+        {/if}
+        {#if captcha}
+          <div class="submit-captcha">{@render captcha()}</div>
+        {/if}
+        <Button
+          variant="primary"
+          loading={submitting}
+          disabled={submitting || !canSubmit}
+          onclick={handleSubmit}
+        >
+          {submitLabel}
+        </Button>
+      {/if}
+    </div>
+  {/if}
+
   {#if mode === "admin-preview"}
     <div class="admin-preview">
       <section class="preview-block">
@@ -420,10 +508,20 @@
 
   .rendered-form,
   .admin-preview,
-  .preview-block {
+  .preview-block,
+  .submit-area {
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
+  }
+
+  .submit-area {
+    align-items: flex-start;
+    gap: var(--space-lg);
+  }
+
+  .submit-captcha {
+    min-height: var(--space-4xl);
   }
 
   .preview-block h4 {
