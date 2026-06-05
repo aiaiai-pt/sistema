@@ -122,3 +122,6 @@ export { default as GeoSearch } from "./GeoSearch.svelte";
 
 // Scheduling
 export { default as Calendar } from "./Calendar.svelte";
+
+// Action form renderer (placement-aware; admin preview + portal runtime, #73)
+export { default as ActionFormRenderer } from "./ActionFormRenderer.svelte";
