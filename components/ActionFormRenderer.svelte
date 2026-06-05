@@ -6,6 +6,7 @@
   import Alert from "./Alert.svelte";
   import CodeBlock from "./CodeBlock.svelte";
   import Input from "./Input.svelte";
+  import MapPicker from "./MapPicker.svelte";
   import Select from "./Select.svelte";
   import Tag from "./Tag.svelte";
   import type { Snippet } from "svelte";
@@ -348,6 +349,23 @@
         { value: "false", label: "No" },
       ]}
       onchange={(value: string) => setValue(key, value === "true")}
+    />
+  {:else if type === "geo"}
+    <!-- A `geo` parameter renders the DS map-picker; its value is the
+         [lon, lat] the BFF's GEO_PARSE binding transform turns into a Point.
+         The renderer stays generic — geo is just another param type, the
+         occurrence/location coupling lives entirely in the ontology binding. -->
+    <MapPicker
+      mode="point"
+      height="20rem"
+      label={String(parameter.label ?? key)}
+      center={Array.isArray(parameter.default_value)
+        ? (parameter.default_value as [number, number])
+        : undefined}
+      value={Array.isArray(values[key])
+        ? (values[key] as [number, number])
+        : undefined}
+      onchange={(coords: [number, number]) => setValue(key, coords)}
     />
   {:else}
     <Input
