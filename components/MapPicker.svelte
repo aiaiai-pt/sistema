@@ -52,6 +52,10 @@
     tileSource = { type: 'osm' },
     /** @type {((coords: [number, number] | number[][]) => void) | undefined} */
     onchange = undefined,
+    /** @type {((displayName: string) => void) | undefined} — the resolved
+     *  address whenever the pin settles (search pick or reverse geocode of a
+     *  map click). Feed it to an address field; coords stay `onchange`. */
+    onaddress = undefined,
     /** @type {string} */
     height = '100%',
     /** @type {string | undefined} */
@@ -234,6 +238,7 @@
       providerUrl={searchProviderUrl}
       viewbox={searchViewbox}
       onlocation={handleGeoLocation}
+      onresolved={onaddress}
       bind:coords={searchCoords}
       size="sm"
     />

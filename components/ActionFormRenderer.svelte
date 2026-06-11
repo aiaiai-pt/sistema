@@ -354,7 +354,11 @@
     <!-- A `geo` parameter renders the DS map-picker; its value is the
          [lon, lat] the BFF's GEO_PARSE binding transform turns into a Point.
          The renderer stays generic — geo is just another param type, the
-         occurrence/location coupling lives entirely in the ontology binding. -->
+         occurrence/location coupling lives entirely in the ontology binding.
+         SIBLING-ADDRESS CONVENTION: when the form also declares a parameter
+         keyed `address`, the picker's resolved address (search pick or
+         reverse geocode) auto-fills it — tracking the pin; the citizen can
+         still edit the field afterwards (a later pin overwrites). -->
     <MapPicker
       mode="point"
       height="20rem"
@@ -366,6 +370,11 @@
         ? (values[key] as [number, number])
         : undefined}
       onchange={(coords: [number, number]) => setValue(key, coords)}
+      onaddress={(displayName: string) => {
+        if (parameters.some((p) => parameterKey(p) === "address")) {
+          setValue("address", displayName);
+        }
+      }}
     />
   {:else}
     <Input

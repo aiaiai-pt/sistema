@@ -43,6 +43,10 @@
     viewbox = undefined,
     /** @type {((lon: number, lat: number, item: { label: string, value: string }) => void) | undefined} */
     onlocation = undefined,
+    /** @type {((displayName: string) => void) | undefined} — fires with the
+     *  resolved address label on BOTH paths: reverse geocode (map click /
+     *  coords set) and forward selection. Consumers feed address fields. */
+    onresolved = undefined,
     /** @type {[number, number] | undefined} — set externally to reverse-geocode and show address */
     coords = $bindable(undefined),
     /** @type {string} */
@@ -78,6 +82,7 @@
       if (result.display_name) {
         value = `${lon},${lat}`;
         items = [{ value: `${lon},${lat}`, label: result.display_name, description: result.type?.replace(/_/g, ' ') ?? '' }];
+        onresolved?.(result.display_name);
       }
     } catch {
       // Reverse geocoding failed — leave search bar as-is
@@ -135,9 +140,10 @@
     const [lonStr, latStr] = val.split(',');
     const lon = parseFloat(lonStr);
     const lat = parseFloat(latStr);
-    if (!Number.isNaN(lon) && !Number.isNaN(lat) && onlocation) {
+    if (!Number.isNaN(lon) && !Number.isNaN(lat)) {
       const selectedItem = items.find((i) => i.value === val);
-      onlocation(lon, lat, selectedItem ?? { label: '', value: val });
+      if (selectedItem?.label) onresolved?.(selectedItem.label);
+      onlocation?.(lon, lat, selectedItem ?? { label: '', value: val });
     }
   }
 </script>
