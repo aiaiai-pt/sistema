@@ -13,6 +13,9 @@
 
   @example Custom heading level (when the hero is not the page's H1)
   <Hero title="Latest consultations" headingLevel={2} />
+
+  @example Background image (a theme-tinted scrim keeps text contrast)
+  <Hero title="Report a problem" image="/images/city.jpg" />
 -->
 <script>
   let {
@@ -22,6 +25,9 @@
     subtitle = "",
     /** @type {1 | 2 | 3} Heading level for `title` — keep one h1 per page. */
     headingLevel = 1,
+    /** @type {string | undefined} Background image URL — rendered cover/center
+     *  under a `--hero-scrim` overlay so the text tokens keep contrast. */
+    image = undefined,
     /** @type {string} */
     class: className = "",
     /** @type {import('svelte').Snippet | undefined} Title override (rich content). */
@@ -30,9 +36,21 @@
     actions = undefined,
     ...rest
   } = $props();
+
+  // CSS-string escape for the url() value — the image URL is operator data.
+  const bgStyle = $derived(
+    image
+      ? `background-image: url('${image.replace(/\\/g, "%5C").replace(/'/g, "%27")}')`
+      : undefined,
+  );
 </script>
 
-<section class="hero {className}" {...rest}>
+<section
+  class="hero {className}"
+  class:hero-has-image={!!image}
+  style={bgStyle}
+  {...rest}
+>
   <div class="hero-inner">
     {#if children}
       {@render children()}
@@ -51,6 +69,24 @@
 <style>
   .hero {
     background: var(--color-surface);
+  }
+
+  .hero-has-image {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* Theme-tinted scrim between the image and the text (contrast guard). */
+  .hero-has-image::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--hero-scrim);
+  }
+
+  .hero-has-image .hero-inner {
+    position: relative;
   }
 
   .hero-inner {

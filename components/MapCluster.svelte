@@ -14,13 +14,17 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
+  import { boundingExtent } from 'ol/extent.js';
   import { createTileLayer, createMapStyles, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {{ id: string, lon: number, lat: number, label?: string, [key: string]: any }[]} */
     markers = [],
-    /** @type {[number, number]} — initial center [lon, lat] */
-    center = [0, 0],
+    /** @type {[number, number] | undefined} — initial center [lon, lat].
+     *  Omit to auto-FIT the markers' extent (the right default for "show
+     *  my data" maps; explicit center wins for dashboards pinned to a
+     *  region). */
+    center = undefined,
     /** @type {number} */
     zoom = 6,
     /** @type {number} — cluster distance in pixels */
@@ -51,13 +55,21 @@
   /** @type {any} — Point constructor */
   let _Point;
 
-  // Reactive: animate to new center/zoom when props change
+  // Reactive: animate when the CALLER's center/zoom props change. Guarded
+  // against the mount-time run — with no explicit `center` the view was
+  // initialised to the markers' extent/mean, and animating to the prop
+  // default ([0,0], null island) shoved every marker off-screen.
+  let _lastCenterKey = $state("");
   $effect(() => {
-    if (!_map) return;
+    const key = center ? `${center[0]},${center[1]},${zoom}` : "";
+    if (!_map || !center) return;
+    if (key === _lastCenterKey) return;
+    const first = _lastCenterKey === "";
+    _lastCenterKey = key;
+    if (first) return; // initial view already honours the props
     const view = _map.getView();
     if (!view) return;
-    const targetCenter = fromLonLat(center);
-    view.animate({ center: targetCenter, zoom, duration: 300 });
+    view.animate({ center: fromLonLat(center), zoom, duration: 300 });
   });
 
   // Reactive: update markers when props change
@@ -155,14 +167,22 @@
         element: tooltipEl,
         positioning: 'bottom-center',
         offset: [0, -12],
+        // The hover tooltip anchors AT the feature — OL's default
+        // stopEvent:true puts it in the event-stopping overlay pane, so the
+        // very click the tooltip invites lands on the overlay container and
+        // dies (the element's own pointer-events:none can't help; the
+        // CONTAINER captures). Informational overlay → never stop events.
+        stopEvent: false,
       });
 
-      const viewCenter = markers.length > 0
-        ? fromLonLat([
-            markers.reduce((s, m) => s + m.lon, 0) / markers.length,
-            markers.reduce((s, m) => s + m.lat, 0) / markers.length,
-          ])
-        : fromLonLat(center);
+      const viewCenter = center
+        ? fromLonLat(center)
+        : markers.length > 0
+          ? fromLonLat([
+              markers.reduce((s, m) => s + m.lon, 0) / markers.length,
+              markers.reduce((s, m) => s + m.lat, 0) / markers.length,
+            ])
+          : fromLonLat([0, 0]);
 
       map = new OlMap({
         target: container,
@@ -174,6 +194,14 @@
         }),
       });
       _map = map;
+      // No explicit center → fit the markers' extent so every cluster is on
+      // screen regardless of how the data spreads (mean-centre alone leaves
+      // distant clouds outside the default zoom).
+      if (!center && markers.length > 1) {
+        const coords = markers.map((m) => fromLonLat([m.lon, m.lat]));
+        const ext = boundingExtent(coords);
+        map.getView().fit(ext, { padding: [48, 48, 48, 48], maxZoom: 15 });
+      }
 
       // Hover: show tooltip
       map.on('pointermove', (evt) => {
@@ -212,6 +240,18 @@
             const data = clustered[0].get('markerData');
             if (data) onclick(data);
           } else if (clustered?.length > 1) {
+            // A cluster of (near-)IDENTICAL coordinates can never split by
+            // zooming (stacked reports at one point are common in civic
+            // data) — open the first item instead of zoom-looping forever.
+            const coords = clustered.map((f) => f.getGeometry()?.getCoordinates()).filter(Boolean);
+            const lons = coords.map((c) => c[0]);
+            const lats = coords.map((c) => c[1]);
+            const spread = Math.max(...lons) - Math.min(...lons) + (Math.max(...lats) - Math.min(...lats));
+            if (spread < 1) { // metres in web-mercator units — a stacked pile
+              const data = clustered[0].get('markerData');
+              if (data) onclick(data);
+              return;
+            }
             const view = map?.getView();
             const currentZoom = view?.getZoom() ?? zoom;
             view?.animate({

@@ -18,6 +18,9 @@
   --color-surface: var(--raw-color-neutral-50);
   --color-surface-secondary: var(--raw-color-neutral-100);
   --color-surface-tertiary: var(--raw-color-neutral-200);
+  /* Raised surface — popovers/menus that float ABOVE the page surface
+     (lighter than the page in light scheme, lighter-than-base in dark). */
+  --color-surface-raised: var(--raw-color-white);
   --color-overlay: rgba(44, 40, 37, 0.5);
 
   /* Borders */
@@ -214,6 +217,71 @@
   /* Content area spacing — mobile defaults */
   --content-padding-x: var(--space-md);
   --content-padding-y: var(--space-lg);
+}
+
+/* ═══════════════════════════════════════════════
+   DARK SCHEME — `<html data-scheme="dark">`
+   ═══════════════════════════════════════════════
+
+   One generic layer over the NEUTRAL-derived roles (surfaces, borders,
+   text, overlay). Brand hues survive untouched — the accent stays the
+   theme's accent — while every `-subtle` wash is re-derived from its
+   live hue via color-mix, so a tenant theme's accent gets a correct
+   dark wash for free. Per-theme bespoke dark = a `[data-theme="x"]`
+   block in the theme file, not here.
+
+   Selector is `:root[data-scheme="dark"]` (0,1,1): it TIES tenant theme
+   blocks (`:root[data-theme="x"]`, runtime-injected in <head>) and wins
+   on order — DS styles load after the injected theme block. Consumers
+   resolving an "auto" preference must set the RESOLVED value on <html>
+   (a pre-paint `prefers-color-scheme` read), never "auto" itself. */
+
+:root[data-scheme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces — darkest at the base, lighter as elevation rises */
+  --color-surface: var(--raw-color-neutral-950);
+  --color-surface-secondary: var(--raw-color-neutral-900);
+  --color-surface-tertiary: var(--raw-color-neutral-800);
+  --color-surface-raised: var(--raw-color-neutral-900);
+  --color-overlay: rgba(0, 0, 0, 0.65);
+
+  /* Borders */
+  --color-border: var(--raw-color-neutral-800);
+  --color-border-strong: var(--raw-color-neutral-700);
+
+  /* Text — warm off-whites off the same neutral ramp */
+  --color-text: var(--raw-color-neutral-100);
+  --color-text-secondary: var(--raw-color-neutral-400);
+  --color-text-muted: var(--raw-color-neutral-500);
+
+  /* Subtle washes — derived from the LIVE hue (theme-set or default),
+     mixed into the dark surface instead of the light-only raw tints. */
+  --color-accent-subtle: color-mix(
+    in srgb,
+    var(--color-accent) 16%,
+    var(--raw-color-neutral-950)
+  );
+  --color-destructive-subtle: color-mix(
+    in srgb,
+    var(--color-destructive) 14%,
+    var(--raw-color-neutral-950)
+  );
+  --color-success-subtle: color-mix(
+    in srgb,
+    var(--color-success) 14%,
+    var(--raw-color-neutral-950)
+  );
+  --color-warning-subtle: color-mix(
+    in srgb,
+    var(--color-warning) 14%,
+    var(--raw-color-neutral-950)
+  );
+  --color-info-subtle: color-mix(
+    in srgb,
+    var(--color-info) 14%,
+    var(--raw-color-neutral-950)
+  );
 }
 
 /* ─── Tablet (768px+) ─── */

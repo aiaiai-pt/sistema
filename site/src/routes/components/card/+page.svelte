@@ -95,6 +95,25 @@
 	</div>
 </section>
 
+<!-- Link cards -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Link Cards</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">A card with <code class="type-data">href</code> renders a real <code class="type-data">&lt;a&gt;</code> (mirrors Button's href) — middle-click, focus ring and crawlability come free. Use for navigation tiles like a service directory; use <code class="type-data">interactive</code> + <code class="type-data">onclick</code> only for in-page selection.</p>
+	<div class="card-grid">
+		<Card href="#link-card-demo">
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">NAVIGATION</span>
+			<h3 class="type-heading-sm" style="margin-bottom: var(--space-xs);">Report a pothole</h3>
+			<p class="type-body-sm">Road surface damage on streets, cycleways and sidewalks.</p>
+		</Card>
+
+		<Card href="#link-card-demo" variant="elevated">
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">NAVIGATION + ELEVATED</span>
+			<h3 class="type-heading-sm" style="margin-bottom: var(--space-xs);">Broken streetlight</h3>
+			<p class="type-body-sm">Variants compose with href like any other card.</p>
+		</Card>
+	</div>
+</section>
+
 <!-- Loading skeleton -->
 <section style="margin-bottom: var(--space-2xl);">
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Loading Skeleton</h2>

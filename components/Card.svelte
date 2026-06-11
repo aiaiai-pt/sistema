@@ -14,6 +14,11 @@
   <Card interactive selected={isSelected} onclick={() => select(id)}>
     Clickable card
   </Card>
+
+  @example Link card (navigation — renders an <a>, like Button's href)
+  <Card href="/submit/potholes">
+    Report a pothole
+  </Card>
 -->
 <script>
   /**
@@ -27,17 +32,26 @@
     interactive = false,
     /** @type {boolean} */
     selected = false,
+    /** @type {string | undefined} — renders an <a> when set (navigation card) */
+    href = undefined,
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
     children = undefined,
     ...rest
   } = $props();
-
-  // tag variable unused — rendering uses {#if interactive} branching
 </script>
 
-{#if interactive}
+{#if href}
+  <a
+    {href}
+    class="card card-{variant} card-interactive card-link {className}"
+    class:card-selected={selected}
+    {...rest}
+  >
+    {#if children}{@render children()}{/if}
+  </a>
+{:else if interactive}
   <button
     class="card card-{variant} card-interactive {className}"
     class:card-selected={selected}
@@ -100,6 +114,12 @@
   .card-interactive:focus-visible {
     outline: var(--focus-ring-width) solid var(--focus-ring-color);
     outline-offset: var(--focus-ring-offset);
+  }
+
+  /* Anchor reset — a link card reads as a card, not as link text. */
+  .card-link {
+    text-decoration: none;
+    color: inherit;
   }
 
   .card-selected {

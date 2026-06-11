@@ -24,11 +24,18 @@
       <span>Clickable row</span>
     {/snippet}
   </ListItem>
+
+  @example Link row (navigation — renders an <a>, like Button/Card href)
+  <ListItem href="/services/potholes">
+    {#snippet leading()}<span>Report a pothole</span>{/snippet}
+  </ListItem>
 -->
 <script>
   let {
     /** @type {boolean} */
     interactive = false,
+    /** @type {string | undefined} — renders an <a> when set (navigation row) */
+    href = undefined,
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
@@ -56,7 +63,16 @@
   {/if}
 {/snippet}
 
-{#if interactive}
+{#if href}
+  <a
+    {href}
+    class="list-item list-item-interactive list-item-link {className}"
+    role="listitem"
+    {...rest}
+  >
+    {@render body()}
+  </a>
+{:else if interactive}
   <button
     class="list-item list-item-interactive {className}"
     role="listitem"
@@ -75,6 +91,12 @@
 {/if}
 
 <style>
+  /* Anchor reset — a link row reads as a row, not as link text. */
+  .list-item-link {
+    text-decoration: none;
+    color: inherit;
+  }
+
   .list-item {
     display: flex;
     align-items: center;

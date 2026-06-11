@@ -83,6 +83,19 @@
 </section>
 
 <section style="margin-bottom: var(--space-2xl);">
+  <h2 class="type-heading" style="margin-bottom: var(--space-md);">Hero with background image</h2>
+  <p class="type-body-sm" style="margin-bottom: var(--space-md);">An <code class="type-data">image</code> renders cover/center under the <code class="type-data">--hero-scrim</code> overlay — a surface-tinted (theme-following) scrim, so the text tokens keep their contrast on any photo. Raise the scrim mix for busier imagery.</p>
+  <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
+    <Hero
+      title="Report a problem in Valongo"
+      subtitle="The scrim keeps this readable over the photo."
+      headingLevel={2}
+      image="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='300'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234a7c59'/%3E%3Cstop offset='0.6' stop-color='%23856a3d'/%3E%3Cstop offset='1' stop-color='%23403428'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='300' fill='url(%23g)'/%3E%3Ccircle cx='650' cy='70' r='40' fill='%23f2e8d5' opacity='0.7'/%3E%3C/svg%3E"
+    />
+  </div>
+</section>
+
+<section style="margin-bottom: var(--space-2xl);">
   <h2 class="type-heading" style="margin-bottom: var(--space-md);">ContentBlock + SiteFooter</h2>
   <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
     <ContentBlock title="Privacy Policy">
