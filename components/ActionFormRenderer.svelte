@@ -371,7 +371,7 @@
         : undefined}
       onchange={(coords: [number, number]) => setValue(key, coords)}
       onaddress={(displayName: string) => {
-        if (parameters.some((p) => parameterKey(p) === "address")) {
+        if (renderedParameters.some((p) => parameterKey(p) === "address")) {
           setValue("address", displayName);
         }
       }}
