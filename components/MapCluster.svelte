@@ -167,6 +167,12 @@
         element: tooltipEl,
         positioning: 'bottom-center',
         offset: [0, -12],
+        // The hover tooltip anchors AT the feature — OL's default
+        // stopEvent:true puts it in the event-stopping overlay pane, so the
+        // very click the tooltip invites lands on the overlay container and
+        // dies (the element's own pointer-events:none can't help; the
+        // CONTAINER captures). Informational overlay → never stop events.
+        stopEvent: false,
       });
 
       const viewCenter = center
