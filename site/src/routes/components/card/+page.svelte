@@ -96,7 +96,7 @@
 </section>
 
 <!-- Link cards -->
-<section style="margin-bottom: var(--space-2xl);">
+<section id="link-card-demo" style="margin-bottom: var(--space-2xl);">
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Link Cards</h2>
 	<p class="type-body-sm" style="margin-bottom: var(--space-md);">A card with <code class="type-data">href</code> renders a real <code class="type-data">&lt;a&gt;</code> (mirrors Button's href) — middle-click, focus ring and crawlability come free. Use for navigation tiles like a service directory; use <code class="type-data">interactive</code> + <code class="type-data">onclick</code> only for in-page selection.</p>
 	<div class="card-grid">
