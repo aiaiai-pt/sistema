@@ -7,6 +7,8 @@
   import CodeBlock from "./CodeBlock.svelte";
   import Input from "./Input.svelte";
   import MapPicker from "./MapPicker.svelte";
+  import FileUpload from "./FileUpload.svelte";
+  import FileUploadItem from "./FileUploadItem.svelte";
   import Select from "./Select.svelte";
   import Tag from "./Tag.svelte";
   import type { Snippet } from "svelte";
@@ -62,6 +64,11 @@
     /** Injected apply. Required for a working submit button; absent → no button
      *  (so admin-preview / adapter-preview stay read-only). */
     onApply?: (payload: Record<string, unknown>) => Promise<ApplyResult>;
+    /** Transport for `file`-typed parameters (#75 M5 slice 4b): receives one
+     *  validated File, returns its storage key. The renderer owns the UI +
+     *  the attachment_keys payload contract; the CONSUMER owns transport/auth
+     *  (FileUpload philosophy). Omitted → file params render disabled. */
+    uploadFile?: (file: File) => Promise<{ key: string } | { error: string }>;
     /** Environment-specific captcha (e.g. Turnstile), rendered above the button
      *  in submit modes. */
     captcha?: Snippet;
@@ -76,11 +83,22 @@
     mode = "admin-preview",
     schema = null,
     onApply = undefined,
+    uploadFile = undefined,
     captcha = undefined,
     submitLabel = "Submit",
   }: Props = $props();
 
   let values = $state<Record<string, unknown>>({});
+  // `file` params live OUTSIDE values — their keys ride the payload's
+  // top-level attachment_keys, never raw_values (the form schema doesn't
+  // know them; validation would reject strays).
+  let fileUploads = $state<Record<string, Array<{ key: string; name: string }>>>({});
+  let fileBusy = $state<Record<string, boolean>>({});
+  let fileError = $state<Record<string, string>>({});
+  // Platform caps mirror the public upload surface (3 × 5MB, web image types).
+  const FILE_MAX_COUNT = 3;
+  const FILE_MAX_BYTES = 5 * 1024 * 1024;
+  const FILE_ACCEPT = "image/jpeg,image/png,image/webp";
 
   // Submit state (apply seam). Only meaningful in submit modes with an onApply.
   let submitting = $state(false);
@@ -124,7 +142,11 @@
   const canSubmit = $derived(
     visibleParameters
       .filter((parameter) => parameter.required)
-      .every((parameter) => !isEmpty(values[parameterKey(parameter)])),
+      .every((parameter) =>
+        String(parameter.type ?? "") === "file"
+          ? (fileUploads[parameterKey(parameter)] ?? []).length > 0
+          : !isEmpty(values[parameterKey(parameter)]),
+      ),
   );
 
   async function handleSubmit(): Promise<void> {
@@ -287,6 +309,45 @@
       : {};
   }
 
+  async function handleFiles(key: string, files: File[]) {
+    if (!uploadFile) return;
+    fileError = { ...fileError, [key]: "" };
+    const existing = fileUploads[key] ?? [];
+    const room = FILE_MAX_COUNT - existing.length;
+    const batch = files.slice(0, room);
+    if (files.length > room) {
+      fileError = { ...fileError, [key]: `Up to ${FILE_MAX_COUNT} files` };
+    }
+    if (batch.length === 0) return;
+    fileBusy = { ...fileBusy, [key]: true };
+    try {
+      for (const file of batch) {
+        const result = await uploadFile(file);
+        if ("key" in result) {
+          fileUploads = {
+            ...fileUploads,
+            [key]: [...(fileUploads[key] ?? []), { key: result.key, name: file.name }],
+          };
+        } else {
+          fileError = { ...fileError, [key]: result.error };
+        }
+      }
+    } finally {
+      fileBusy = { ...fileBusy, [key]: false };
+    }
+  }
+
+  function removeFile(key: string, storageKey: string) {
+    fileUploads = {
+      ...fileUploads,
+      [key]: (fileUploads[key] ?? []).filter((f) => f.key !== storageKey),
+    };
+  }
+
+  function allAttachmentKeys(): string[] {
+    return Object.values(fileUploads).flatMap((list) => list.map((f) => f.key));
+  }
+
   function buildPayload(): Record<string, unknown> {
     return buildActionPayload({
       action: renderedAction ?? null,
@@ -294,6 +355,7 @@
       targetConfig: targetConfig(),
       sourceSchema: sourceSchema(),
       rawValues: visibleValueBag(),
+      attachmentKeys: allAttachmentKeys(),
       schemaVersion: schema?.schema_version ?? null,
       mode,
     }) as unknown as Record<string, unknown>;
@@ -350,6 +412,33 @@
       ]}
       onchange={(value: string) => setValue(key, value === "true")}
     />
+  {:else if type === "file"}
+    <!-- `file` parameter (#75 M5 slice 4b): upload-as-you-attach. The keys
+         ride payload.attachment_keys; raw_values never sees this param. -->
+    <div class="afr-file-param">
+      <span class="afr-file-label">{String(parameter.label ?? key)}</span>
+      {#each fileUploads[key] ?? [] as f (f.key)}
+        <FileUploadItem
+          name={f.name}
+          onremove={() => removeFile(key, f.key)}
+        />
+      {/each}
+      {#if (fileUploads[key] ?? []).length < FILE_MAX_COUNT}
+        <FileUpload
+          accept={FILE_ACCEPT}
+          maxSize={FILE_MAX_BYTES}
+          multiple
+          disabled={!uploadFile || fileBusy[key]}
+          onfiles={(files: File[]) => handleFiles(key, files)}
+          onreject={() => {
+            fileError = { ...fileError, [key]: "JPEG, PNG or WebP up to 5MB" };
+          }}
+        />
+      {/if}
+      {#if fileError[key]}
+        <p class="afr-file-error" role="alert">{fileError[key]}</p>
+      {/if}
+    </div>
   {:else if type === "geo"}
     <!-- A `geo` parameter renders the DS map-picker; its value is the
          [lon, lat] the BFF's GEO_PARSE binding transform turns into a Point.
@@ -545,6 +634,23 @@
   .submit-area {
     align-items: flex-start;
     gap: var(--space-lg);
+  }
+
+  .afr-file-param {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .afr-file-label {
+    font-size: var(--input-label-size, var(--type-body-sm-size));
+    color: var(--color-text-secondary);
+  }
+
+  .afr-file-error {
+    margin: 0;
+    font-size: var(--type-body-sm-size);
+    color: var(--input-error-text);
   }
 
   .submit-captcha {

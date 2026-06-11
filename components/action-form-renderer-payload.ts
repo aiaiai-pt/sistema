@@ -42,11 +42,17 @@ export interface BuildArgs {
   sourceSchema: Record<string, unknown>;
   /** Submitted values keyed by parameter source_field_path or key. */
   rawValues: Record<string, unknown>;
+  /** Uploaded file storage keys (`file`-typed parameters) — the platform
+   *  attachment contract: a TOP-LEVEL `attachment_keys` sibling, never part
+   *  of raw_values (the form schema doesn't validate file params). */
+  attachmentKeys?: string[];
   schemaVersion: string | null;
   mode: RendererMode;
 }
 
 export interface ActionPayload {
+  /** Uploaded file storage keys (file-typed params) — absent when none. */
+  attachment_keys?: string[];
   source: string;
   action: {
     id: string | null;
@@ -102,7 +108,7 @@ function pickScope(targetConfig: Record<string, unknown>): Record<string, unknow
 }
 
 export function buildActionPayload(args: BuildArgs): ActionPayload {
-  const { action, placement, targetConfig, sourceSchema, rawValues, schemaVersion, mode } = args;
+  const { action, placement, targetConfig, sourceSchema, rawValues, schemaVersion, mode, attachmentKeys } = args;
 
   const sourceFromSchema = nullableString(sourceSchema.source);
   const targetModel =
@@ -143,6 +149,9 @@ export function buildActionPayload(args: BuildArgs): ActionPayload {
       target_model: targetModel,
       form_definition_id: nullableString(targetConfig.form_definition_id),
     },
+    ...(attachmentKeys && attachmentKeys.length > 0
+      ? { attachment_keys: attachmentKeys }
+      : {}),
   };
 }
 
