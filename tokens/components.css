@@ -112,6 +112,15 @@
   --checkbox-check-color: var(--color-text-on-accent);
 
   /* ═══════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════ */
+
+  /* Scrim laid over a hero background image so the text tokens keep their
+     contrast on any photo. Surface-tinted (not black/white) so it follows
+     the theme — raise the mix % for busier imagery. */
+  --hero-scrim: color-mix(in srgb, var(--color-surface) 78%, transparent);
+
+  /* ═══════════════════════════════════════════════
      CARD
      ═══════════════════════════════════════════════ */
 
