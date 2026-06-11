@@ -234,6 +234,18 @@
             const data = clustered[0].get('markerData');
             if (data) onclick(data);
           } else if (clustered?.length > 1) {
+            // A cluster of (near-)IDENTICAL coordinates can never split by
+            // zooming (stacked reports at one point are common in civic
+            // data) — open the first item instead of zoom-looping forever.
+            const coords = clustered.map((f) => f.getGeometry()?.getCoordinates()).filter(Boolean);
+            const lons = coords.map((c) => c[0]);
+            const lats = coords.map((c) => c[1]);
+            const spread = Math.max(...lons) - Math.min(...lons) + (Math.max(...lats) - Math.min(...lats));
+            if (spread < 1) { // metres in web-mercator units — a stacked pile
+              const data = clustered[0].get('markerData');
+              if (data) onclick(data);
+              return;
+            }
             const view = map?.getView();
             const currentZoom = view?.getZoom() ?? zoom;
             view?.animate({
