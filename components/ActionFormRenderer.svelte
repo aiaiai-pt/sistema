@@ -73,6 +73,15 @@
      *  in submit modes. */
     captcha?: Snippet;
     submitLabel?: string;
+    /** Forwarded VERBATIM to every `geo` parameter's MapPicker (the renderer
+     *  stays generic — boundary/overlay semantics live in the consumer):
+     *  `boundary` draws the dashed tenant-boundary overlay and arms the
+     *  out-of-bounds check; `layers` are ordered GeoJSON overlays (unbounded);
+     *  `onoutofbounds(outside, coords)` fires on every point placement when a
+     *  boundary is set — NON-blocking, the consumer owns surfacing/gating. */
+    boundary?: unknown;
+    layers?: unknown[];
+    onoutofbounds?: (outside: boolean, coords: [number, number]) => void;
   }
 
   let {
@@ -86,6 +95,9 @@
     uploadFile = undefined,
     captcha = undefined,
     submitLabel = "Submit",
+    boundary = undefined,
+    layers = [],
+    onoutofbounds = undefined,
   }: Props = $props();
 
   let values = $state<Record<string, unknown>>({});
@@ -451,6 +463,9 @@
     <MapPicker
       mode="point"
       height="20rem"
+      {boundary}
+      {layers}
+      {onoutofbounds}
       label={String(parameter.label ?? key)}
       center={Array.isArray(parameter.default_value)
         ? (parameter.default_value as [number, number])

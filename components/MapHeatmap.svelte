@@ -21,7 +21,7 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, getHeatmapGradient, watchTheme, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, createOverlayLayers, getHeatmapGradient, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {{ lon: number, lat: number, weight?: number }[]} */
@@ -38,6 +38,12 @@
     gradient = undefined,
     /** @type {import('./map-utils.js').TileSourceConfig} */
     tileSource = { type: 'osm' },
+    /** @type {import('./map-utils.js').OverlayLayerDef[]} — ordered GeoJSON
+     *  overlays rendered between the tiles and the heatmap layer. Each
+     *  entry: inline `data` or a `url` (e.g. the platform's
+     *  `/{app}/public/layers/{id}/features`), optional flat or GeoStyler
+     *  `style`. Unbounded — render as many as the consumer configures. */
+    layers = [],
     /** @type {number} — max zoom when auto-fitting to points extent */
     maxZoom = 17,
     /** @type {string} */
@@ -81,6 +87,13 @@
       const tileLayer = await createTileLayer(tileSource);
       if (disposed) return;
 
+      // Style factory only feeds overlay fallback styles here — the heatmap
+      // layer itself styles via gradient tokens.
+      const styles = await createMapStyles(container);
+      if (disposed) return;
+      const overlayLayers = await createOverlayLayers(layers, styles);
+      if (disposed) return;
+
       // Non-linear weight normalization: sqrt lifts low values so they're
       // visible while preserving relative ordering. OL expects 0-1.
       const maxWeight = Math.max(...points.map(p => p.weight ?? 1), 1);
@@ -106,7 +119,7 @@
 
       map = new OlMap({
         target: container,
-        layers: [tileLayer, heatmapLayer],
+        layers: [tileLayer, ...overlayLayers, heatmapLayer],
         view: new View({
           center: fromLonLat(center),
           zoom,

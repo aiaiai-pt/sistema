@@ -15,7 +15,7 @@
 <script>
   import { fromLonLat } from 'ol/proj.js';
   import { boundingExtent } from 'ol/extent.js';
-  import { createTileLayer, createMapStyles, watchTheme, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, createOverlayLayers, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {{ id: string, lon: number, lat: number, label?: string, [key: string]: any }[]} */
@@ -31,6 +31,12 @@
     distance = 40,
     /** @type {import('./map-utils.js').TileSourceConfig} */
     tileSource = { type: 'osm' },
+    /** @type {import('./map-utils.js').OverlayLayerDef[]} — ordered GeoJSON
+     *  overlays rendered between the tiles and the cluster layer. Each
+     *  entry: inline `data` or a `url` (e.g. the platform's
+     *  `/{app}/public/layers/{id}/features`), optional flat or GeoStyler
+     *  `style`. Unbounded — render as many as the consumer configures. */
+    layers = [],
     /** @type {((marker: { id: string, lon: number, lat: number, label?: string }) => void) | undefined} */
     onclick = undefined,
     /** @type {string} */
@@ -123,6 +129,9 @@
       ]);
       if (disposed) return;
 
+      const overlayLayers = await createOverlayLayers(layers, styles);
+      if (disposed) return;
+
       const features = markers.map(m => {
         const f = new Feature({ geometry: new Point(fromLonLat([m.lon, m.lat])) });
         f.set('markerData', m);
@@ -186,7 +195,7 @@
 
       map = new OlMap({
         target: container,
-        layers: [tileLayer, clusterLayer],
+        layers: [tileLayer, ...overlayLayers, clusterLayer],
         overlays: [tooltipOverlay],
         view: new View({
           center: viewCenter,
