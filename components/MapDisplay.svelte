@@ -12,7 +12,7 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, createMapStyles, watchTheme, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, createOverlayLayers, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {[number, number]} — [longitude, latitude] WGS84 */
@@ -25,6 +25,12 @@
     polygon = undefined,
     /** @type {import('./map-utils.js').TileSourceConfig} */
     tileSource = { type: 'osm' },
+    /** @type {import('./map-utils.js').OverlayLayerDef[]} — ordered GeoJSON
+     *  overlays rendered between the tiles and the marker/polygon layer.
+     *  Each entry: inline `data` or a `url` (e.g. the platform's
+     *  `/{app}/public/layers/{id}/features`), optional flat or GeoStyler
+     *  `style`. See map-utils OverlayLayerDef. */
+    layers = [],
     /** @type {string} */
     height = '100%',
     /** @type {string} */
@@ -71,6 +77,9 @@
       ]);
       if (disposed) return;
 
+      const overlayLayers = await createOverlayLayers(layers, styles);
+      if (disposed) return;
+
       /** @type {Feature[]} */
       const features = [];
 
@@ -94,7 +103,7 @@
 
       map = new OlMap({
         target: container,
-        layers: [tileLayer, vectorLayer],
+        layers: [tileLayer, ...overlayLayers, vectorLayer],
         view: new View({
           center: fromLonLat(center),
           zoom,
@@ -105,6 +114,9 @@
       disposeTheme = watchTheme(() => {
         styles.refresh();
         vectorLayer.getSource()?.changed();
+        // Token-styled overlays (no custom style) re-read via the shared
+        // styles object; poke their sources so OL repaints.
+        for (const l of overlayLayers) l.getSource()?.changed();
       });
     } catch (err) { renderMapError(container, 'MapDisplay', /** @type {Error} */ (err)); } })();
 

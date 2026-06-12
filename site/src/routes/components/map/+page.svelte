@@ -8,6 +8,48 @@
 	import 'ol/ol.css';
 
 	let pickedPoint = $state<[number, number] | undefined>(undefined);
+	let boundaryPoint = $state<[number, number] | undefined>(undefined);
+	let boundaryError = $state<string | undefined>(undefined);
+
+	// Tenant boundary (#187) — square around the demo area.
+	const demoBoundary = {
+		type: 'Polygon',
+		coordinates: [[
+			[-9.165, 38.712], [-9.125, 38.712], [-9.125, 38.745], [-9.165, 38.745], [-9.165, 38.712],
+		]],
+	};
+
+	// Overlay layers: inline GeoJSON (an entity feed would pass `url:` to
+	// the platform's /{app}/public/layers/{id}/features endpoint instead).
+	const demoLayers = [
+		{
+			id: 'green-spaces',
+			type: 'geojson' as const,
+			data: {
+				type: 'FeatureCollection',
+				features: [
+					{ type: 'Feature', geometry: { type: 'Polygon', coordinates: [[
+						[-9.158, 38.726], [-9.150, 38.726], [-9.150, 38.732], [-9.158, 38.732], [-9.158, 38.726],
+					]] }, properties: {} },
+				],
+			},
+			style: { fillColor: 'rgba(46,125,50,0.25)', strokeColor: '#2e7d32', strokeWidth: 2 },
+		},
+		{
+			id: 'water-points',
+			type: 'geojson' as const,
+			data: {
+				type: 'FeatureCollection',
+				features: [
+					{ type: 'Feature', geometry: { type: 'Point', coordinates: [-9.142, 38.728] }, properties: {} },
+					{ type: 'Feature', geometry: { type: 'Point', coordinates: [-9.149, 38.734] }, properties: {} },
+					{ type: 'Feature', geometry: { type: 'Point', coordinates: [-9.136, 38.724] }, properties: {} },
+				],
+			},
+			// GeoStyler shape — what geolayers stores; mapped best-effort.
+			style: { rules: [{ symbolizers: [{ kind: 'Mark', wellKnownName: 'circle', color: '#0277bd', radius: 6 }] }] },
+		},
+	];
 
 	// Lisbon area markers
 	const markers = [
@@ -121,6 +163,44 @@
 				center={[-9.145, 38.730]}
 				zoom={14}
 				help="Click vertices to draw a polygon. Double-click to finish."
+				height="280px"
+			/>
+		</div>
+	</div>
+</section>
+
+<!-- Layers & boundary (#187) -->
+<section style="margin-bottom: var(--space-2xl);">
+	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Layers & boundary</h2>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">Ordered GeoJSON overlays under the interactive layer — entity feeds, WFS GeoJSON, or inline data; styles are flat or GeoStyler (first rule). MapPicker additionally takes a <code>boundary</code> polygon rendered as a dashed outline, and signals <code>onoutofbounds</code> when a placed point leaves it — the pin still lands; blocking is the consumer's (and ultimately the server's) decision.</p>
+
+	<div class="map-demo-grid">
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">MAPDISPLAY + LAYERS</span>
+			<MapDisplay
+				center={[-9.145, 38.728]}
+				zoom={14}
+				layers={demoLayers}
+				marker={[-9.139, 38.722]}
+				height="280px"
+			/>
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">MAPPICKER + BOUNDARY</span>
+			<MapPicker
+				label="REPORT LOCATION"
+				mode="point"
+				center={[-9.145, 38.728]}
+				zoom={13}
+				layers={demoLayers}
+				boundary={demoBoundary}
+				bind:value={boundaryPoint}
+				onoutofbounds={(outside) => {
+					boundaryError = outside ? 'The selected point is outside the municipality boundary.' : undefined;
+				}}
+				error={boundaryError}
+				help="Place a point — outside the dashed boundary triggers the signal."
+				search={false}
 				height="280px"
 			/>
 		</div>

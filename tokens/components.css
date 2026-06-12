@@ -797,6 +797,12 @@
   --map-polygon-stroke: var(--color-accent);
   --map-polygon-stroke-width: var(--border-width-thick);
 
+  /* Boundary overlay (#187 — tenant geofence context, not content) */
+  --map-boundary-fill: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  --map-boundary-stroke: var(--map-polygon-stroke);
+  --map-boundary-stroke-width: var(--map-polygon-stroke-width);
+  --map-boundary-dash: var(--space-sm);
+
   /* Heatmap (accent-derived sequential ramp — follows theme) */
   --map-heatmap-stop-1: var(--color-accent-subtle);
   --map-heatmap-stop-2: color-mix(

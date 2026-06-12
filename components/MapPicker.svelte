@@ -22,7 +22,16 @@
 
 <script>
   import { fromLonLat, toLonLat } from 'ol/proj.js';
-  import { createTileLayer, createMapStyles, watchTheme, renderMapError } from './map-utils.js';
+  import {
+    createTileLayer,
+    createMapStyles,
+    createOverlayLayers,
+    createBoundaryLayer,
+    boundaryToRings,
+    pointInRings,
+    watchTheme,
+    renderMapError,
+  } from './map-utils.js';
   import GeoSearch from './GeoSearch.svelte';
 
   let {
@@ -50,6 +59,18 @@
     searchViewbox = undefined,
     /** @type {import('./map-utils.js').TileSourceConfig} */
     tileSource = { type: 'osm' },
+    /** @type {import('./map-utils.js').OverlayLayerDef[]} — ordered GeoJSON
+     *  overlays between the tiles and the draw layer (see MapDisplay). */
+    layers = [],
+    /** @type {any} — tenant boundary: GeoJSON Polygon/MultiPolygon/Feature/
+     *  FeatureCollection or a raw ring [[lon,lat],...]. Rendered as a dashed
+     *  --map-boundary-* overlay; point placements are tested against it. */
+    boundary = undefined,
+    /** @type {((outside: boolean, coords: [number, number]) => void) | undefined}
+     *  Fired on every point placement (map click or search pick) when a
+     *  `boundary` is set. The pin still lands — surfacing/blocking is the
+     *  consumer's call (the intake hard-gate is server-side regardless). */
+    onoutofbounds = undefined,
     /** @type {((coords: [number, number] | number[][]) => void) | undefined} */
     onchange = undefined,
     /** @type {((displayName: string) => void) | undefined} — the resolved
@@ -103,6 +124,7 @@
       _vectorSource.clear();
       _vectorSource.addFeature(new _Feature({ geometry: new _Point(fromLonLat([lon, lat])) }));
       value = [lon, lat];
+      checkBoundary([lon, lat]);
       onchange?.([lon, lat]);
     }
   }
@@ -110,6 +132,14 @@
   /** Called by MapPicker when user clicks to place a point — triggers reverse geocoding */
   function handleMapPointPlaced(lon, lat) {
     searchCoords = [lon, lat];
+  }
+
+  const boundaryRings = $derived(boundaryToRings(boundary));
+
+  /** @param {[number, number]} coords */
+  function checkBoundary(coords) {
+    if (!boundaryRings.length || !onoutofbounds) return;
+    onoutofbounds(!pointInRings(coords, boundaryRings), coords);
   }
 
   $effect(() => {
@@ -145,6 +175,12 @@
       const [tileLayer, styles] = await Promise.all([
         createTileLayer(tileSource),
         createMapStyles(container),
+      ]);
+      if (disposed) return;
+
+      const [overlayLayers, boundaryLayer] = await Promise.all([
+        createOverlayLayers(layers, styles),
+        createBoundaryLayer(boundaryRings, container),
       ]);
       if (disposed) return;
 
@@ -191,6 +227,7 @@
           const wgs84 = /** @type {[number, number]} */ (toLonLat(coords));
           value = wgs84;
           handleMapPointPlaced(wgs84[0], wgs84[1]);
+          checkBoundary(wgs84);
           onchange?.(wgs84);
         } else {
           const coords = /** @type {import('ol/geom/Polygon.js').default} */ (geom).getCoordinates()[0];
@@ -203,7 +240,12 @@
 
       map = new OlMap({
         target: container,
-        layers: [tileLayer, vectorLayer],
+        layers: [
+          tileLayer,
+          ...overlayLayers,
+          ...(boundaryLayer ? [boundaryLayer] : []),
+          vectorLayer,
+        ],
         view: new View({
           center: initialCenter,
           zoom,
@@ -216,6 +258,7 @@
       disposeTheme = watchTheme(() => {
         styles.refresh();
         vectorSource.changed();
+        for (const l of overlayLayers) l.getSource()?.changed();
       });
     } catch (err) { renderMapError(container, 'MapPicker', /** @type {Error} */ (err)); } })();
 
