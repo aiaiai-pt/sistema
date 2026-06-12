@@ -142,6 +142,32 @@
     onoutofbounds(!pointInRings(coords, boundaryRings), coords);
   }
 
+  // The dashed boundary overlay has ONE owner: this effect. Consumers
+  // typically FETCH the boundary (it arrives after map init), so a
+  // mount-time-only build silently drops it — the overlay must track
+  // `boundaryRings` for as long as the map lives. The sequence counter
+  // drops stale async builds when the rings change mid-flight.
+  /** @type {any} */
+  let _boundaryLayer = null;
+  let _boundarySeq = 0;
+  $effect(() => {
+    const rings = boundaryRings;
+    const map = _map;
+    if (!map || !container) return;
+    const seq = ++_boundarySeq;
+    void (async () => {
+      const layer = rings.length ? await createBoundaryLayer(rings, container) : null;
+      if (seq !== _boundarySeq || _map !== map) return;
+      if (_boundaryLayer) map.removeLayer(_boundaryLayer);
+      _boundaryLayer = layer;
+      if (layer) {
+        // Just below the pin/draw vector layer — boundary never covers the pin.
+        const coll = map.getLayers();
+        coll.insertAt(coll.getLength() - 1, layer);
+      }
+    })();
+  });
+
   $effect(() => {
     if (!container || disabled) return;
 
@@ -178,10 +204,9 @@
       ]);
       if (disposed) return;
 
-      const [overlayLayers, boundaryLayer] = await Promise.all([
-        createOverlayLayers(layers, styles),
-        createBoundaryLayer(boundaryRings, container),
-      ]);
+      // The boundary overlay is NOT built here — the reactive effect above
+      // owns it (it must track late-arriving boundary props anyway).
+      const overlayLayers = await createOverlayLayers(layers, styles);
       if (disposed) return;
 
       const vectorSource = new VectorSource();
@@ -240,12 +265,7 @@
 
       map = new OlMap({
         target: container,
-        layers: [
-          tileLayer,
-          ...overlayLayers,
-          ...(boundaryLayer ? [boundaryLayer] : []),
-          vectorLayer,
-        ],
+        layers: [tileLayer, ...overlayLayers, vectorLayer],
         view: new View({
           center: initialCenter,
           zoom,
