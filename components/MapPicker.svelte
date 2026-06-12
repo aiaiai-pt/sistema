@@ -95,6 +95,9 @@
   let container = $state();
   /** @type {import('ol/Map.js').default | undefined} */
   let _map = $state();
+  /** @type {any} — shared style factory (set at mount, consumed by the
+   *  overlay owner effect) */
+  let _styles = $state();
   /** @type {any} — VectorSource for placing markers via search */
   let _vectorSource;
   /** @type {any} */
@@ -168,6 +171,30 @@
     })();
   });
 
+  // The `layers` overlays get the same single-owner treatment as the
+  // boundary above: consumers typically RESOLVE overlay defs asynchronously
+  // (layer codes → url defs, after a fetch), so a mount-time-only build
+  // silently drops them.
+  /** @type {any[]} */
+  let _overlayLayers = [];
+  let _overlaySeq = 0;
+  $effect(() => {
+    const defs = layers;
+    const map = _map;
+    const styles = _styles;
+    if (!map || !styles) return;
+    const seq = ++_overlaySeq;
+    void (async () => {
+      const built = defs?.length ? await createOverlayLayers(defs, styles) : [];
+      if (seq !== _overlaySeq || _map !== map) return;
+      for (const l of _overlayLayers) map.removeLayer(l);
+      _overlayLayers = built;
+      // Between the tiles (index 0) and the boundary/pin layers — overlays
+      // never cover the pin.
+      built.forEach((l, i) => map.getLayers().insertAt(1 + i, l));
+    })();
+  });
+
   $effect(() => {
     if (!container || disabled) return;
 
@@ -204,10 +231,10 @@
       ]);
       if (disposed) return;
 
-      // The boundary overlay is NOT built here — the reactive effect above
-      // owns it (it must track late-arriving boundary props anyway).
-      const overlayLayers = await createOverlayLayers(layers, styles);
-      if (disposed) return;
+      // Neither the boundary overlay NOR the `layers` overlays are built
+      // here — the reactive owner effects above track their late-arriving
+      // props for as long as the map lives.
+      _styles = styles;
 
       const vectorSource = new VectorSource();
       _vectorSource = vectorSource;
@@ -265,7 +292,7 @@
 
       map = new OlMap({
         target: container,
-        layers: [tileLayer, ...overlayLayers, vectorLayer],
+        layers: [tileLayer, vectorLayer],
         view: new View({
           center: initialCenter,
           zoom,
@@ -278,7 +305,7 @@
       disposeTheme = watchTheme(() => {
         styles.refresh();
         vectorSource.changed();
-        for (const l of overlayLayers) l.getSource()?.changed();
+        for (const l of _overlayLayers) l.getSource()?.changed();
       });
     } catch (err) { renderMapError(container, 'MapPicker', /** @type {Error} */ (err)); } })();
 
