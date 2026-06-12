@@ -41,6 +41,38 @@
   /** @type {HTMLElement | undefined} */
   let container = $state();
 
+  // Hoisted references for the overlay owner effect
+  /** @type {import('ol/Map.js').default | undefined} */
+  let _map = $state();
+  /** @type {any} — shared style factory (set at mount) */
+  let _styles = $state();
+
+  // The `layers` overlays have ONE owner: this effect (same contract as
+  // MapPicker's boundary). Consumers typically RESOLVE overlay defs
+  // asynchronously (layer codes → url defs, after a fetch), so a
+  // mount-time-only build silently drops them — the overlays must track
+  // `layers` for as long as the map lives. The sequence counter drops
+  // stale async builds when the defs change mid-flight.
+  /** @type {any[]} */
+  let _overlayLayers = [];
+  let _overlaySeq = 0;
+  $effect(() => {
+    const defs = layers;
+    const map = _map;
+    const styles = _styles;
+    if (!map || !styles) return;
+    const seq = ++_overlaySeq;
+    void (async () => {
+      const built = defs?.length ? await createOverlayLayers(defs, styles) : [];
+      if (seq !== _overlaySeq || _map !== map) return;
+      for (const l of _overlayLayers) map.removeLayer(l);
+      _overlayLayers = built;
+      // Between the tiles (index 0) and the marker/polygon vector layer —
+      // overlays never cover the marker.
+      built.forEach((l, i) => map.getLayers().insertAt(1 + i, l));
+    })();
+  });
+
   $effect(() => {
     if (!container) return;
 
@@ -77,8 +109,7 @@
       ]);
       if (disposed) return;
 
-      const overlayLayers = await createOverlayLayers(layers, styles);
-      if (disposed) return;
+      _styles = styles;
 
       /** @type {Feature[]} */
       const features = [];
@@ -103,20 +134,23 @@
 
       map = new OlMap({
         target: container,
-        layers: [tileLayer, ...overlayLayers, vectorLayer],
+        // The `layers` overlays are NOT built here — the reactive owner
+        // effect above inserts them between the tiles and the vector layer.
+        layers: [tileLayer, vectorLayer],
         view: new View({
           center: fromLonLat(center),
           zoom,
         }),
         controls: [],
       });
+      _map = map;
 
       disposeTheme = watchTheme(() => {
         styles.refresh();
         vectorLayer.getSource()?.changed();
         // Token-styled overlays (no custom style) re-read via the shared
         // styles object; poke their sources so OL repaints.
-        for (const l of overlayLayers) l.getSource()?.changed();
+        for (const l of _overlayLayers) l.getSource()?.changed();
       });
     } catch (err) { renderMapError(container, 'MapDisplay', /** @type {Error} */ (err)); } })();
 

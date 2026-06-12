@@ -15,7 +15,7 @@
 <script>
   import { fromLonLat } from 'ol/proj.js';
   import { boundingExtent } from 'ol/extent.js';
-  import { createTileLayer, createMapStyles, watchTheme, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, createOverlayLayers, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {{ id: string, lon: number, lat: number, label?: string, [key: string]: any }[]} */
@@ -31,6 +31,12 @@
     distance = 40,
     /** @type {import('./map-utils.js').TileSourceConfig} */
     tileSource = { type: 'osm' },
+    /** @type {import('./map-utils.js').OverlayLayerDef[]} — ordered GeoJSON
+     *  overlays rendered between the tiles and the cluster layer. Each
+     *  entry: inline `data` or a `url` (e.g. the platform's
+     *  `/{app}/public/layers/{id}/features`), optional flat or GeoStyler
+     *  `style`. Unbounded — render as many as the consumer configures. */
+    layers = [],
     /** @type {((marker: { id: string, lon: number, lat: number, label?: string }) => void) | undefined} */
     onclick = undefined,
     /** @type {string} */
@@ -50,10 +56,39 @@
   let _vectorSource = $state();
   /** @type {any} — Cluster source */
   let _clusterSource = $state();
+  /** @type {any} — shared style factory (set at mount, consumed by the
+   *  overlay owner effect) */
+  let _styles = $state();
   /** @type {any} — Feature constructor */
   let _Feature;
   /** @type {any} — Point constructor */
   let _Point;
+
+  // The `layers` overlays have ONE owner: this effect (same contract as
+  // MapPicker's boundary). Consumers typically RESOLVE overlay defs
+  // asynchronously (layer codes → url defs, after a fetch), so a
+  // mount-time-only build silently drops them — the overlays must track
+  // `layers` for as long as the map lives. The sequence counter drops
+  // stale async builds when the defs change mid-flight.
+  /** @type {any[]} */
+  let _overlayLayers = [];
+  let _overlaySeq = 0;
+  $effect(() => {
+    const defs = layers;
+    const map = _map;
+    const styles = _styles;
+    if (!map || !styles) return;
+    const seq = ++_overlaySeq;
+    void (async () => {
+      const built = defs?.length ? await createOverlayLayers(defs, styles) : [];
+      if (seq !== _overlaySeq || _map !== map) return;
+      for (const l of _overlayLayers) map.removeLayer(l);
+      _overlayLayers = built;
+      // Between the tiles (index 0) and the cluster layer — overlays never
+      // cover the markers.
+      built.forEach((l, i) => map.getLayers().insertAt(1 + i, l));
+    })();
+  });
 
   // Reactive: animate when the CALLER's center/zoom props change. Guarded
   // against the mount-time run — with no explicit `center` the view was
@@ -135,6 +170,7 @@
       // Store refs for reactive effects
       _vectorSource = vectorSource;
       _clusterSource = clusterSource;
+      _styles = styles;
       _Feature = Feature;
       _Point = Point;
 
@@ -186,6 +222,8 @@
 
       map = new OlMap({
         target: container,
+        // The `layers` overlays are NOT built here — the reactive owner
+        // effect above inserts them between the tiles and the cluster layer.
         layers: [tileLayer, clusterLayer],
         overlays: [tooltipOverlay],
         view: new View({

@@ -219,6 +219,17 @@
 		onclick={(m) => console.log('Clicked:', m.label)}
 		height="360px"
 	/>
+
+	<p class="type-body-sm" style="margin: var(--space-md) 0;">With GeoJSON overlay layers (same <code>layers</code> contract as MapDisplay/MapPicker — ordered, unbounded):</p>
+
+	<MapCluster
+		{markers}
+		layers={demoLayers}
+		center={[-9.145, 38.730]}
+		zoom={13}
+		height="360px"
+		data-testid="cluster-with-layers"
+	/>
 </section>
 
 <!-- MapHeatmap -->
@@ -232,6 +243,18 @@
 		radius={30}
 		blur={15}
 		height="360px"
+	/>
+
+	<p class="type-body-sm" style="margin: var(--space-md) 0;">With GeoJSON overlay layers:</p>
+
+	<MapHeatmap
+		points={heatPoints}
+		layers={demoLayers}
+		center={[-9.139, 38.722]}
+		radius={30}
+		blur={15}
+		height="360px"
+		data-testid="heatmap-with-layers"
 	/>
 </section>
 

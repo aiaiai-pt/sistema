@@ -21,7 +21,7 @@
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, getHeatmapGradient, watchTheme, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, createOverlayLayers, getHeatmapGradient, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {{ lon: number, lat: number, weight?: number }[]} */
@@ -38,6 +38,12 @@
     gradient = undefined,
     /** @type {import('./map-utils.js').TileSourceConfig} */
     tileSource = { type: 'osm' },
+    /** @type {import('./map-utils.js').OverlayLayerDef[]} — ordered GeoJSON
+     *  overlays rendered between the tiles and the heatmap layer. Each
+     *  entry: inline `data` or a `url` (e.g. the platform's
+     *  `/{app}/public/layers/{id}/features`), optional flat or GeoStyler
+     *  `style`. Unbounded — render as many as the consumer configures. */
+    layers = [],
     /** @type {number} — max zoom when auto-fitting to points extent */
     maxZoom = 17,
     /** @type {string} */
@@ -49,6 +55,38 @@
 
   /** @type {HTMLElement | undefined} */
   let container = $state();
+
+  // Hoisted references for the overlay owner effect
+  /** @type {import('ol/Map.js').default | undefined} */
+  let _map = $state();
+  /** @type {any} — shared style factory (set at mount) */
+  let _styles = $state();
+
+  // The `layers` overlays have ONE owner: this effect (same contract as
+  // MapPicker's boundary). Consumers typically RESOLVE overlay defs
+  // asynchronously (layer codes → url defs, after a fetch), so a
+  // mount-time-only build silently drops them — the overlays must track
+  // `layers` for as long as the map lives. The sequence counter drops
+  // stale async builds when the defs change mid-flight.
+  /** @type {any[]} */
+  let _overlayLayers = [];
+  let _overlaySeq = 0;
+  $effect(() => {
+    const defs = layers;
+    const map = _map;
+    const styles = _styles;
+    if (!map || !styles) return;
+    const seq = ++_overlaySeq;
+    void (async () => {
+      const built = defs?.length ? await createOverlayLayers(defs, styles) : [];
+      if (seq !== _overlaySeq || _map !== map) return;
+      for (const l of _overlayLayers) map.removeLayer(l);
+      _overlayLayers = built;
+      // Between the tiles (index 0) and the heatmap layer — overlays never
+      // cover the heat surface.
+      built.forEach((l, i) => map.getLayers().insertAt(1 + i, l));
+    })();
+  });
 
   $effect(() => {
     if (!container) return;
@@ -81,6 +119,12 @@
       const tileLayer = await createTileLayer(tileSource);
       if (disposed) return;
 
+      // Style factory only feeds overlay fallback styles here — the heatmap
+      // layer itself styles via gradient tokens.
+      const styles = await createMapStyles(container);
+      if (disposed) return;
+      _styles = styles;
+
       // Non-linear weight normalization: sqrt lifts low values so they're
       // visible while preserving relative ordering. OL expects 0-1.
       const maxWeight = Math.max(...points.map(p => p.weight ?? 1), 1);
@@ -106,12 +150,15 @@
 
       map = new OlMap({
         target: container,
+        // The `layers` overlays are NOT built here — the reactive owner
+        // effect above inserts them between the tiles and the heatmap layer.
         layers: [tileLayer, heatmapLayer],
         view: new View({
           center: fromLonLat(center),
           zoom,
         }),
       });
+      _map = map;
 
       // Auto-fit view to points extent
       if (points.length > 0) {
