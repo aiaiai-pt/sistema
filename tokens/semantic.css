@@ -255,6 +255,15 @@
   --color-text-secondary: var(--raw-color-neutral-400);
   --color-text-muted: var(--raw-color-neutral-500);
 
+  /* Status colours lifted one ramp step (600 → 400) for dark surfaces. The
+     light -600 values are too dark on the dark (or dark-tinted -subtle) surface
+     a badge/alert sits on — e.g. info blue-600 #2e63a3 was 2.57:1, an AA fail
+     (axe #244 S5). The -400 ramp reads as the status colour AND clears 4.5:1. */
+  --color-destructive: var(--raw-color-red-400);
+  --color-success: var(--raw-color-green-400);
+  --color-warning: var(--raw-color-amber-400);
+  --color-info: var(--raw-color-blue-400);
+
   /* Subtle washes — derived from the LIVE hue (theme-set or default),
      mixed into the dark surface instead of the light-only raw tints. */
   --color-accent-subtle: color-mix(
