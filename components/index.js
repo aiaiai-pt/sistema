@@ -77,6 +77,10 @@ export { default as Tab } from "./Tab.svelte";
 export { default as TabPanel } from "./TabPanel.svelte";
 export { default as FeedView } from "./FeedView.svelte";
 
+// Entity ficha (#105 Phase 2)
+export { default as ActionPanel } from "./ActionPanel.svelte";
+export { default as RecordList } from "./RecordList.svelte";
+
 // Feedback
 export { default as Alert } from "./Alert.svelte";
 export { default as Toast } from "./Toast.svelte";
