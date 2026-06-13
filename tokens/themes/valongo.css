@@ -34,7 +34,9 @@
   /* ─── Text ─── */
   --color-text: #1c241b;
   --color-text-secondary: #44513f;
-  --color-text-muted: #71806b;
+  /* Muted hits 4.5:1 even on the secondary/tertiary surfaces it sits on
+     (#f4f6f3 → 5.2:1) — the old #71806b was 3.86:1, an AA fail (axe #244 S5). */
+  --color-text-muted: #5e6b57;
 
   /* ─── Overlay + focus follow the brand ─── */
   --color-overlay: rgba(28, 36, 27, 0.5);
@@ -44,22 +46,26 @@
 }
 
 /*
- * Dark-scheme accent override (#244 C7).
+ * Dark-scheme brand override (#244 C7 + S5 contrast remediation).
  *
  * The generic dark layer (`:root[data-scheme="dark"]` in semantic.css) re-derives
- * surfaces, text, and borders from the neutral ramp, but leaves the BRAND accent
- * untouched. Valongo's light civic green (#2e7d32) is only 3.41:1 on the dark
- * surface (neutral-950) — fine as a UI fill (3:1) but below the 4.5:1 a hyperlink
- * needs, and the accent IS the link colour. So lift it to a brighter civic green
- * that clears 4.5:1 on the dark surface while keeping the same hue.
+ * surfaces/text/borders from the neutral ramp but leaves the BRAND accent
+ * untouched, and the light civic green (#2e7d32) is too dark on dark surfaces.
  *
- * Selector is (0,2,0) — it ties the theme block + beats the generic dark layer
- * (both (0,1,1)). Consumers resolve `auto` to a concrete value before paint, so
- * this only ever matches a real `data-scheme="dark"`. The portal injects the
- * equivalent block at runtime from the tenant's `portal` row; this is the seed.
+ * The accent is DUAL-USE — link text (on a dark surface) AND fill (a button,
+ * with `--color-text-on-accent` text). Those pull opposite ways: link text wants
+ * a LIGHT accent (≥4.5:1 vs the surface), white-on-fill wants a DARK one. So lift
+ * the accent for link contrast (#57bb5d clears 4.5:1 even on the lightest dark
+ * surface, neutral-800) AND flip `--color-text-on-accent` to dark, so fills read
+ * dark-on-light-green (the standard dark-mode resolution). Validated by axe.
+ *
+ * Selector (0,2,0) ties the theme block + beats the generic dark layer (both
+ * (0,1,1)). `auto` is resolved before paint, so this only matches a real
+ * `data-scheme="dark"`. The portal injects the equivalent at runtime; this seeds.
  */
 [data-theme="valongo"][data-scheme="dark"] {
-  --color-accent: #43a047; /* 5.29:1 on neutral-950 — clears the link bar */
-  --color-accent-hover: #66bb6a;
+  --color-accent: #57bb5d; /* link text ≥4.5:1 on every dark surface (4.78 on n-800) */
+  --color-accent-hover: #81c784;
   --color-accent-subtle: #15311a;
+  --color-text-on-accent: #14210f; /* dark text on the lighter accent fill */
 }
