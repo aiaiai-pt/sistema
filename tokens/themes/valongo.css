@@ -42,3 +42,24 @@
 
   /* Total overrides: 14 tokens. Still an aiaiai product, in Valongo's colours. */
 }
+
+/*
+ * Dark-scheme accent override (#244 C7).
+ *
+ * The generic dark layer (`:root[data-scheme="dark"]` in semantic.css) re-derives
+ * surfaces, text, and borders from the neutral ramp, but leaves the BRAND accent
+ * untouched. Valongo's light civic green (#2e7d32) is only 3.41:1 on the dark
+ * surface (neutral-950) — fine as a UI fill (3:1) but below the 4.5:1 a hyperlink
+ * needs, and the accent IS the link colour. So lift it to a brighter civic green
+ * that clears 4.5:1 on the dark surface while keeping the same hue.
+ *
+ * Selector is (0,2,0) — it ties the theme block + beats the generic dark layer
+ * (both (0,1,1)). Consumers resolve `auto` to a concrete value before paint, so
+ * this only ever matches a real `data-scheme="dark"`. The portal injects the
+ * equivalent block at runtime from the tenant's `portal` row; this is the seed.
+ */
+[data-theme="valongo"][data-scheme="dark"] {
+  --color-accent: #43a047; /* 5.29:1 on neutral-950 — clears the link bar */
+  --color-accent-hover: #66bb6a;
+  --color-accent-subtle: #15311a;
+}
