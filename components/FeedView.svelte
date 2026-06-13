@@ -122,7 +122,7 @@
       bind:this={tabs[i]}
       onclick={() => activate(i, false)}
     >
-      {#if Icon}<span class="feedview-icon"><Icon /></span>{/if}
+      {#if Icon}<span class="feedview-icon" aria-hidden="true"><Icon /></span>{/if}
       <span class="feedview-label">{view.label}</span>
     </button>
   {/each}
