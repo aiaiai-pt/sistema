@@ -39,6 +39,14 @@
     layers = [],
     /** @type {((marker: { id: string, lon: number, lat: number, label?: string }) => void) | undefined} */
     onclick = undefined,
+    /** @type {import('svelte').Snippet<[any, () => void]> | undefined} —
+     *  click-popup content. When provided, clicking a single marker (or a
+     *  stacked pile) opens an anchored OL Overlay rendering this snippet with
+     *  `(markerData, close)` — the "ficha resumo" intermediate step before the
+     *  consumer's detail link — INSTEAD of firing `onclick`. Omit for the
+     *  legacy click-to-navigate behaviour. Compose with the DS `MapPopup` for
+     *  the card chrome (the original `let:popup` contract, now a snippet). */
+    popup = undefined,
     /** @type {string} */
     height = '100%',
     /** @type {string} */
@@ -48,6 +56,18 @@
 
   /** @type {HTMLElement | undefined} */
   let container = $state();
+  /** @type {HTMLElement | undefined} — the popup overlay's element (Svelte
+   *  renders the snippet into it; OL positions it). */
+  let popupEl = $state();
+  /** @type {any} — the marker data of the open popup, or null. */
+  let selected = $state(null);
+  /** @type {any} — popup OL Overlay ref, set at mount. */
+  let _popupOverlay;
+
+  function closePopup() {
+    selected = null;
+    _popupOverlay?.setPosition(undefined);
+  }
 
   // Hoisted references for reactive effects
   /** @type {import('ol/Map.js').default | undefined} */
@@ -211,6 +231,22 @@
         stopEvent: false,
       });
 
+      // Click-popup overlay (the "ficha resumo"): anchored above the marker.
+      // `stopEvent: true` (OL default) keeps it in the interactive overlay
+      // pane so the link/close button inside the popup snippet are clickable.
+      // Its element is the Svelte-rendered `popupEl`; Svelte owns the content,
+      // OL owns the position. Only created when a `popup` snippet is supplied.
+      const overlays = [tooltipOverlay];
+      if (popup && popupEl) {
+        _popupOverlay = new Overlay({
+          element: popupEl,
+          positioning: 'bottom-center',
+          offset: [0, -18],
+          stopEvent: true,
+        });
+        overlays.push(_popupOverlay);
+      }
+
       const viewCenter = center
         ? fromLonLat(center)
         : markers.length > 0
@@ -225,7 +261,7 @@
         // The `layers` overlays are NOT built here — the reactive owner
         // effect above inserts them between the tiles and the cluster layer.
         layers: [tileLayer, clusterLayer],
-        overlays: [tooltipOverlay],
+        overlays,
         view: new View({
           center: viewCenter,
           zoom,
@@ -267,16 +303,32 @@
         }
       });
 
+      // `popup` opens the anchored ficha-resumo overlay; otherwise `onclick`
+      // navigates (legacy). A single marker (or a stacked pile that can't split
+      // by zoom) "selects"; a spread cluster zooms in.
+      const selectMarker = (data, coords) => {
+        if (!data) return;
+        if (popup) {
+          selected = data;
+          if (coords) _popupOverlay?.setPosition(coords);
+        } else {
+          onclick?.(data);
+        }
+      };
+
       // Click handler
-      if (onclick) {
+      if (onclick || popup) {
         map.on('click', (evt) => {
           const feature = map?.forEachFeatureAtPixel(evt.pixel, f => f);
-          if (!feature) return;
+          // Clicking empty map dismisses an open popup (no-op without one).
+          if (!feature) { closePopup(); return; }
 
           const clustered = feature.get('features');
           if (clustered?.length === 1) {
-            const data = clustered[0].get('markerData');
-            if (data) onclick(data);
+            selectMarker(
+              clustered[0].get('markerData'),
+              (/** @type {any} */ (feature.getGeometry()))?.getCoordinates(),
+            );
           } else if (clustered?.length > 1) {
             // A cluster of (near-)IDENTICAL coordinates can never split by
             // zooming (stacked reports at one point are common in civic
@@ -286,8 +338,10 @@
             const lats = coords.map((c) => c[1]);
             const spread = Math.max(...lons) - Math.min(...lons) + (Math.max(...lats) - Math.min(...lats));
             if (spread < 1) { // metres in web-mercator units — a stacked pile
-              const data = clustered[0].get('markerData');
-              if (data) onclick(data);
+              selectMarker(
+                clustered[0].get('markerData'),
+                (/** @type {any} */ (feature.getGeometry()))?.getCoordinates(),
+              );
               return;
             }
             const view = map?.getView();
@@ -307,9 +361,16 @@
       });
     } catch (err) { renderMapError(container, 'MapCluster', /** @type {Error} */ (err)); } })();
 
+    // Escape closes an open popup (keyboard dismissal).
+    const onKeydown = (/** @type {KeyboardEvent} */ e) => {
+      if (e.key === 'Escape') closePopup();
+    };
+    if (typeof window !== 'undefined') window.addEventListener('keydown', onKeydown);
+
     return () => {
       disposed = true;
       disposeTheme?.();
+      if (typeof window !== 'undefined') window.removeEventListener('keydown', onKeydown);
       map?.setTarget(undefined);
     };
   });
@@ -324,6 +385,15 @@
   {...rest}
 ></div>
 
+<!-- Popup overlay element. Always in the DOM (OL moves it into the overlay
+     pane + positions it); Svelte owns its content. The snippet receives the
+     selected marker + a `close` callback (the original `let:popup` contract). -->
+{#if popup}
+  <div bind:this={popupEl} class="map-cluster-popup">
+    {#if selected}{@render popup(selected, closePopup)}{/if}
+  </div>
+{/if}
+
 <style>
   .map-cluster {
     width: 100%;
@@ -335,5 +405,12 @@
 
   .map-cluster :global(.ol-viewport) {
     border-radius: inherit;
+  }
+
+  /* Overlay element wrapper — OL owns its position (inline transform); this
+     just lifts it above the map controls. The card chrome is the consumer's
+     MapPopup. */
+  .map-cluster-popup {
+    z-index: 2;
   }
 </style>
