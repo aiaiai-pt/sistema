@@ -404,6 +404,25 @@
   --tabs-content-padding-top: var(--space-md);
 
   /* ═══════════════════════════════════════════════
+     FEEDVIEW (segmented view-switch — list ⇄ map)
+     ═══════════════════════════════════════════════ */
+
+  --feedview-bg: var(--color-surface-secondary);
+  --feedview-radius: var(--radius-md);
+  --feedview-padding: var(--space-2xs);
+  --feedview-tab-font: var(--type-label-font);
+  --feedview-tab-size: var(--type-label-size);
+  --feedview-tab-tracking: var(--type-label-tracking);
+  --feedview-tab-height: 32px;
+  --feedview-tab-padding-x: var(--space-md);
+  --feedview-tab-radius: var(--radius-sm);
+  --feedview-tab-color: var(--color-text-secondary);
+  --feedview-tab-color-active: var(--color-text);
+  --feedview-tab-bg-active: var(--color-surface);
+  --feedview-tab-shadow-active: var(--elevation-raised);
+  --feedview-tab-transition: var(--duration-instant) var(--easing-default);
+
+  /* ═══════════════════════════════════════════════
      MODAL (centered overlay)
      ═══════════════════════════════════════════════ */
 

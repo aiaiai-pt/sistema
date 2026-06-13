@@ -75,6 +75,7 @@ export { default as Tabs } from "./Tabs.svelte";
 export { default as TabList } from "./TabList.svelte";
 export { default as Tab } from "./Tab.svelte";
 export { default as TabPanel } from "./TabPanel.svelte";
+export { default as FeedView } from "./FeedView.svelte";
 
 // Feedback
 export { default as Alert } from "./Alert.svelte";
