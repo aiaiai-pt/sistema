@@ -12,8 +12,12 @@
 /** The valid text-size steps, ascending (percent of the base root font-size). */
 export const TEXT_SIZE_STEPS = [100, 120, 140, 160];
 
-/** The default (no preference) — the bottom rung. */
-export const DEFAULT_TEXT_SIZE = 100;
+/**
+ * The default (no preference) — the bottom rung. Derived from the ladder (not a
+ * literal `100`) so its inferred type stays `number`: consumers bind it to a
+ * `number`-typed prop, and a literal type would reject any other rung.
+ */
+export const DEFAULT_TEXT_SIZE = TEXT_SIZE_STEPS[0];
 
 /**
  * Clamp an arbitrary value to a valid ladder step. The cookie can carry junk or
