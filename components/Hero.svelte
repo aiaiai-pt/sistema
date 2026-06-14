@@ -16,6 +16,11 @@
 
   @example Background image (a theme-tinted scrim keeps text contrast)
   <Hero title="Report a problem" image="/images/city.jpg" />
+
+  @example Centered marketing hero with a call-to-action
+  <Hero title="Participe" subtitle="As suas ideias." align="center" image="/op.jpg">
+    {#snippet actions()}<Button href="/propor">Submeter</Button>{/snippet}
+  </Hero>
 -->
 <script>
   let {
@@ -28,6 +33,10 @@
     /** @type {string | undefined} Background image URL — rendered cover/center
      *  under a `--hero-scrim` overlay so the text tokens keep contrast. */
     image = undefined,
+    /** @type {'start' | 'center'} Content alignment — `center` is the marketing
+     *  variant (centered title/subtitle/actions); `start` (default) is the
+     *  left-aligned process hero. */
+    align = "start",
     /** @type {string} */
     class: className = "",
     /** @type {import('svelte').Snippet | undefined} Title override (rich content). */
@@ -46,7 +55,7 @@
 </script>
 
 <section
-  class="hero {className}"
+  class="hero hero-align-{align} {className}"
   class:hero-has-image={!!image}
   style={bgStyle}
   {...rest}
@@ -119,5 +128,15 @@
     flex-wrap: wrap;
     gap: var(--space-sm);
     margin-top: var(--space-sm);
+  }
+
+  /* Centered marketing variant — title/subtitle/actions all centre-aligned. */
+  .hero-align-center .hero-inner {
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-align-center .hero-subtitle {
+    margin-inline: auto;
   }
 </style>

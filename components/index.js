@@ -49,6 +49,18 @@ export { default as StatusTimeline } from "./StatusTimeline.svelte";
 export { default as WidgetGrid } from "./WidgetGrid.svelte";
 export { default as VotingWidget } from "./VotingWidget.svelte";
 
+// Landing & content surface (#105 Phase 7) — presentational, marketing-grade,
+// config-driven sections for landing / campaign / about / faq / contact pages.
+// Each renders purely from props (zero fetch); copy + media are tenant DATA.
+export { default as FeatureGrid } from "./FeatureGrid.svelte";
+export { default as CallToAction } from "./CallToAction.svelte";
+export { default as MediaText } from "./MediaText.svelte";
+export { default as Steps } from "./Steps.svelte";
+export { default as Testimonial } from "./Testimonial.svelte";
+export { default as FaqList } from "./FaqList.svelte";
+export { default as LogoStrip } from "./LogoStrip.svelte";
+export { default as MediaGallery } from "./MediaGallery.svelte";
+
 // Containers
 export { default as Card } from "./Card.svelte";
 export { default as Panel } from "./Panel.svelte";
