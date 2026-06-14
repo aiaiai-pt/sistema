@@ -133,7 +133,12 @@
     <Stepper steps={indicatorSteps} class="service-flow-stepper" />
   {/if}
 
-  <Progress value={current + 1} max={total} class="service-flow-progress" />
+  <Progress
+    value={current + 1}
+    max={total}
+    class="service-flow-progress"
+    aria-label={progressLabel(current + 1, total)}
+  />
   <p class="service-flow-progress-text" aria-live="polite">
     {progressLabel(current + 1, total)}
   </p>
