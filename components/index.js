@@ -81,6 +81,9 @@ export { default as FeedView } from "./FeedView.svelte";
 export { default as ActionPanel } from "./ActionPanel.svelte";
 export { default as RecordList } from "./RecordList.svelte";
 
+// Process awareness (#105 Phase 3)
+export { default as PhaseTimeline } from "./PhaseTimeline.svelte";
+
 // Feedback
 export { default as Alert } from "./Alert.svelte";
 export { default as Toast } from "./Toast.svelte";
