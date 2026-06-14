@@ -84,6 +84,12 @@ export { default as RecordList } from "./RecordList.svelte";
 // Process awareness (#105 Phase 3)
 export { default as PhaseTimeline } from "./PhaseTimeline.svelte";
 
+// Results / aggregates (#105 Phase 4) — citizen-facing outcomes over a public
+// aggregate VIEW. ResultsChart ships its data table (a chart is never the only
+// encoding of its data); RankingBoard is a semantic ordered leaderboard.
+export { default as RankingBoard } from "./RankingBoard.svelte";
+export { default as ResultsChart } from "./ResultsChart.svelte";
+
 // Feedback
 export { default as Alert } from "./Alert.svelte";
 export { default as Toast } from "./Toast.svelte";
