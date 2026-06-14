@@ -139,6 +139,23 @@
 
   const boundaryRings = $derived(boundaryToRings(boundary));
 
+  // Recentre when `center` arrives or changes after mount. Consumers commonly
+  // resolve the centre asynchronously (after a boundary/config fetch), and the
+  // map-init effect reads `center` only PAST an `await`, so it is not tracked
+  // as a dependency there — without this the late centre is silently dropped
+  // and the map sits on its initial view (e.g. [0,0]). Skips once the user has
+  // placed a pin (`value`) so a late centre never yanks the map out from under
+  // a selection, and skips the [0,0] "unset" sentinel.
+  $effect(() => {
+    const c = center;
+    const map = _map;
+    if (!map || value) return;
+    if (!Array.isArray(c) || c.length !== 2) return;
+    if (c[0] === 0 && c[1] === 0) return;
+    const view = map.getView();
+    if (view) view.setCenter(fromLonLat(/** @type {[number, number]} */ (c)));
+  });
+
   /** @param {[number, number]} coords */
   function checkBoundary(coords) {
     if (!boundaryRings.length || !onoutofbounds) return;
