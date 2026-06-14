@@ -397,6 +397,11 @@
   {@const parameter = rawParameter as Entity}
   {@const key = parameterKey(parameter)}
   {@const type = parameterType(parameter)}
+  <!-- A11y (#244 C7 / Selo item 4): required fields are marked
+       `aria-required` on the control itself, so a screen reader announces
+       "required" on the field — not just the disconnected visual hint below.
+       Passed through the DS field components' `{...rest}` onto the input. -->
+  {@const ariaRequired = parameter.required ? "true" : undefined}
   {#if type === "enum" || type === "select" || enumOptions(parameter).length}
     <Select
       label={String(parameter.label ?? key)}
@@ -405,6 +410,7 @@
       options={enumOptions(parameter)}
       placeholder="Select value"
       onchange={(value: string) => setValue(key, value)}
+      aria-required={ariaRequired}
     />
   {:else if type === "number" || type === "integer"}
     <Input
@@ -416,6 +422,7 @@
         const value = (event.target as HTMLInputElement).value;
         setValue(key, value === "" ? "" : Number(value));
       }}
+      aria-required={ariaRequired}
     />
   {:else if type === "bool" || type === "boolean"}
     <Select
@@ -427,12 +434,20 @@
         { value: "false", label: "No" },
       ]}
       onchange={(value: string) => setValue(key, value === "true")}
+      aria-required={ariaRequired}
     />
   {:else if type === "file"}
     <!-- `file` parameter (#75 M5 slice 4b): upload-as-you-attach. The keys
          ride payload.attachment_keys; raw_values never sees this param. -->
-    <div class="afr-file-param">
-      <span class="afr-file-label">{String(parameter.label ?? key)}</span>
+    <!-- A11y: the file param is a labelled group (the FileUpload's own input
+         can't take a `for`/label from here), so SR users get the field name +
+         required state when they enter it. -->
+    <div class="afr-file-param" role="group" aria-labelledby={`${key}-file-label`}>
+      <span id={`${key}-file-label`} class="afr-file-label"
+        >{String(parameter.label ?? key)}{parameter.required
+          ? " (required)"
+          : ""}</span
+      >
       {#each fileUploads[key] ?? [] as f (f.key)}
         <FileUploadItem
           name={f.name}
@@ -491,6 +506,7 @@
       name={key}
       value={String(values[key] ?? "")}
       oninput={(event: Event) => setValue(key, (event.target as HTMLInputElement).value)}
+      aria-required={ariaRequired}
     />
   {/if}
   {#if mode === "public-submit"}
@@ -526,7 +542,14 @@
     <p class="muted">This action has no fields yet.</p>
   {:else}
     {@const Layout = resolvedLayout.component}
-    <form class="rendered-form">
+    <!-- A11y: name the form region so SR users land on a labelled form, not an
+         anonymous group of inputs (Selo item 4 / WCAG 1.3.1). -->
+    <form
+      class="rendered-form"
+      aria-label={String(
+        renderedAction?.label ?? renderedAction?.key ?? "Form",
+      )}
+    >
       <Layout {sections} field={fieldRow} />
     </form>
   {/if}
@@ -543,6 +566,15 @@
         {/if}
         {#if captcha}
           <div class="submit-captcha">{@render captcha()}</div>
+        {/if}
+        <!-- A11y: a disabled submit gives no reason on its own. This polite
+             status spells out the gate (and disappears when satisfied), so SR
+             users know WHY they can't submit yet — paired with the per-field
+             `aria-required` that marks which fields are needed. -->
+        {#if !canSubmit && !submitting}
+          <p class="submit-hint" role="status">
+            Fill in all required fields to submit.
+          </p>
         {/if}
         <Button
           variant="primary"
@@ -640,6 +672,12 @@
   .muted,
   .field-meta {
     color: var(--color-text-muted);
+  }
+
+  .submit-hint {
+    color: var(--color-text-secondary);
+    font-size: var(--type-body-sm-size);
+    margin: 0;
   }
 
   .rendered-form,

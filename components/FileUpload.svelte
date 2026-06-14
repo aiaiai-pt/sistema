@@ -158,6 +158,20 @@
   }
 </script>
 
+<!-- The file input is a SIBLING of the trigger button, not a child: a focusable
+     <input> nested inside a <button> is a nested-interactive a11y violation
+     (axe, #244 S5). It is visually hidden + pointer-events:none and is opened
+     via the `inputEl` ref from the button's onclick, so behaviour is unchanged. -->
+<input
+  bind:this={inputEl}
+  type="file"
+  {accept}
+  {multiple}
+  class="fileupload-input"
+  onchange={handleInputChange}
+  tabindex={-1}
+  aria-hidden="true"
+/>
 <button
   type="button"
   class="fileupload {className}"
@@ -171,16 +185,6 @@
   {...rest}
   onclick={handleClick}
 >
-  <input
-    bind:this={inputEl}
-    type="file"
-    {accept}
-    {multiple}
-    class="fileupload-input"
-    onchange={handleInputChange}
-    tabindex={-1}
-    aria-hidden="true"
-  />
   {#if children}
     {@render children()}
   {:else}

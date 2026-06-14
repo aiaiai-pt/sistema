@@ -255,6 +255,15 @@
   --color-text-secondary: var(--raw-color-neutral-400);
   --color-text-muted: var(--raw-color-neutral-500);
 
+  /* Status colours lifted one ramp step (600 → 400) for dark surfaces. The
+     light -600 values are too dark on the dark (or dark-tinted -subtle) surface
+     a badge/alert sits on — e.g. info blue-600 #2e63a3 was 2.57:1, an AA fail
+     (axe #244 S5). The -400 ramp reads as the status colour AND clears 4.5:1. */
+  --color-destructive: var(--raw-color-red-400);
+  --color-success: var(--raw-color-green-400);
+  --color-warning: var(--raw-color-amber-400);
+  --color-info: var(--raw-color-blue-400);
+
   /* Subtle washes — derived from the LIVE hue (theme-set or default),
      mixed into the dark surface instead of the light-only raw tints. */
   --color-accent-subtle: color-mix(
@@ -282,6 +291,72 @@
     var(--color-info) 14%,
     var(--raw-color-neutral-950)
   );
+}
+
+/* ═══════════════════════════════════════════════
+   ACCESSIBILITY PREFERENCE LAYERS — #244 C7
+   ═══════════════════════════════════════════════
+
+   Citizen-selectable a11y affordances, each driven by a `data-*` attribute the
+   consumer stamps on <html> server-side (from a cookie, no flash) and toggles
+   live. Independent of scheme/theme — they LAYER on whatever brand + light/dark
+   is active. Placed after the dark block so a tie on specificity resolves here.
+
+   - text-size   → `:root[data-text-size="N"]` scales the root font-size; the
+                   whole rem-based type system grows with it (WCAG 1.4.4).
+   - contrast    → `:root[data-contrast="high"]` re-maps the neutral roles to a
+                   black-on-white (or white-on-black in dark) maximum, kills the
+                   muted greys that fail AA, and strengthens borders (the
+                   "alto contraste" pattern). A second selector handles the dark
+                   pairing; (0,2,0) beats the generic dark layer.
+   - link-mark   → `:root[data-link-highlight="on"] a` underlines every in-content
+                   link so it is distinguishable by more than colour (1.4.1). */
+
+:root[data-text-size="100"] {
+  font-size: 100%;
+}
+:root[data-text-size="120"] {
+  font-size: 120%;
+}
+:root[data-text-size="140"] {
+  font-size: 140%;
+}
+:root[data-text-size="160"] {
+  font-size: 160%;
+}
+
+:root[data-contrast="high"] {
+  --color-text: #000000;
+  --color-text-secondary: #000000;
+  --color-text-muted: #1a1a1a;
+  --color-surface: #ffffff;
+  --color-surface-secondary: #ffffff;
+  --color-surface-tertiary: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-border: #000000;
+  --color-border-strong: #000000;
+  --focus-ring-color: #000000;
+}
+
+:root[data-contrast="high"][data-scheme="dark"] {
+  --color-text: #ffffff;
+  --color-text-secondary: #ffffff;
+  --color-text-muted: #e6e6e6;
+  --color-surface: #000000;
+  --color-surface-secondary: #000000;
+  --color-surface-tertiary: #000000;
+  --color-surface-raised: #000000;
+  --color-border: #ffffff;
+  --color-border-strong: #ffffff;
+  --focus-ring-color: #ffffff;
+}
+
+/* High contrast implies link distinction — underline links even if the citizen
+   hasn't separately enabled the link-highlight pref. */
+:root[data-contrast="high"] a,
+:root[data-link-highlight="on"] a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 /* ─── Tablet (768px+) ─── */

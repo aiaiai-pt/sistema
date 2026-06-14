@@ -38,6 +38,9 @@ export { default as AppFrame } from "./AppFrame.svelte";
 export { default as SiteHeader } from "./SiteHeader.svelte";
 export { default as SiteFooter } from "./SiteFooter.svelte";
 export { default as SkipLink } from "./SkipLink.svelte";
+export { default as TextSizeAdjuster } from "./TextSizeAdjuster.svelte";
+export { default as ContrastToggle } from "./ContrastToggle.svelte";
+export { default as LinkHighlightToggle } from "./LinkHighlightToggle.svelte";
 export { default as ServiceNavigation } from "./ServiceNavigation.svelte";
 export { default as Link } from "./Link.svelte";
 export { default as Hero } from "./Hero.svelte";
@@ -72,6 +75,11 @@ export { default as Tabs } from "./Tabs.svelte";
 export { default as TabList } from "./TabList.svelte";
 export { default as Tab } from "./Tab.svelte";
 export { default as TabPanel } from "./TabPanel.svelte";
+export { default as FeedView } from "./FeedView.svelte";
+
+// Entity ficha (#105 Phase 2)
+export { default as ActionPanel } from "./ActionPanel.svelte";
+export { default as RecordList } from "./RecordList.svelte";
 
 // Feedback
 export { default as Alert } from "./Alert.svelte";
