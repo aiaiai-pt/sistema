@@ -97,6 +97,13 @@ export { default as NotificationPrefs } from "./NotificationPrefs.svelte";
 // data portability (export) + type-to-confirm account erasure.
 export { default as ConsentManager } from "./ConsentManager.svelte";
 
+// Service-flow steps (#105 Phase 6) — the multi-step submit journey: a wizard
+// shell (step nav + progress + focus mgmt + error summary), the review-before-
+// submit answer list (WCAG 3.3.4 change links), and the success receipt.
+export { default as ServiceFlow } from "./ServiceFlow.svelte";
+export { default as CheckAnswers } from "./CheckAnswers.svelte";
+export { default as Confirmation } from "./Confirmation.svelte";
+
 // Feedback
 export { default as Alert } from "./Alert.svelte";
 export { default as Toast } from "./Toast.svelte";
