@@ -93,6 +93,9 @@ export { default as ResultsChart } from "./ResultsChart.svelte";
 // Account / preferences (#105 Phase 5) — the citizen account area's
 // notification-preferences panel: a toggle list over a citizen's subscriptions.
 export { default as NotificationPrefs } from "./NotificationPrefs.svelte";
+// Account / RGPD (#105 Phase 5 slice 2) — consent purposes toggle list +
+// data portability (export) + type-to-confirm account erasure.
+export { default as ConsentManager } from "./ConsentManager.svelte";
 
 // Feedback
 export { default as Alert } from "./Alert.svelte";
