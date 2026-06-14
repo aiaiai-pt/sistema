@@ -85,6 +85,22 @@
     /** Inline error rendered by the geo MapPicker(s) (e.g. the consumer's
      *  out-of-bounds copy) — forwarded as MapPicker's `error`. */
     geoError?: string;
+    /** Service-flow wizard (#105 P6): render ONLY the section whose
+     *  name (its label, falling back to its key) matches — one screen per
+     *  step. The value bag still spans ALL parameters (so answers persist
+     *  across steps and the final payload is complete); only the DISPLAY is
+     *  scoped. Null (default) renders every section, byte-identical to today. */
+    activeSectionKey?: string | null;
+    /** Service-flow wizard (#105 P6): suppress the renderer's own submit
+     *  button / captcha / error — the wizard shell owns the nav and posts the
+     *  payload once at the end. Default false (the standalone form keeps its
+     *  button). */
+    hideSubmit?: boolean;
+    /** Service-flow wizard (#105 P6): fires with the freshly built payload
+     *  whenever a value or attachment changes, so the wizard always holds the
+     *  complete payload (incl. attachment_keys) to review and submit. Read-only
+     *  consumers omit it. */
+    onchange?: (payload: Record<string, unknown>) => void;
   }
 
   let {
@@ -102,6 +118,9 @@
     layers = [],
     onoutofbounds = undefined,
     geoError = undefined,
+    activeSectionKey = null,
+    hideSubmit = false,
+    onchange = undefined,
   }: Props = $props();
 
   let values = $state<Record<string, unknown>>({});
@@ -125,7 +144,9 @@
   // consumer wired an apply. Preview modes (admin-preview/adapter-preview) and a
   // missing onApply stay read-only — the button never renders.
   const isSubmitMode = $derived(mode === "public-submit" || mode === "admin-execute");
-  const showSubmit = $derived(isSubmitMode && onApply !== undefined);
+  // The wizard (#105 P6) suppresses the internal button via hideSubmit — it
+  // owns the nav and posts once at the end.
+  const showSubmit = $derived(isSubmitMode && onApply !== undefined && !hideSubmit);
 
   const renderedAction = $derived((schema?.action as Entity | null | undefined) ?? action);
   const renderedPlacement = $derived((schema?.placement as Entity | null | undefined) ?? placement);
@@ -146,8 +167,22 @@
   );
   const schemaSections = $derived(schemaSectionsFromContract());
   const sections = $derived(schemaSections ?? groupIntoSections(visibleParameters));
+  // Wizard pagination (#105 P6): when a section is active, render only it. The
+  // value bag is unaffected — every parameter is still seeded and submitted.
+  const displaySections = $derived(
+    activeSectionKey == null
+      ? sections
+      : sections.filter((section) => section.name === activeSectionKey),
+  );
   const payload = $derived(buildPayload());
   const payloadJson = $derived(JSON.stringify(payload, null, 2));
+
+  // Wizard (#105 P6): surface the live payload so the shell can review + submit
+  // it. Reading `payload` registers the dependency; the effect re-runs whenever
+  // a value or attachment changes.
+  $effect(() => {
+    onchange?.(payload);
+  });
 
   // Client-side submit gate (layer 1 — see the ADL): every required, visible
   // parameter must have a non-empty value. Server-side submission criteria are
@@ -520,21 +555,26 @@
 {/snippet}
 
 <div class="renderer" data-testid={`action-form-renderer-${mode}`} data-layout={resolvedLayout.key}>
-  <div class="renderer-header">
-    <div>
-      <!-- The placement-preview eyebrow + surface badge are operator chrome —
-           hidden in public-submit so a citizen sees a clean form title. -->
+  <!-- Wizard pagination (#105 P6): the ServiceFlow shell owns the step
+       heading, so the renderer's own action-title header is suppressed when a
+       section is active to avoid a duplicate heading per step. -->
+  {#if activeSectionKey == null}
+    <div class="renderer-header">
+      <div>
+        <!-- The placement-preview eyebrow + surface badge are operator chrome —
+             hidden in public-submit so a citizen sees a clean form title. -->
+        {#if mode !== "public-submit"}
+          <p class="eyebrow">Placement preview</p>
+        {/if}
+        <h3>{String(renderedAction?.label ?? renderedAction?.key ?? "Select an action")}</h3>
+      </div>
       {#if mode !== "public-submit"}
-        <p class="eyebrow">Placement preview</p>
+        <Badge variant={renderedPlacement ? "info" : "neutral"}>
+          {String(renderedPlacement?.surface ?? "No placement")}
+        </Badge>
       {/if}
-      <h3>{String(renderedAction?.label ?? renderedAction?.key ?? "Select an action")}</h3>
     </div>
-    {#if mode !== "public-submit"}
-      <Badge variant={renderedPlacement ? "info" : "neutral"}>
-        {String(renderedPlacement?.surface ?? "No placement")}
-      </Badge>
-    {/if}
-  </div>
+  {/if}
 
   {#if !renderedAction}
     <p class="muted">Select an action to preview its placement-aware form contract.</p>
@@ -550,7 +590,7 @@
         renderedAction?.label ?? renderedAction?.key ?? "Form",
       )}
     >
-      <Layout {sections} field={fieldRow} />
+      <Layout sections={displaySections} field={fieldRow} />
     </form>
   {/if}
 
