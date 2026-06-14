@@ -90,6 +90,10 @@ export { default as PhaseTimeline } from "./PhaseTimeline.svelte";
 export { default as RankingBoard } from "./RankingBoard.svelte";
 export { default as ResultsChart } from "./ResultsChart.svelte";
 
+// Account / preferences (#105 Phase 5) — the citizen account area's
+// notification-preferences panel: a toggle list over a citizen's subscriptions.
+export { default as NotificationPrefs } from "./NotificationPrefs.svelte";
+
 // Feedback
 export { default as Alert } from "./Alert.svelte";
 export { default as Toast } from "./Toast.svelte";
