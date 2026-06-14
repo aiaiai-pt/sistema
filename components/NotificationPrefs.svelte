@@ -8,16 +8,18 @@
   Toggling a row calls `onToggle(id, next)` — the consumer performs the write
   and re-feeds `items` (or sets `busyId` while it's in flight).
 
-  Accessibility-first: a bordered semantic list; each row pairs a real text
-  label (and optional description) with a `Toggle` (`role="switch"`,
-  `aria-checked`). The switch carries an accessible name via `aria-label` so the
-  control reads on its own. A row that's saving is `disabled` (no double-submit).
-  Consumes semantic tokens so dark / high-contrast schemes (#244) ride through.
-  Soft-empty: no items → renders the `emptyText` note (never an empty shell).
+  Accessibility-first: a bordered semantic list inside a `<section>` region
+  named by `label` (the visible page heading is the consumer's job — same split
+  as RankingBoard, so one widget can own the page `<h1>`). Each row pairs a real
+  text label (and optional description) with a `Toggle` (`role="switch"`,
+  `aria-checked`); the switch carries its own accessible name via `aria-label`.
+  A row that's saving is `disabled` (no double-submit). Consumes semantic tokens
+  so dark / high-contrast schemes (#244) ride through. Soft-empty: no items →
+  renders the `emptyText` note (never an empty shell).
 
   @example
   <NotificationPrefs
-    heading="Notifications"
+    label="Notifications"
     items={[
       { id: "all", label: "All updates", description: "Every proposal and phase change", active: true },
       { id: "sub-2", label: "Cycling lane", active: false },
@@ -40,8 +42,8 @@
   let {
     /** @type {PrefItem[]} The subscription rows, already mapped to labels. */
     items = [],
-    /** @type {string} Section heading (localize it). Omitted → no heading. */
-    heading = "",
+    /** @type {string} Accessible name for the preferences region (localize it). */
+    label = "Notification preferences",
     /** @type {string} Shown when there are no items (localize it). */
     emptyText = "You have no notification preferences yet.",
     /** @type {((id: string, active: boolean) => void) | undefined} Called on toggle. */
@@ -54,11 +56,7 @@
   } = $props();
 </script>
 
-<section class="notification-prefs {className}" {...rest}>
-  {#if heading}
-    <h2 class="notification-prefs-heading">{heading}</h2>
-  {/if}
-
+<section class="notification-prefs {className}" aria-label={label} {...rest}>
   {#if items.length > 0}
     <List variant="bordered">
       {#each items as item (item.id)}
@@ -90,13 +88,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
-  }
-
-  .notification-prefs-heading {
-    font-family: var(--type-heading-sm-font);
-    font-size: var(--type-heading-sm-size);
-    color: var(--color-text);
-    margin: 0;
   }
 
   .notification-prefs-label {
