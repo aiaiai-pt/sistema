@@ -82,6 +82,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-xl);
+    overflow-wrap: break-word;
   }
 
   .testimonial-heading {
@@ -113,6 +114,8 @@
     background: var(--color-surface-secondary);
     border-left: 3px solid var(--color-accent);
     border-radius: var(--card-radius);
+    /* Grid child: shrink so a long quote/name wraps instead of overflowing. */
+    min-width: 0;
   }
 
   .testimonial-quote {
@@ -140,6 +143,7 @@
   .testimonial-attrib {
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
 
   .testimonial-author {

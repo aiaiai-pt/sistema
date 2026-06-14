@@ -88,6 +88,7 @@
     grid-template-columns: 1fr;
     gap: var(--space-xl);
     align-items: center;
+    overflow-wrap: break-word;
   }
 
   @media (min-width: 768px) {
@@ -112,6 +113,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
+    /* Let the grid column shrink so its prose can wrap a long token. */
+    min-width: 0;
   }
 
   .media-text-heading {

@@ -63,6 +63,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-xl);
+    overflow-wrap: break-word;
   }
 
   .steps-heading {
@@ -114,6 +115,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2xs);
+    /* Shrink past the number badge so the text can wrap a long token. */
+    min-width: 0;
   }
 
   .steps-title {

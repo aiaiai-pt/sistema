@@ -60,6 +60,7 @@
     flex-direction: column;
     gap: var(--space-lg);
     align-items: center;
+    overflow-wrap: break-word;
   }
 
   .logo-strip-heading {

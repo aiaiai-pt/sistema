@@ -80,6 +80,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-lg);
+    overflow-wrap: break-word;
   }
 
   .faq-heading {
@@ -118,6 +119,11 @@
   .faq-question:focus-visible {
     outline: var(--focus-ring-width) solid var(--focus-ring-color);
     outline-offset: var(--focus-ring-offset);
+  }
+
+  /* Flex item: shrink past the caret so a long question wraps/breaks. */
+  .faq-question-text {
+    min-width: 0;
   }
 
   .faq-caret {

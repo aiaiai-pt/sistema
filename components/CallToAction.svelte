@@ -86,6 +86,7 @@
 <style>
   .cta {
     border-radius: var(--card-radius);
+    overflow-wrap: break-word;
   }
 
   .cta-surface {

@@ -87,6 +87,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-xl);
+    /* Break a pathological unbreakable token instead of blowing out a card
+       (CardGrid already sets min-width:0 on its children). Inherited. */
+    overflow-wrap: break-word;
   }
 
   .feature-grid-head {

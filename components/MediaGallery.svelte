@@ -81,6 +81,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-xl);
+    overflow-wrap: break-word;
   }
 
   .media-gallery-heading {

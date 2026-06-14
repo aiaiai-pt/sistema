@@ -78,6 +78,9 @@
 <style>
   .hero {
     background: var(--color-surface);
+    /* Break a pathological unbreakable token (long URL/word) instead of
+       overflowing the band. overflow-wrap is inherited → covers all text. */
+    overflow-wrap: break-word;
   }
 
   .hero-has-image {
