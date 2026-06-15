@@ -30,7 +30,7 @@
 -->
 <script module>
   /**
-   * @typedef {{ id: string, label: string, description?: string, active: boolean }} PrefItem
+   * @typedef {{ id: string, label: string, description?: string, active: boolean, group?: string }} PrefItem
    */
 </script>
 
@@ -54,30 +54,56 @@
     class: className = "",
     ...rest
   } = $props();
+
+  // Group rows by their optional `group` (order preserved). Items with no
+  // `group` fall in the leading unnamed group, which renders WITHOUT a header —
+  // so a flat `items` list (no group set) renders exactly as before
+  // (backward-compatible). A named group renders an <h3> section header above
+  // its bordered list (e.g. "Edição" / "Categoria" / "Freguesia").
+  const groups = $derived.by(() => {
+    /** @type {string[]} */
+    const order = [];
+    /** @type {Map<string, PrefItem[]>} */
+    const byGroup = new Map();
+    for (const item of items) {
+      const g = item.group ?? "";
+      if (!byGroup.has(g)) {
+        byGroup.set(g, []);
+        order.push(g);
+      }
+      byGroup.get(g)?.push(item);
+    }
+    return order.map((g) => ({ group: g, items: byGroup.get(g) ?? [] }));
+  });
 </script>
 
 <section class="notification-prefs {className}" aria-label={label} {...rest}>
   {#if items.length > 0}
-    <List variant="bordered">
-      {#each items as item (item.id)}
-        <ListItem>
-          {#snippet leading()}
-            <span class="notification-prefs-label">{item.label}</span>
-            {#if item.description}
-              <span class="notification-prefs-desc">{item.description}</span>
-            {/if}
-          {/snippet}
-          {#snippet trailing()}
-            <Toggle
-              checked={item.active}
-              disabled={busyId === item.id}
-              aria-label={item.label}
-              onchange={(next) => onToggle?.(item.id, next)}
-            />
-          {/snippet}
-        </ListItem>
-      {/each}
-    </List>
+    {#each groups as grp (grp.group)}
+      {#if grp.group}
+        <h3 class="notification-prefs-group">{grp.group}</h3>
+      {/if}
+      <List variant="bordered">
+        {#each grp.items as item (item.id)}
+          <ListItem>
+            {#snippet leading()}
+              <span class="notification-prefs-label">{item.label}</span>
+              {#if item.description}
+                <span class="notification-prefs-desc">{item.description}</span>
+              {/if}
+            {/snippet}
+            {#snippet trailing()}
+              <Toggle
+                checked={item.active}
+                disabled={busyId === item.id}
+                aria-label={item.label}
+                onchange={(next) => onToggle?.(item.id, next)}
+              />
+            {/snippet}
+          </ListItem>
+        {/each}
+      </List>
+    {/each}
   {:else}
     <p class="notification-prefs-empty">{emptyText}</p>
   {/if}
@@ -88,6 +114,18 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
+  }
+
+  .notification-prefs-group {
+    font-family: var(--type-heading-font, var(--type-body-font));
+    font-size: var(--type-body-size);
+    font-weight: 600;
+    color: var(--color-text);
+    margin: var(--space-sm) 0 calc(-1 * var(--space-xs)) 0;
+  }
+
+  .notification-prefs-group:first-child {
+    margin-top: 0;
   }
 
   .notification-prefs-label {
