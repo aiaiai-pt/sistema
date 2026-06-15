@@ -449,6 +449,12 @@
        "required" on the field — not just the disconnected visual hint below.
        Passed through the DS field components' `{...rest}` onto the input. -->
   {@const ariaRequired = parameter.required ? "true" : undefined}
+  <!-- #252 — a parameter with `editable: false` (visibility.editable === false)
+       renders READ-ONLY: its value (e.g. a logged-in citizen's prefilled
+       identity — name/email) is shown but not editable. The value still rides
+       the payload; the field just can't be changed. Default (undefined/true) is
+       editable, so this is purely additive. -->
+  {@const editable = parameter.editable !== false}
   {#if type === "enum" || type === "select" || enumOptions(parameter).length}
     <Select
       label={String(parameter.label ?? key)}
@@ -465,6 +471,7 @@
       name={key}
       type="number"
       value={String(values[key] ?? "")}
+      readonly={!editable}
       oninput={(event: Event) => {
         const value = (event.target as HTMLInputElement).value;
         setValue(key, value === "" ? "" : Number(value));
@@ -554,7 +561,8 @@
     <Input
       label={String(parameter.label ?? key)}
       name={key}
-      value={String(values[key] ?? "")}
+      value={String(values[key] ?? initialValue(parameter) ?? "")}
+      readonly={!editable}
       oninput={(event: Event) => setValue(key, (event.target as HTMLInputElement).value)}
       aria-required={ariaRequired}
     />
