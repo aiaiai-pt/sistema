@@ -374,7 +374,8 @@ export function getHeatmapGradient(el) {
  */
 export function geoStylerToFlat(style) {
   if (!style || typeof style !== "object") return {};
-  if (!Array.isArray(style.rules)) return /** @type {OverlayLayerStyle} */ (style);
+  if (!Array.isArray(style.rules))
+    return /** @type {OverlayLayerStyle} */ (style);
   const sym = style.rules?.[0]?.symbolizers?.[0];
   if (!sym || typeof sym !== "object") return {};
   /** @type {OverlayLayerStyle} */
@@ -389,8 +390,10 @@ export function geoStylerToFlat(style) {
     if (typeof sym.width === "number") flat.strokeWidth = sym.width;
   } else if (sym.kind === "Fill") {
     if (typeof sym.color === "string") flat.fillColor = sym.color;
-    if (typeof sym.outlineColor === "string") flat.strokeColor = sym.outlineColor;
-    if (typeof sym.outlineWidth === "number") flat.strokeWidth = sym.outlineWidth;
+    if (typeof sym.outlineColor === "string")
+      flat.strokeColor = sym.outlineColor;
+    if (typeof sym.outlineWidth === "number")
+      flat.strokeWidth = sym.outlineWidth;
   }
   return flat;
 }
@@ -449,7 +452,9 @@ export async function createOverlayLayers(defs, styles) {
     const point = new Style({
       image: new CircleStyle({
         radius: flat.pointRadius ?? 6,
-        fill: new Fill({ color: flat.pointColor ?? flat.strokeColor ?? "#3366cc" }),
+        fill: new Fill({
+          color: flat.pointColor ?? flat.strokeColor ?? "#3366cc",
+        }),
         stroke,
       }),
     });
@@ -482,6 +487,39 @@ export async function createOverlayLayers(defs, styles) {
       }
       return new VectorLayer({ source, style: buildStyleFn(def) });
     });
+}
+
+// ─── Hover tooltip label ─────────────────────────────────────────
+
+/**
+ * Decide the hover-tooltip text for a feature under the pointer.
+ *
+ * Markers passed via the `markers` prop go through an OL Cluster source, so
+ * each rendered feature carries a `features` collection: one entry → that
+ * marker's label; many → "N items". Features served from an overlay `layers`
+ * def (a file/WFS source) are added to a plain VectorSource and have NO
+ * `features` collection (`undefined`) — for those, fall back to the feature's
+ * own descriptive props rather than rendering the misleading "0 items".
+ *
+ * @param {{ get: (key: string) => any }} feature — an OL Feature (or any
+ *   object exposing `.get(key)`).
+ * @returns {string | null} the label to show, or null to hide the tooltip.
+ */
+export function clusterTooltipLabel(feature) {
+  const clustered = feature.get("features");
+  if (clustered === undefined) {
+    const label =
+      feature.get("name") ??
+      feature.get("title") ??
+      feature.get("label") ??
+      feature.get("markerData")?.label;
+    return label != null && String(label) !== "" ? String(label) : null;
+  }
+  if (clustered.length === 1) {
+    const data = clustered[0].get("markerData");
+    return data?.label ?? null;
+  }
+  return `${clustered.length} items`;
 }
 
 // ─── Boundary (#187 D-e prep) ────────────────────────────────────
