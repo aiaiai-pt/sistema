@@ -15,7 +15,7 @@
 <script>
   import { fromLonLat } from 'ol/proj.js';
   import { boundingExtent } from 'ol/extent.js';
-  import { createTileLayer, createMapStyles, createOverlayLayers, watchTheme, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, createOverlayLayers, clusterTooltipLabel, watchTheme, renderMapError } from './map-utils.js';
 
   let {
     /** @type {{ id: string, lon: number, lat: number, label?: string, [key: string]: any }[]} */
@@ -286,21 +286,21 @@
           return;
         }
 
-        const clustered = feature.get('features');
         if (container) container.style.cursor = 'pointer';
 
-        if (clustered?.length === 1) {
-          const data = clustered[0].get('markerData');
-          if (data?.label) {
-            tooltipEl.textContent = data.label;
-            tooltipEl.style.display = 'block';
-            tooltipOverlay.setPosition(feature.getGeometry()?.getCoordinates());
-          }
-        } else {
-          tooltipEl.textContent = `${clustered?.length ?? 0} items`;
-          tooltipEl.style.display = 'block';
-          tooltipOverlay.setPosition(feature.getGeometry()?.getCoordinates());
+        const label = clusterTooltipLabel(feature);
+        if (label == null) {
+          tooltipEl.style.display = 'none';
+          return;
         }
+        tooltipEl.textContent = label;
+        tooltipEl.style.display = 'block';
+        // Cluster features carry a Point geometry; raw overlay (file/WFS)
+        // features can be polygons/lines, so anchor those at the pointer.
+        const coords = feature.get('features') === undefined
+          ? evt.coordinate
+          : feature.getGeometry()?.getCoordinates();
+        tooltipOverlay.setPosition(coords);
       });
 
       // `popup` opens the anchored ficha-resumo overlay; otherwise `onclick`
