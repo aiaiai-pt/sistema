@@ -61,27 +61,32 @@
   data-testid="text-size-adjuster"
   {...rest}
 >
+  <!--
+    WCAG 2.5.3 (Label in Name): the accessible name MUST contain the visible
+    text. The visible label is the glyph ("A&minus;" / "A" / "A+"), so the
+    glyph is part of the name (NOT aria-hidden, NOT replaced by aria-label) and
+    the descriptive i18n label rides along as visually-hidden text. Result, e.g.
+    name = "A&minus; Decrease text size", whose visible substring "A&minus;"
+    satisfies the rule while screen readers still hear the full description.
+  -->
   <button
     type="button"
     class="ts-btn ts-decrease"
-    aria-label={decreaseLabel}
     disabled={atMin}
     onclick={() => emit(decreaseTextSize(current))}
-  >A<span aria-hidden="true">&minus;</span></button>
+  >A&minus;<span class="sr-only"> {decreaseLabel}</span></button>
   <button
     type="button"
     class="ts-btn ts-reset"
-    aria-label={resetLabel}
     disabled={atDefault}
     onclick={() => emit(DEFAULT_TEXT_SIZE)}
-  >A</button>
+  >A<span class="sr-only"> {resetLabel}</span></button>
   <button
     type="button"
     class="ts-btn ts-increase"
-    aria-label={increaseLabel}
     disabled={atMax}
     onclick={() => emit(increaseTextSize(current))}
-  >A<span aria-hidden="true">+</span></button>
+  >A+<span class="sr-only"> {increaseLabel}</span></button>
   <span class="sr-only" aria-live="polite" data-testid="text-size-readout"
     >{current}%</span
   >

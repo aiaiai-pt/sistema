@@ -10,10 +10,6 @@
   @example Disabled
   <Toggle label="Notifications" checked disabled />
 -->
-<script module>
-  let _toggleUid = 0;
-</script>
-
 <script>
   let {
     /** @type {boolean} */
@@ -31,9 +27,11 @@
     ...rest
   } = $props();
 
-  const fallbackId = `toggle-${_toggleUid++}`;
-  const toggleId = $derived(id ?? fallbackId);
-
+  // No auto-generated id: the switch self-names via aria-label, so it needs no
+  // id/labelledby plumbing. A module-counter fallback id (`toggle-N`) diverged
+  // between SSR and client (server counter ≠ fresh client counter), an id that
+  // could surface as a duplicate/parse error; an id is now emitted ONLY when a
+  // consumer passes one.
   function handleClick() {
     if (!disabled) {
       checked = !checked;
@@ -50,7 +48,7 @@
     override (e.g. type="submit" if they really want submit semantics).
   -->
   <button
-    id={toggleId}
+    {id}
     class="toggle"
     class:toggle-on={checked}
     class:toggle-disabled={disabled}
@@ -58,15 +56,23 @@
     type="button"
     role="switch"
     aria-checked={checked}
-    aria-labelledby={label ? `${toggleId}-label` : undefined}
+    aria-label={label}
     {...rest}
     onclick={handleClick}
   >
     <span class="toggle-knob"></span>
   </button>
   {#if label}
+    <!--
+      The switch now names itself directly via aria-label (was aria-labelledby →
+      this span). Stricter ACT accessible-name engines (QualWeb/AccessMonitor)
+      did not credit a name referenced through a role="none" target and read the
+      switch as nameless; a direct aria-label is unambiguous. This span is the
+      VISIBLE label only — role="none" keeps it out of the a11y tree so the name
+      isn't announced twice. Click still toggles (sighted affordance); the button
+      stays the keyboard/AT target.
+    -->
     <span
-      id="{toggleId}-label"
       class="toggle-label"
       class:toggle-label-disabled={disabled}
       onclick={handleClick}
