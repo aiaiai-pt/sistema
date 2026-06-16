@@ -310,7 +310,14 @@
         if (!data) return;
         if (popup) {
           selected = data;
-          if (coords) _popupOverlay?.setPosition(coords);
+          if (coords) {
+            _popupOverlay?.setPosition(coords);
+            // Fly TO the clicked marker: animate the view so the marker (and its
+            // anchored popup) is centred — a clear "the map moved to what I
+            // tapped" gesture, not a subtle edge-nudge. The small ficha-resumo
+            // card opens above the now-centred marker and stays in view.
+            map?.getView().animate({ center: coords, duration: 400 });
+          }
         } else {
           onclick?.(data);
         }
@@ -330,25 +337,31 @@
               (/** @type {any} */ (feature.getGeometry()))?.getCoordinates(),
             );
           } else if (clustered?.length > 1) {
-            // A cluster of (near-)IDENTICAL coordinates can never split by
-            // zooming (stacked reports at one point are common in civic
-            // data) — open the first item instead of zoom-looping forever.
+            // A cluster ALWAYS expands first — zoom in toward it so the citizen
+            // picks an individual marker; only a SINGLE marker opens a popup.
+            // The lone exception is a genuinely STACKED pile (near-identical
+            // coords — stacked reports at one point are common in civic data)
+            // that can't split by zooming: once we're already at max zoom and
+            // it's still piled, fall back to opening the first item so it stays
+            // reachable instead of zoom-looping forever.
+            const view = map?.getView();
+            const currentZoom = view?.getZoom() ?? zoom;
+            const maxZoom = view?.getMaxZoom?.() ?? 19;
             const coords = clustered.map((f) => f.getGeometry()?.getCoordinates()).filter(Boolean);
             const lons = coords.map((c) => c[0]);
             const lats = coords.map((c) => c[1]);
             const spread = Math.max(...lons) - Math.min(...lons) + (Math.max(...lats) - Math.min(...lats));
-            if (spread < 1) { // metres in web-mercator units — a stacked pile
+            const stacked = spread < 1; // metres in web-mercator units
+            if (stacked && currentZoom >= maxZoom - 0.5) {
               selectMarker(
                 clustered[0].get('markerData'),
                 (/** @type {any} */ (feature.getGeometry()))?.getCoordinates(),
               );
               return;
             }
-            const view = map?.getView();
-            const currentZoom = view?.getZoom() ?? zoom;
             view?.animate({
               center: feature.getGeometry()?.getCoordinates(),
-              zoom: currentZoom + 2,
+              zoom: Math.min(currentZoom + 2, maxZoom),
               duration: 300,
             });
           }

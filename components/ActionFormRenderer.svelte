@@ -130,10 +130,22 @@
   let fileUploads = $state<Record<string, Array<{ key: string; name: string }>>>({});
   let fileBusy = $state<Record<string, boolean>>({});
   let fileError = $state<Record<string, string>>({});
-  // Platform caps mirror the public upload surface (3 × 5MB, web image types).
+  // Platform caps mirror the public upload surface. The per-action tier
+  // (allowed content types + max bytes) is DATA on the action's
+  // `submission_contract.attachments`; the render projects it onto the `file`
+  // parameter (`accept` / `max_bytes`). When a parameter carries no tier we
+  // fall back to the conservative web-image defaults (3 × 5MB, image types).
   const FILE_MAX_COUNT = 3;
-  const FILE_MAX_BYTES = 5 * 1024 * 1024;
-  const FILE_ACCEPT = "image/jpeg,image/png,image/webp";
+  const DEFAULT_FILE_MAX_BYTES = 5 * 1024 * 1024;
+  const DEFAULT_FILE_ACCEPT = "image/jpeg,image/png,image/webp";
+  function fileAccept(parameter: Entity): string {
+    const accept = (parameter as Record<string, unknown>).accept;
+    return typeof accept === "string" && accept.trim() ? accept : DEFAULT_FILE_ACCEPT;
+  }
+  function fileMaxBytes(parameter: Entity): number {
+    const max = Number((parameter as Record<string, unknown>).max_bytes);
+    return Number.isFinite(max) && max > 0 ? max : DEFAULT_FILE_MAX_BYTES;
+  }
 
   // Submit state (apply seam). Only meaningful in submit modes with an onApply.
   let submitting = $state(false);
@@ -437,6 +449,12 @@
        "required" on the field — not just the disconnected visual hint below.
        Passed through the DS field components' `{...rest}` onto the input. -->
   {@const ariaRequired = parameter.required ? "true" : undefined}
+  <!-- #252 — a parameter with `editable: false` (visibility.editable === false)
+       renders READ-ONLY: its value (e.g. a logged-in citizen's prefilled
+       identity — name/email) is shown but not editable. The value still rides
+       the payload; the field just can't be changed. Default (undefined/true) is
+       editable, so this is purely additive. -->
+  {@const editable = parameter.editable !== false}
   {#if type === "enum" || type === "select" || enumOptions(parameter).length}
     <Select
       label={String(parameter.label ?? key)}
@@ -453,6 +471,7 @@
       name={key}
       type="number"
       value={String(values[key] ?? "")}
+      readonly={!editable}
       oninput={(event: Event) => {
         const value = (event.target as HTMLInputElement).value;
         setValue(key, value === "" ? "" : Number(value));
@@ -491,13 +510,16 @@
       {/each}
       {#if (fileUploads[key] ?? []).length < FILE_MAX_COUNT}
         <FileUpload
-          accept={FILE_ACCEPT}
-          maxSize={FILE_MAX_BYTES}
+          accept={fileAccept(parameter)}
+          maxSize={fileMaxBytes(parameter)}
           multiple
           disabled={!uploadFile || fileBusy[key]}
           onfiles={(files: File[]) => handleFiles(key, files)}
           onreject={() => {
-            fileError = { ...fileError, [key]: "JPEG, PNG or WebP up to 5MB" };
+            fileError = {
+              ...fileError,
+              [key]: `File type not allowed or too large (max ${Math.round(fileMaxBytes(parameter) / (1024 * 1024))}MB).`,
+            };
           }}
         />
       {/if}
@@ -539,7 +561,8 @@
     <Input
       label={String(parameter.label ?? key)}
       name={key}
-      value={String(values[key] ?? "")}
+      value={String(values[key] ?? initialValue(parameter) ?? "")}
+      readonly={!editable}
       oninput={(event: Event) => setValue(key, (event.target as HTMLInputElement).value)}
       aria-required={ariaRequired}
     />
