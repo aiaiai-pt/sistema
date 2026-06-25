@@ -78,7 +78,8 @@
 <style>
   .service-nav {
     display: flex;
-    align-items: center;
+    align-items: stretch;
+    height: 100%;
   }
 
   /* Toggle hidden on wide viewports; the list is a horizontal row. */
@@ -87,7 +88,7 @@
     align-items: center;
     gap: var(--space-2xs);
     padding: var(--space-2xs) var(--space-sm);
-    border: 1px solid var(--color-border);
+    border: var(--border-width) solid var(--color-border);
     border-radius: var(--radius-md);
     background: var(--color-surface);
     color: var(--color-text);
@@ -103,37 +104,50 @@
 
   .service-nav-list {
     display: flex;
-    align-items: center;
-    gap: var(--space-2xs);
+    align-items: stretch;
+    height: 100%;
     margin: 0;
     padding: 0;
     list-style: none;
   }
+  .service-nav-item {
+    display: flex;
+  }
 
+  /* Full-height links → the active underline bar sits flush on the band's
+     bottom border. Horizontal padding only; no radius (a bar, not a pill). */
   .service-nav-link {
-    display: block;
-    padding: var(--space-2xs) var(--space-sm);
-    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    padding-inline: var(--space-md);
     color: var(--color-text-secondary);
     text-decoration: none;
     font-family: var(--type-label-font);
-    font-size: var(--type-label-size);
+    font-size: var(--nav-service-link-size);
+    font-weight: var(--raw-font-weight-medium);
+    transition: color var(--duration-fast) var(--easing-default);
   }
   .service-nav-link:hover {
     color: var(--color-text);
-    background: var(--color-surface-tertiary);
   }
-  /* Current page: emphasized text + an accent underline bar (GOV.UK pattern). */
+  /* Current page: emphasized text + an accent underline bar (GOV.UK pattern).
+     Thickness via the shared --nav-service-underline token (also used by
+     SectionNavigation) so the two nav tiers stay visually identical. */
   .service-nav-link[aria-current="page"] {
     color: var(--color-text);
     font-weight: var(--raw-font-weight-semibold);
-    box-shadow: inset 0 -3px 0 0 var(--color-accent);
+    box-shadow: inset 0 calc(-1 * var(--nav-service-underline)) 0 0
+      var(--color-accent);
   }
 
-  /* Mobile: button shows, list collapses behind it. */
+  /* Mobile: button shows, list collapses into a vertical dropdown. The links
+     revert to a padded list style (no full-height flush bar — that treatment is
+     for the horizontal row only); the current item reads via a subtle fill. */
   @media (max-width: 47.99rem) {
     .service-nav {
       position: relative;
+      height: auto;
     }
     .service-nav-toggle {
       display: inline-flex;
@@ -143,18 +157,28 @@
       position: absolute;
       top: calc(100% + var(--space-2xs));
       inset-inline-end: 0;
+      height: auto;
       flex-direction: column;
       align-items: stretch;
-      min-width: 12rem;
+      min-width: var(--nav-service-dropdown-min-width);
       padding: var(--space-2xs);
       background: var(--color-surface);
-      border: 1px solid var(--color-border);
+      border: var(--border-width) solid var(--color-border);
       border-radius: var(--radius-md);
       box-shadow: var(--shadow-md);
       z-index: 50;
     }
     .service-nav-list.open {
       display: flex;
+    }
+    .service-nav-link {
+      height: auto;
+      padding: var(--space-2xs) var(--space-sm);
+      border-radius: var(--radius-md);
+    }
+    .service-nav-link[aria-current="page"] {
+      background: var(--color-surface-tertiary);
+      box-shadow: none;
     }
   }
 </style>

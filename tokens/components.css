@@ -201,6 +201,35 @@
   --nav-bottom-item-size: var(--type-caption-size);
 
   /* ═══════════════════════════════════════════════
+     NAVIGATION — SERVICE & SECTION (PUBLIC PORTAL)
+     ═══════════════════════════════════════════════ */
+
+  /* Active-item underline bar shared by ServiceNavigation (primary tier) and
+     SectionNavigation (contextual second band) so both tiers read as one
+     system — the single source of truth for the bar thickness. The links fill
+     their band's full height so the bar sits flush on the band's bottom border
+     (the GOV.UK / National Archives treatment), never floating mid-row. */
+  --nav-service-underline: 3px;
+
+  /* Gridded band heights (8px base) — the primary header band and the
+     contextual section band below it. */
+  --nav-service-height: 64px;
+  --nav-section-height: 48px;
+
+  /* Type step-down: the primary tier reads larger than the contextual tier so
+     the two-level hierarchy is legible at a glance. */
+  --nav-service-link-size: var(--type-body-size);
+  --nav-section-link-size: var(--type-body-sm-size);
+
+  /* Width of SiteHeader's unified mobile disclosure panel (the single drawer
+     that replaces the per-nav hamburgers). Mirrors the narrow content panel. */
+  --nav-menu-panel-width: var(--panel-width-narrow);
+
+  /* Min width of ServiceNavigation's own mobile dropdown (used when the nav is
+     rendered standalone, without SiteHeader's unified menu). */
+  --nav-service-dropdown-min-width: 12rem;
+
+  /* ═══════════════════════════════════════════════
      DATA DISPLAY
      ═══════════════════════════════════════════════ */
 
