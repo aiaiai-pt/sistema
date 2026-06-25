@@ -42,6 +42,7 @@ export { default as TextSizeAdjuster } from "./TextSizeAdjuster.svelte";
 export { default as ContrastToggle } from "./ContrastToggle.svelte";
 export { default as LinkHighlightToggle } from "./LinkHighlightToggle.svelte";
 export { default as ServiceNavigation } from "./ServiceNavigation.svelte";
+export { default as SectionNavigation } from "./SectionNavigation.svelte";
 export { default as Link } from "./Link.svelte";
 export { default as Hero } from "./Hero.svelte";
 export { default as ContentBlock } from "./ContentBlock.svelte";
