@@ -24,6 +24,12 @@ vi.mock("../components/renderer/ResultsChartWidget.svelte", () => ({
 vi.mock("../components/renderer/EChartWidget.svelte", () => ({
   default: "EChartWidget-stub",
 }));
+vi.mock("../components/renderer/LineChartWidget.svelte", () => ({
+  default: "LineChartWidget-stub",
+}));
+vi.mock("../components/renderer/DonutChartWidget.svelte", () => ({
+  default: "DonutChartWidget-stub",
+}));
 
 import {
   resolveWidget,
@@ -93,6 +99,33 @@ describe("DS base registry — shipped widgets (#492)", () => {
     expect(css?.key).toBe("results-chart");
     // An aggregate block with neither type hint still matches nothing in the base.
     expect(resolveWidget(block("aggregate", { entity: "x" }))).toBeNull();
+  });
+
+  it("routes aggregate + type:'line-chart' / 'donut-chart' → their widgets (#176 Tier 1)", () => {
+    const line = resolveWidget({
+      type: "line-chart",
+      slot: "charts",
+      binding: { kind: "aggregate", entity: "x" },
+    });
+    expect(line?.key).toBe("line-chart");
+    expect(line?.payload).toBe("LineChartWidget-stub");
+
+    const donut = resolveWidget({
+      type: "donut-chart",
+      slot: "charts",
+      binding: { kind: "aggregate", entity: "x" },
+    });
+    expect(donut?.key).toBe("donut-chart");
+    expect(donut?.payload).toBe("DonutChartWidget-stub");
+
+    // The four aggregate chart kinds resolve independently — no collision.
+    expect(
+      resolveWidget({
+        type: "chart",
+        slot: "c",
+        binding: { kind: "aggregate", entity: "x" },
+      })?.key,
+    ).toBe("chart");
   });
 
   it("an unknown kind returns null (no dangling import, fail closed)", () => {
