@@ -21,6 +21,9 @@ vi.mock("../components/renderer/StatGridWidget.svelte", () => ({
 vi.mock("../components/renderer/ResultsChartWidget.svelte", () => ({
   default: "ResultsChartWidget-stub",
 }));
+vi.mock("../components/renderer/EChartWidget.svelte", () => ({
+  default: "EChartWidget-stub",
+}));
 
 import {
   resolveWidget,
@@ -63,6 +66,33 @@ describe("DS base registry — shipped widgets (#492)", () => {
     });
     expect(m?.key).toBe("results-chart");
     expect(m?.payload).toBe("ResultsChartWidget-stub");
+  });
+
+  it("routes aggregate + type:'chart' → chart (EChartWidget, #498)", () => {
+    const m = resolveWidget({
+      type: "chart",
+      slot: "charts",
+      binding: { kind: "aggregate", entity: "civic_voting_results" },
+    });
+    expect(m?.key).toBe("chart");
+    expect(m?.payload).toBe("EChartWidget-stub");
+  });
+
+  it("the two aggregate type-widgets do not collide: 'chart' and 'results-chart' resolve independently", () => {
+    const echart = resolveWidget({
+      type: "chart",
+      slot: "c",
+      binding: { kind: "aggregate", entity: "x" },
+    });
+    const css = resolveWidget({
+      type: "results-chart",
+      slot: "c",
+      binding: { kind: "aggregate", entity: "x" },
+    });
+    expect(echart?.key).toBe("chart");
+    expect(css?.key).toBe("results-chart");
+    // An aggregate block with neither type hint still matches nothing in the base.
+    expect(resolveWidget(block("aggregate", { entity: "x" }))).toBeNull();
   });
 
   it("an unknown kind returns null (no dangling import, fail closed)", () => {
