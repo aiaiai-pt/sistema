@@ -183,6 +183,34 @@ export interface Block {
    * (set on the default block), not tenant content.
    */
   bleed?: boolean;
+  /**
+   * #176 Tier 1 (ADR 0003) — 2D grid placement on a 12-column track. A block
+   * WITH `layout` is positioned by the renderer's grid (col `x`, span `w`; row
+   * `y`, span `h`); a block WITHOUT it falls back to source order (the shipped
+   * ordered-list behaviour — fully back-compatible). This is a DESCRIPTOR field
+   * consumed by BOTH render (places the block) and authoring (drag/resize writes
+   * the coords); the DS never learns it is being edited. `x`/`y` are 0-based;
+   * `w`/`h` are 1-based spans (w clamped to 1..12).
+   */
+  layout?: BlockLayout;
+  /**
+   * #176 Tier 1 — child blocks for a future grid-IN-grid container. Reserved
+   * (single-level page grids use `layout` on flat blocks); nesting is deferred
+   * until a concrete need (ADR 0003 build-order note).
+   */
+  children?: Block[];
+}
+
+/** 12-column grid placement (#176 Tier 1). All fields in grid track units. */
+export interface BlockLayout {
+  /** 0-based start column (0..11). */
+  x: number;
+  /** 0-based start row. */
+  y: number;
+  /** Column span (1..12). */
+  w: number;
+  /** Row span (>=1). */
+  h: number;
 }
 
 export interface PageDescriptor {
