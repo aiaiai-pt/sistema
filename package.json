@@ -1,6 +1,6 @@
 {
   "name": "@aiaiai-pt/design-system",
-  "version": "0.32.0",
+  "version": "0.34.0",
   "description": "Design system tokens and Svelte components for aiaiai products",
   "license": "MIT",
   "type": "module",
@@ -15,7 +15,8 @@
     "site"
   ],
   "scripts": {
-    "build:types": "svelte-package --input . --output dist && cp dist/components/*.d.ts components/ && rm -rf dist",
+    "build:types": "svelte-package --input . --output dist && cp dist/components/*.d.ts components/ && cp dist/components/renderer/*.d.ts components/renderer/ && rm -rf dist",
+    "test": "vitest run",
     "prepublishOnly": "npm run build:types"
   },
   "svelte": "./components/index.js",
@@ -39,6 +40,16 @@
       "types": "./components/*.d.ts",
       "svelte": "./components/*",
       "default": "./components/*"
+    },
+    "./renderer/*.svelte": {
+      "types": "./components/renderer/*.svelte.d.ts",
+      "svelte": "./components/renderer/*.svelte",
+      "default": "./components/renderer/*.svelte"
+    },
+    "./renderer/*": {
+      "types": "./components/renderer/*.d.ts",
+      "svelte": "./components/renderer/*",
+      "default": "./components/renderer/*"
     },
     "./tokens/*": "./tokens/*"
   },
@@ -65,6 +76,7 @@
     "ol": "^10.8.0",
     "svelte": "^5.55.3",
     "svelte-check": "^4.4.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.0.0"
   }
 }
