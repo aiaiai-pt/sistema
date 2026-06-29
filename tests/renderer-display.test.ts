@@ -1,0 +1,142 @@
+/**
+ * #499 criterion A — the shared display transforms lifted into the DS.
+ * Ports the portal's cells/formatCell contracts (so behaviour is preserved for
+ * the portal when it delegates here) and adds the two host-fork parameters
+ * (objectFallback "json", treatAsDate) + geoPoint.
+ */
+import { describe, it, expect } from "vitest";
+import {
+  formatScalar,
+  isIsoTimestamp,
+  formatTimestamp,
+  displayCell,
+  statusLabel,
+  statusVariant,
+  resolveStatusBadge,
+  geoPoint,
+} from "../components/renderer/display";
+
+describe("formatScalar — pure value→string + object policy", () => {
+  it("scalars stringify; null/undefined → ''", () => {
+    expect(formatScalar("hi")).toBe("hi");
+    expect(formatScalar(42)).toBe("42");
+    expect(formatScalar(true)).toBe("true");
+    expect(formatScalar(null)).toBe("");
+    expect(formatScalar(undefined)).toBe("");
+  });
+
+  it("arrays join non-empty formatted members", () => {
+    expect(formatScalar(["a", "", "b"])).toBe("a, b");
+    expect(formatScalar([{ label: "X" }, { id: "y" }])).toBe("X, y");
+  });
+
+  it("relationship object renders label→name→title→id", () => {
+    expect(formatScalar({ id: "u1", label: "Ana" })).toBe("Ana");
+    expect(formatScalar({ id: "u1", name: "Bob" })).toBe("Bob");
+    expect(formatScalar({ id: "u1", title: "Doc" })).toBe("Doc");
+    expect(formatScalar({ id: "u1" })).toBe("u1");
+  });
+
+  it("REDACTS an unknown object by default (never leaks internals)", () => {
+    expect(formatScalar({ secret: "x", deep: { a: 1 } })).toBe("");
+  });
+
+  it("objectFallback:'json' dumps the unknown object (admin operator view)", () => {
+    const out = formatScalar({ a: 1 }, { objectFallback: "json" });
+    expect(out).toContain('"a": 1');
+    // a relationship object still prefers its human handle, even in json mode
+    expect(
+      formatScalar({ id: "u", name: "N" }, { objectFallback: "json" }),
+    ).toBe("N");
+  });
+});
+
+describe("timestamps", () => {
+  it("detects ISO-8601 by value shape, not bare dates", () => {
+    expect(isIsoTimestamp("2026-06-11T08:57:25.176184Z")).toBe(true);
+    expect(isIsoTimestamp("2026-06-11T08:57:25+01:00")).toBe(true);
+    expect(isIsoTimestamp("2026-06-11")).toBe(false);
+    expect(isIsoTimestamp(1234)).toBe(false);
+    expect(isIsoTimestamp(null)).toBe(false);
+  });
+
+  it("formats per locale, date-only, UTC-stable; raw on unparseable", () => {
+    expect(formatTimestamp("2026-06-11T23:30:00Z", "en")).toBe("Jun 11, 2026");
+    expect(formatTimestamp("2026-06-11T23:30:00Z", "pt")).toMatch(
+      /11.*jun.*2026/i,
+    );
+    expect(formatTimestamp("9999-99-99T99:99:99Z", "en")).toBe(
+      "9999-99-99T99:99:99Z",
+    );
+  });
+});
+
+describe("displayCell — date routing + forks", () => {
+  it("portal value-mode: ISO strings → date, rest → formatScalar", () => {
+    expect(displayCell("2026-06-11T08:00:00Z", "en")).toBe("Jun 11, 2026");
+    expect(displayCell("Pothole on Rua A", "en")).toBe("Pothole on Rua A");
+    expect(displayCell(null, "en")).toBe("");
+  });
+
+  it("admin type-mode: treatAsDate forces date formatting", () => {
+    // a value the value-shape regex would NOT catch as a date is still
+    // formatted when the caller knows (from schema) it's a datetime field.
+    expect(
+      displayCell("2026-06-11T08:00:00Z", "en", { treatAsDate: true }),
+    ).toBe("Jun 11, 2026");
+    // non-date string with treatAsDate but unparseable → passes through raw
+    expect(displayCell("not-a-date", "en", { treatAsDate: true })).toBe(
+      "not-a-date",
+    );
+  });
+
+  it("threads objectFallback through to formatScalar", () => {
+    expect(displayCell({ a: 1 }, "en")).toBe(""); // redact default
+    expect(displayCell({ a: 1 }, "en", { objectFallback: "json" })).toContain(
+      '"a": 1',
+    );
+  });
+});
+
+describe("status badge mapping (data-driven, junk-safe)", () => {
+  const labels = { open: "Aberta", in_progress: "Em curso" };
+  const variants = { open: "info", resolved: "success" };
+
+  it("label maps machine→copy with raw fallback", () => {
+    expect(statusLabel("open", labels)).toBe("Aberta");
+    expect(statusLabel("weird", labels)).toBe("weird");
+    expect(statusLabel("open", undefined)).toBe("open");
+  });
+
+  it("variant maps with neutral fallback, junk-safe", () => {
+    expect(statusVariant("open", variants)).toBe("info");
+    expect(statusVariant("closed", variants)).toBe("neutral");
+    expect(statusVariant("open", "junk")).toBe("neutral");
+    expect(statusVariant("open", ["junk"])).toBe("neutral");
+  });
+
+  it("resolveStatusBadge combines both", () => {
+    expect(resolveStatusBadge("open", { labels, variants })).toEqual({
+      label: "Aberta",
+      variant: "info",
+    });
+    expect(resolveStatusBadge("x")).toEqual({ label: "x", variant: "neutral" });
+  });
+});
+
+describe("geoPoint", () => {
+  it("extracts [lon,lat] from a GeoJSON-ish Point", () => {
+    expect(geoPoint({ type: "Point", coordinates: [-9.14, 38.74] })).toEqual([
+      -9.14, 38.74,
+    ]);
+    expect(geoPoint({ coordinates: [1, 2, 3] })).toEqual([1, 2]);
+  });
+
+  it("null on non-points / bad coords", () => {
+    expect(geoPoint(null)).toBeNull();
+    expect(geoPoint({})).toBeNull();
+    expect(geoPoint({ coordinates: [1] })).toBeNull();
+    expect(geoPoint({ coordinates: ["a", "b"] })).toBeNull();
+    expect(geoPoint({ coordinates: [Infinity, 2] })).toBeNull();
+  });
+});
