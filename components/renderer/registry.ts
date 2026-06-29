@@ -22,7 +22,9 @@ import {
 } from "./dispatch";
 import type { Block, OntologySchema, WidgetKind, WidgetProps } from "./types";
 
+import DonutChartWidget from "./DonutChartWidget.svelte";
 import EChartWidget from "./EChartWidget.svelte";
+import LineChartWidget from "./LineChartWidget.svelte";
 import ResultsChartWidget from "./ResultsChartWidget.svelte";
 import StatGridWidget from "./StatGridWidget.svelte";
 
@@ -69,6 +71,11 @@ const _entries: RegistryEntry<WidgetComponent>[] = [
   byKind("stat-grid", "kpi", StatGridWidget),
   byTypeOnKind("results-chart", "aggregate", ResultsChartWidget),
   byTypeOnKind("chart", "aggregate", EChartWidget),
+  // #176 Tier 1 — chart KINDS as registry entries, so the authoring `type`
+  // picker is a real chart picker. All three ECharts kinds share the same
+  // aggregate data path + a11y data table; only the rendered geometry differs.
+  byTypeOnKind("line-chart", "aggregate", LineChartWidget),
+  byTypeOnKind("donut-chart", "aggregate", DonutChartWidget),
 ];
 
 /**

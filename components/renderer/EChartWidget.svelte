@@ -11,7 +11,12 @@
   // is never the only encoding). Same data path as ResultsChartWidget: reads
   // the `{ items }` rows and projects `{ label, value }` via `toRankedItems`,
   // so NO resolve-data / provider change is needed. Soft-empty on no rows.
-  let { data, props, ownsH1, locale }: WidgetProps = $props();
+  // `kind` is bound by the registry wrapper (line-chart / donut-chart), NOT by
+  // the dispatcher (which renders this widget with the standard WidgetProps and
+  // no kind → the `chart` key stays the ECharts bar). #176 Tier 1.
+  let { data, props, ownsH1, locale, kind = "bar" }: WidgetProps & {
+    kind?: "bar" | "line" | "donut";
+  } = $props();
 
   const rows = $derived(
     data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)
@@ -63,6 +68,7 @@
       {caption}
       {labelHeader}
       {valueHeader}
+      {kind}
       locale={locale ?? "en"}
     />
   </section>

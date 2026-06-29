@@ -54,6 +54,11 @@
     valueHeader = "Value",
     /** @type {string} BCP-47 locale for number formatting. */
     locale = "en",
+    /** @type {"bar" | "line" | "donut"} Chart kind (#176 Tier 1). `bar` is the
+     * horizontal categorical bar; `line` plots the same series as a value line
+     * over the category axis; `donut` is a ring pie. The data table below is
+     * the accessible source of truth for every kind. */
+    kind = "bar",
     /** @type {string} CSS block-size for the chart canvas. */
     height = "20rem",
     /** @type {string} */
@@ -90,9 +95,73 @@
     const textSecondary = token("--color-text-secondary", "#6b7280");
     const border = token("--color-border", "#e5e7eb");
 
-    // ECharts plots the category axis bottom-up; reverse so the highest value
-    // sits at the top (matching ResultsChart's top-down order). `items` is
-    // already sorted desc by the consumer.
+    // Donut: a ring pie. No axes; the slice palette derives from the accent
+    // (alpha ramp) so it stays on-theme without a hardcoded colour list.
+    if (kind === "donut") {
+      const palette = items.map((_, i) => {
+        const alpha = Math.max(0.35, 1 - i * 0.12);
+        return `color-mix(in srgb, ${accent} ${Math.round(alpha * 100)}%, transparent)`;
+      });
+      return {
+        animation: false,
+        tooltip: {
+          trigger: "item",
+          /** @param {{ name: string, value: number, percent: number }} p */
+          formatter: (p) => `${p.name}: ${fmt(p.value)} (${p.percent}%)`,
+        },
+        color: palette,
+        series: [
+          {
+            type: "pie",
+            radius: ["45%", "72%"],
+            data: items.map((it) => ({ name: it.label, value: it.value })),
+            label: { color: textPrimary },
+            labelLine: { lineStyle: { color: border } },
+          },
+        ],
+      };
+    }
+
+    // Line: value over the category axis, in the consumer's order (desc by
+    // value). Shares the same accent + token theming as the bar.
+    if (kind === "line") {
+      return {
+        animation: false,
+        grid: { left: 8, right: 16, top: 8, bottom: 8, containLabel: true },
+        tooltip: {
+          trigger: "axis",
+          /** @param {{ name: string, value: number }[]} p */
+          formatter: (p) => `${p[0]?.name}: ${fmt(p[0]?.value)}`,
+        },
+        xAxis: {
+          type: "category",
+          data: items.map((it) => it.label),
+          axisLabel: { color: textPrimary },
+          axisLine: { lineStyle: { color: border } },
+          axisTick: { show: false },
+        },
+        yAxis: {
+          type: "value",
+          axisLabel: { color: textSecondary, formatter: (/** @type {number} */ v) => fmt(v) },
+          axisLine: { lineStyle: { color: border } },
+          splitLine: { lineStyle: { color: border } },
+        },
+        series: [
+          {
+            type: "line",
+            data: items.map((it) => it.value),
+            itemStyle: { color: accent },
+            lineStyle: { color: accent },
+            symbolSize: 7,
+            smooth: false,
+          },
+        ],
+      };
+    }
+
+    // Bar (default). ECharts plots the category axis bottom-up; reverse so the
+    // highest value sits at the top (matching ResultsChart's top-down order).
+    // `items` is already sorted desc by the consumer.
     const ordered = [...items].reverse();
 
     return {
@@ -150,6 +219,8 @@
 
         core.use([
           charts.BarChart,
+          charts.LineChart,
+          charts.PieChart,
           components.GridComponent,
           components.TooltipComponent,
           renderers.CanvasRenderer,
@@ -187,7 +258,10 @@
     // touch reactive deps so the effect re-runs when they change
     void items;
     void locale;
-    if (_chart) _chart.setOption(buildOption());
+    void kind;
+    // A kind switch changes which axes/series exist; replace (not merge) the
+    // option so stale axis components from the previous kind are cleared.
+    if (_chart) _chart.setOption(buildOption(), true);
   });
 </script>
 
