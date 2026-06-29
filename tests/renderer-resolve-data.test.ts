@@ -9,6 +9,7 @@ import {
   appendQuery,
   type FetchLike,
 } from "../components/renderer/resolve-data";
+import { createPublicDataProvider } from "../components/renderer/data-provider";
 import type { Binding, Block } from "../components/renderer/types";
 
 function block(binding: Binding, importance?: Block["importance"]): Block {
@@ -39,7 +40,8 @@ function fakeFetch(resp: { ok: boolean; status: number; body?: unknown }): {
   return { fetchImpl, calls };
 }
 
-/** A fetch fake that dispatches by path prefix — data vs schema endpoints. */
+/** A fetch fake that dispatches by path prefix — data vs schema endpoints —
+ *  so we can give each its own response (and simulate a schema-only failure). */
 function routedFetch(routes: {
   data: { ok: boolean; status: number; body?: unknown };
   schema?: { ok: boolean; status: number; body?: unknown } | "throw";
@@ -236,8 +238,7 @@ describe("resolveData — the single data path (pointer in, normalised data out)
     const res = await resolveData(
       block({ kind: "content", filter: "privacy" }),
       {
-        app: "occurrences",
-        fetchImpl,
+        provider: createPublicDataProvider("occurrences", fetchImpl),
       },
     );
     expect(calls).toEqual(["/bff/occurrences/public/content/privacy"]);
@@ -255,8 +256,7 @@ describe("resolveData — the single data path (pointer in, normalised data out)
   it("an unmappable binding never fetches and fails closed (status 0)", async () => {
     const { fetchImpl, calls } = fakeFetch({ ok: true, status: 200 });
     const res = await resolveData(block({ kind: "list" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
     });
     expect(calls).toEqual([]); // no fetch attempted
     expect(res).toEqual({
@@ -271,8 +271,7 @@ describe("resolveData — the single data path (pointer in, normalised data out)
     const res = await resolveData(
       block({ kind: "content", filter: "missing" }),
       {
-        app: "occurrences",
-        fetchImpl,
+        provider: createPublicDataProvider("occurrences", fetchImpl),
       },
     );
     expect(res.ok).toBe(false);
@@ -286,8 +285,7 @@ describe("resolveData — the single data path (pointer in, normalised data out)
     const json = vi.fn(async () => ({}));
     const fetchImpl: FetchLike = async () => ({ ok: false, status: 502, json });
     await resolveData(block({ kind: "map" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
     });
     expect(json).not.toHaveBeenCalled();
   });
@@ -379,7 +377,7 @@ describe("resolveData — schema is fetched alongside list/detail data (73d)", (
     });
     const res = await resolveData(
       block({ kind: "list", entity: "occurrence" }),
-      { app: "occurrences", fetchImpl },
+      { provider: createPublicDataProvider("occurrences", fetchImpl) },
     );
     expect(calls).toContain("/bff/occurrences/public/occurrence");
     expect(calls).toContain("/bff/occurrences/public/schema/occurrence");
@@ -401,7 +399,7 @@ describe("resolveData — schema is fetched alongside list/detail data (73d)", (
     });
     const res = await resolveData(
       block({ kind: "detail", entity: "occurrence", filter: "row-9" }),
-      { app: "occurrences", fetchImpl },
+      { provider: createPublicDataProvider("occurrences", fetchImpl) },
     );
     expect(calls).toContain("/bff/occurrences/public/occurrence/row-9");
     expect(calls).toContain("/bff/occurrences/public/schema/occurrence");
@@ -416,7 +414,7 @@ describe("resolveData — schema is fetched alongside list/detail data (73d)", (
     });
     const res = await resolveData(
       block({ kind: "list", entity: "occurrence" }),
-      { app: "occurrences", fetchImpl },
+      { provider: createPublicDataProvider("occurrences", fetchImpl) },
     );
     expect(res.ok).toBe(true);
     if (res.ok) {
@@ -432,13 +430,15 @@ describe("resolveData — schema is fetched alongside list/detail data (73d)", (
     });
     const res = await resolveData(
       block({ kind: "list", entity: "occurrence" }),
-      { app: "occurrences", fetchImpl },
+      { provider: createPublicDataProvider("occurrences", fetchImpl) },
     );
     expect(res.ok).toBe(true);
     if (res.ok) expect(res.value.schema).toBeNull();
   });
 
   it("a schema body that fails to parse is swallowed — data still renders, schema null", async () => {
+    // ok:true but .json() throws (malformed body). The block must not fail: the
+    // schema is best-effort, so a parse error yields schema null, not a reject.
     const fetchImpl: FetchLike = async (path) => {
       const isSchema = path.includes("/public/schema/");
       return {
@@ -453,7 +453,7 @@ describe("resolveData — schema is fetched alongside list/detail data (73d)", (
     };
     const res = await resolveData(
       block({ kind: "list", entity: "occurrence" }),
-      { app: "occurrences", fetchImpl },
+      { provider: createPublicDataProvider("occurrences", fetchImpl) },
     );
     expect(res.ok).toBe(true);
     if (res.ok) {
@@ -469,7 +469,7 @@ describe("resolveData — schema is fetched alongside list/detail data (73d)", (
     });
     const res = await resolveData(
       block({ kind: "list", entity: "occurrence" }),
-      { app: "occurrences", fetchImpl },
+      { provider: createPublicDataProvider("occurrences", fetchImpl) },
     );
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.status).toBe(404);
@@ -480,8 +480,7 @@ describe("resolveData — schema is fetched alongside list/detail data (73d)", (
       data: { ok: true, status: 200 },
     });
     const res = await resolveData(block({ kind: "list" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
     });
     expect(res.ok).toBe(false);
     expect(calls).toEqual([]); // neither data nor schema fetched
@@ -489,6 +488,7 @@ describe("resolveData — schema is fetched alongside list/detail data (73d)", (
 });
 
 describe("resolveData — `owned-list` reads the citizen's OWN entity lane (#105)", () => {
+  /** Route the OWN lane vs the public schema to separate responses. */
   function ownedFetch(routes: {
     owned: { ok: boolean; status: number; body?: unknown };
     schema?: { ok: boolean; status: number; body?: unknown };
@@ -520,8 +520,7 @@ describe("resolveData — `owned-list` reads the citizen's OWN entity lane (#105
     const res = await resolveData(
       block({ kind: "owned-list", entity: "proposal" }),
       {
-        app: "civic-participation",
-        fetchImpl,
+        provider: createPublicDataProvider("civic-participation", fetchImpl),
       },
     );
     expect(res.ok).toBe(true);
@@ -532,6 +531,7 @@ describe("resolveData — `owned-list` reads the citizen's OWN entity lane (#105
       fields: [{ key: "title" }],
     });
     expect(res.value.dataPath).toBe("/me/owned/proposal");
+    // The OWN lane is the authed /me proxy (NOT /bff); the schema is the public /bff.
     expect(calls).toContain("/me/owned/proposal");
     expect(calls).toContain("/bff/civic-participation/public/schema/proposal");
   });
@@ -544,8 +544,7 @@ describe("resolveData — `owned-list` reads the citizen's OWN entity lane (#105
     const res = await resolveData(
       block({ kind: "owned-list", entity: "proposal" }),
       {
-        app: "civic-participation",
-        fetchImpl,
+        provider: createPublicDataProvider("civic-participation", fetchImpl),
       },
     );
     expect(res.ok).toBe(true);
@@ -557,8 +556,7 @@ describe("resolveData — `owned-list` reads the citizen's OWN entity lane (#105
     const res = await resolveData(
       block({ kind: "owned-list", entity: "proposal" }),
       {
-        app: "civic-participation",
-        fetchImpl,
+        provider: createPublicDataProvider("civic-participation", fetchImpl),
       },
     );
     expect(res.ok).toBe(false);
@@ -570,8 +568,7 @@ describe("resolveData — `owned-list` reads the citizen's OWN entity lane (#105
       owned: { ok: true, status: 200 },
     });
     const res = await resolveData(block({ kind: "owned-list" }), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(res.ok).toBe(false);
     expect(calls).toEqual([]);
@@ -579,16 +576,15 @@ describe("resolveData — `owned-list` reads the citizen's OWN entity lane (#105
 });
 
 describe("resolveData — map + calendar feeds (73e)", () => {
-  it("map: fetches /public/map with no query and no schema — even when `now` is present", async () => {
+  it("map: fetches /public/map with no query and no schema — even when `now` is present (window is calendar-only)", async () => {
     const { fetchImpl, calls } = fakeFetch({
       ok: true,
       status: 200,
       body: [{ id: "1", lon: -9, lat: 38 }],
     });
     const res = await resolveData(block({ kind: "map" }), {
-      app: "occurrences",
-      fetchImpl,
-      now: new Date("2026-06-15T00:00:00Z"),
+      provider: createPublicDataProvider("occurrences", fetchImpl),
+      now: new Date("2026-06-15T00:00:00Z"), // must NOT leak a window onto a non-calendar path
     });
     expect(calls).toEqual(["/bff/occurrences/public/map"]);
     expect(res.ok).toBe(true);
@@ -598,8 +594,7 @@ describe("resolveData — map + calendar feeds (73e)", () => {
   it("calendar: appends the start/end window from deps.now", async () => {
     const { fetchImpl, calls } = fakeFetch({ ok: true, status: 200, body: [] });
     const res = await resolveData(block({ kind: "calendar" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
       now: new Date("2026-06-15T00:00:00Z"),
     });
     expect(calls).toEqual([
@@ -611,8 +606,7 @@ describe("resolveData — map + calendar feeds (73e)", () => {
   it("calendar without a `now` fetches the bare path (endpoint will 422 → fail closed)", async () => {
     const { fetchImpl, calls } = fakeFetch({ ok: false, status: 422 });
     const res = await resolveData(block({ kind: "calendar" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
     });
     expect(calls).toEqual(["/bff/occurrences/public/calendar"]);
     expect(res.ok).toBe(false);
@@ -691,8 +685,7 @@ describe("#75 M5 — forms directory, hero, list scope", () => {
   it("hero resolves OK with null data and NO fetch (presentational kind)", async () => {
     const { fetchImpl, calls } = fakeFetch({ ok: true, status: 200 });
     const res = await resolveData(block({ kind: "hero" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
     });
     expect(res.ok).toBe(true);
     if (res.ok) {
@@ -716,8 +709,7 @@ describe("#75 M5 — forms directory, hero, list scope", () => {
     for (const kind of presentational) {
       const { fetchImpl, calls } = fakeFetch({ ok: true, status: 200 });
       const res = await resolveData(block({ kind }), {
-        app: "civic-participation",
-        fetchImpl,
+        provider: createPublicDataProvider("civic-participation", fetchImpl),
       });
       expect(res.ok, kind).toBe(true);
       if (res.ok) expect(res.value.data, kind).toBeNull();
@@ -732,8 +724,7 @@ describe("#75 M5 — forms directory, hero, list scope", () => {
       body: { items: [{ key: "k", label: "L" }] },
     });
     const res = await resolveData(block({ kind: "forms" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
     });
     expect(res.ok).toBe(true);
     expect(calls).toEqual(["/bff/occurrences/public/forms"]);
@@ -742,8 +733,7 @@ describe("#75 M5 — forms directory, hero, list scope", () => {
   it("forms upstream failure fails the block closed (502 → not ok)", async () => {
     const { fetchImpl } = fakeFetch({ ok: false, status: 502 });
     const res = await resolveData(block({ kind: "forms" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.status).toBe(502);
@@ -826,7 +816,7 @@ describe("#308 — resolveData feed kind (active view → underlying feed)", () 
         { kind: "feed", entity: "occurrence" },
         { views: ["list", "map"] },
       ),
-      { app: "occurrences", fetchImpl },
+      { provider: createPublicDataProvider("occurrences", fetchImpl) },
     );
     expect(calls).toContain("/bff/occurrences/public/occurrence");
     expect(calls).toContain("/bff/occurrences/public/schema/occurrence");
@@ -848,7 +838,10 @@ describe("#308 — resolveData feed kind (active view → underlying feed)", () 
         { kind: "feed", entity: "occurrence" },
         { views: ["list", "map"] },
       ),
-      { app: "occurrences", fetchImpl, view: "map" },
+      {
+        provider: createPublicDataProvider("occurrences", fetchImpl),
+        view: "map",
+      },
     );
     expect(calls).toEqual(["/bff/occurrences/public/map"]);
     expect(res.ok).toBe(true);
@@ -868,7 +861,10 @@ describe("#308 — resolveData feed kind (active view → underlying feed)", () 
         { kind: "feed", entity: "occurrence" },
         { views: ["list", "map"] },
       ),
-      { app: "occurrences", fetchImpl, view: "calendar" },
+      {
+        provider: createPublicDataProvider("occurrences", fetchImpl),
+        view: "calendar",
+      },
     );
     expect(calls).toContain("/bff/occurrences/public/occurrence");
   });
@@ -884,14 +880,14 @@ describe("#308 — resolveData feed kind (active view → underlying feed)", () 
         { views: ["list", "map"] },
       ),
       {
-        app: "occurrences",
-        fetchImpl,
+        provider: createPublicDataProvider("occurrences", fetchImpl),
         filterParams: { status: "open" },
       },
     );
     expect(calls).toContain(
       "/bff/occurrences/public/occurrence?limit=20&status=open",
     );
+    // dataPath carries the filter so paging (?after=) stays on the filtered set
     if (res.ok) {
       expect(res.value.dataPath).toBe(
         "/occurrences/public/occurrence?limit=20&status=open",
@@ -907,8 +903,7 @@ describe("#308 — resolveData feed kind (active view → underlying feed)", () 
         { views: ["map"] },
       ),
       {
-        app: "occurrences",
-        fetchImpl,
+        provider: createPublicDataProvider("occurrences", fetchImpl),
         view: "map",
         filterParams: { freguesia: "uuid-1" },
       },
@@ -933,7 +928,7 @@ describe("#308 — resolveData filters kind (data = entity schema)", () => {
     });
     const res = await resolveData(
       block({ kind: "filters", entity: "occurrence" }),
-      { app: "occurrences", fetchImpl },
+      { provider: createPublicDataProvider("occurrences", fetchImpl) },
     );
     expect(calls).toEqual(["/bff/occurrences/public/schema/occurrence"]);
     expect(res.ok).toBe(true);
@@ -946,19 +941,18 @@ describe("#308 — resolveData filters kind (data = entity schema)", () => {
   it("filters without an entity soft-empties (ok, null) — never a fetch", async () => {
     const { fetchImpl, calls } = fakeFetch({ ok: true, status: 200 });
     const res = await resolveData(block({ kind: "filters" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
     });
     expect(calls).toEqual([]);
     expect(res.ok).toBe(true);
     if (res.ok) expect(res.value.data).toBeNull();
   });
 
-  it("a schema 404 soft-empties the optional filters slot", async () => {
+  it("a schema 404 soft-empties the optional filters slot (no false loud-fail; fix the surface's browse placement)", async () => {
     const { fetchImpl } = fakeFetch({ ok: false, status: 404 });
     const res = await resolveData(
       block({ kind: "filters", entity: "proposal" }),
-      { app: "civic-participation", fetchImpl },
+      { provider: createPublicDataProvider("civic-participation", fetchImpl) },
     );
     expect(res.ok).toBe(true);
     if (res.ok) expect(res.value.data).toBeNull();
@@ -974,19 +968,21 @@ describe("#105 Phase 5 — resolveData subscriptions kind (authed account lane)"
       body: ENVELOPE,
     });
     const res = await resolveData(block({ kind: "subscriptions" }), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
+    // The account lane — never a /bff/{app}/public path.
     expect(calls).toEqual(["/me/notifications/subscriptions"]);
     expect(res.ok).toBe(true);
     if (res.ok) {
+      // #252 Anexo 110 — the envelope is augmented with the resolved scope
+      // option-views; with no `scopes` declared on the block, that is [].
       expect(res.value.data).toEqual({ ...ENVELOPE, scopes: [] });
       expect(res.value.dataPath).toBe("/me/notifications/subscriptions");
       expect(res.value.schema).toBeNull();
     }
   });
 
-  it("scopes: reads each declared option-view and shapes {value,label} options", async () => {
+  it("scopes: reads each declared option-view and shapes {value,label} options (#252 Anexo 110)", async () => {
     const calls: string[] = [];
     const fetchImpl = async (path: string) => {
       calls.push(path);
@@ -1010,7 +1006,7 @@ describe("#105 Phase 5 — resolveData subscriptions kind (authed account lane)"
           ],
         },
       ),
-      { app: "civic-participation", fetchImpl },
+      { provider: createPublicDataProvider("civic-participation", fetchImpl) },
     );
     expect(res.ok).toBe(true);
     if (res.ok) {
@@ -1021,17 +1017,17 @@ describe("#105 Phase 5 — resolveData subscriptions kind (authed account lane)"
           options: [{ value: "e1", label: "OP Jovem 2026" }],
         },
       ]);
+      // sourced from the PUBLIC option-view, not the account lane.
       expect(calls).toContain(
         "/bff/civic-participation/public/civic_proposal_editions?limit=200",
       );
     }
   });
 
-  it("fails the block CLOSED on a non-OK account lane (401)", async () => {
+  it("fails the block CLOSED on a non-OK account lane (401/upstream) — the page is auth-gated upstream", async () => {
     const { fetchImpl } = fakeFetch({ ok: false, status: 401 });
     const res = await resolveData(block({ kind: "subscriptions" }), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.status).toBe(401);
@@ -1050,8 +1046,7 @@ describe("#105 Phase 5 slice 2 — resolveData consent kind (authed account lane
       body: ENVELOPE,
     });
     const res = await resolveData(block({ kind: "consent" }), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(calls).toEqual(["/me/consent"]);
     expect(res.ok).toBe(true);
@@ -1062,11 +1057,10 @@ describe("#105 Phase 5 slice 2 — resolveData consent kind (authed account lane
     }
   });
 
-  it("fails the block CLOSED on a non-OK account lane", async () => {
+  it("fails the block CLOSED on a non-OK account lane (the page is auth-gated upstream)", async () => {
     const { fetchImpl } = fakeFetch({ ok: false, status: 401 });
     const res = await resolveData(block({ kind: "consent" }), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.status).toBe(401);
@@ -1105,10 +1099,84 @@ describe("#75 M5 slice 3 — detail expand + lookup", () => {
   it("lookup resolves OK with null data and NO fetch (presentational)", async () => {
     const { fetchImpl, calls } = fakeFetch({ ok: true, status: 200 });
     const res = await resolveData(block({ kind: "lookup" }), {
-      app: "occurrences",
-      fetchImpl,
+      provider: createPublicDataProvider("occurrences", fetchImpl),
     });
     expect(res.ok).toBe(true);
     expect(calls).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// DataProvider seam — createPublicDataProvider byte-identical to today
+// ---------------------------------------------------------------------------
+
+describe("DataProvider seam — createPublicDataProvider byte-identical to today", () => {
+  const noop: FetchLike = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({}),
+  });
+
+  it("dataUrl list → raw /{app}/public/{entity} path (no /bff prefix)", () => {
+    const p = createPublicDataProvider("occurrences", noop);
+    expect(p.dataUrl({ kind: "list", entity: "occurrence" })).toBe(
+      "/occurrences/public/occurrence",
+    );
+  });
+
+  it("dataUrl calendar with calendarWindow → /{app}/public/calendar?start=&end=", () => {
+    const p = createPublicDataProvider("occurrences", noop);
+    expect(
+      p.dataUrl(
+        { kind: "calendar" },
+        { calendarWindow: { start: "2026-06-01", end: "2026-08-01" } },
+      ),
+    ).toBe("/occurrences/public/calendar?start=2026-06-01&end=2026-08-01");
+  });
+
+  it("dataUrl list with filterParams → raw path with params appended", () => {
+    const p = createPublicDataProvider("occurrences", noop);
+    expect(
+      p.dataUrl(
+        { kind: "list", entity: "occurrence" },
+        { filterParams: { status: "open" } },
+      ),
+    ).toBe("/occurrences/public/occurrence?status=open");
+  });
+
+  it("dataUrl unmappable binding → null (fail-closed)", () => {
+    const p = createPublicDataProvider("occurrences", noop);
+    expect(p.dataUrl({ kind: "list" })).toBeNull(); // no entity
+  });
+
+  it("schemaUrl list → raw /{app}/public/schema/{entity} path (no /bff prefix)", () => {
+    const p = createPublicDataProvider("occurrences", noop);
+    expect(p.schemaUrl({ kind: "list", entity: "occurrence" })).toBe(
+      "/occurrences/public/schema/occurrence",
+    );
+  });
+
+  it("schemaUrl content → null (content has no schema endpoint)", () => {
+    const p = createPublicDataProvider("occurrences", noop);
+    expect(p.schemaUrl({ kind: "content", filter: "privacy" })).toBeNull();
+  });
+
+  it("accountUrl notifications/subscriptions → /me/notifications/subscriptions (no /bff)", () => {
+    const p = createPublicDataProvider("occurrences", noop);
+    expect(p.accountUrl("notifications/subscriptions")).toBe(
+      "/me/notifications/subscriptions",
+    );
+  });
+
+  it("accountUrl consent → /me/consent (no /bff)", () => {
+    const p = createPublicDataProvider("occurrences", noop);
+    expect(p.accountUrl("consent")).toBe("/me/consent");
+  });
+
+  it("optionViewUrl → /bff/{app}/public/{view}?limit={n}", () => {
+    const p = createPublicDataProvider("civic-participation", noop);
+    expect(p.optionViewUrl("civic_proposal_editions", 200)).toBe(
+      "/bff/civic-participation/public/civic_proposal_editions?limit=200",
+    );
   });
 });

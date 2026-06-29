@@ -1,13 +1,14 @@
 /**
  * `resolveData(block)` — the single data path between a block's pointer and a
- * widget (#73, spec §5). Reads the `binding`, fetches through the existing
- * auth-optional `/bff` proxy (#70), and returns normalised `{ schema, data,
- * actionDef }`. The block stores ONLY the pointer — rows are never baked in.
+ * widget (#73, spec §5). Reads the `binding`, fetches through the host-injected
+ * `DataProvider` (#492 P0), and returns normalised `{ schema, data, actionDef }`.
+ * The block stores ONLY the pointer — rows are never baked in.
  *
- * Pure + fetch-injectable so the security-critical decisions (which paths are
+ * Pure + provider-injectable so the security-critical decisions (which paths are
  * reachable, fail-closed on misconfig/upstream error) are unit/mutation-
- * testable without SvelteKit. The route loader is a thin wrapper that passes
- * its server `fetch` (which carries the tenant + graduated principal).
+ * testable without SvelteKit. The route loader is a thin wrapper that passes a
+ * `createPublicDataProvider` wrapping its server `fetch` (which carries the
+ * tenant + graduated principal).
  *
  * Fail-closed (§14.8): an unmappable binding never fetches; a non-OK upstream
  * yields `{ ok: false }` and the caller renders per blast radius (see
@@ -20,14 +21,8 @@ import type {
   OntologySchema,
   WidgetKind,
 } from "./types";
-import {
-  type Ballot,
-  editionReadPath,
-  isClosed,
-  optionsReadPath,
-  toOptions,
-  voteReadConfig,
-} from "./vote";
+import type { DataProvider } from "./data-provider";
+import { type Ballot, isClosed, toOptions, voteReadConfig } from "./vote";
 
 /**
  * Presentational kinds (#75 M5 hero/lookup + #105 Phase 7 landing/content) that
@@ -73,9 +68,8 @@ export type FetchLike = (path: string) => Promise<{
 }>;
 
 export interface ResolveDataDeps {
-  /** The vertical app segment, app-first (`/{app}/public/...`). */
-  app: string;
-  fetchImpl: FetchLike;
+  /** Host-injected data transport seam (#492 P0). */
+  provider: DataProvider;
   /**
    * "Now", injected by the route loader (`new Date()`), used to compute the
    * calendar's required `start`/`end` window (73e). Optional — only the
@@ -301,8 +295,8 @@ export async function resolveData(
   // fail the block CLOSED (the widget owns its own busy/empty UI once data
   // loads). `dataPath` carries the lane so the widget mutates the same surface.
   if (block.binding.kind === "subscriptions") {
-    const accountPath = "/me/notifications/subscriptions";
-    const resp = await deps.fetchImpl(accountPath);
+    const accountPath = deps.provider.accountUrl("notifications/subscriptions");
+    const resp = await deps.provider.fetch(accountPath);
     if (!resp.ok) {
       return {
         ok: false,
@@ -342,8 +336,8 @@ export async function resolveData(
       const lf = sp(s, "label_field");
       if (!key || !group || !view || !vf || !lf) continue;
       try {
-        const r = await deps.fetchImpl(
-          `/bff/${encodeURIComponent(deps.app)}/public/${encodeURIComponent(view)}?limit=200`,
+        const r = await deps.provider.fetch(
+          deps.provider.optionViewUrl(view, 200),
         );
         if (!r.ok) continue;
         const rows = ((await r.json()) as { items?: Record<string, unknown>[] })
@@ -379,8 +373,8 @@ export async function resolveData(
   // `subscriptions` (the page loader redirects an anonymous caller to login).
   // `dataPath` carries the lane so the widget revokes/erases/exports against it.
   if (block.binding.kind === "consent") {
-    const accountPath = "/me/consent";
-    const resp = await deps.fetchImpl(accountPath);
+    const accountPath = deps.provider.accountUrl("consent");
+    const resp = await deps.provider.fetch(accountPath);
     if (!resp.ok) {
       return {
         ok: false,
@@ -408,8 +402,8 @@ export async function resolveData(
   // non-OK here is a real upstream failure (the block soft-empties only when
   // it is optional, per decideRender).
   if (block.binding.kind === "deliveries") {
-    const accountPath = "/me/notifications/deliveries";
-    const resp = await deps.fetchImpl(accountPath);
+    const accountPath = deps.provider.accountUrl("notifications/deliveries");
+    const resp = await deps.provider.fetch(accountPath);
     if (!resp.ok) {
       return {
         ok: false,
@@ -444,8 +438,8 @@ export async function resolveData(
       return { ok: false, status: 0, reason: "vote binding misconfigured" };
     }
     const [edResp, opResp] = await Promise.all([
-      deps.fetchImpl(editionReadPath(deps.app, cfg, editionId)),
-      deps.fetchImpl(optionsReadPath(deps.app, cfg, editionId)),
+      deps.provider.fetch(deps.provider.voteEditionUrl(cfg, editionId)),
+      deps.provider.fetch(deps.provider.voteOptionsUrl(cfg, editionId)),
     ]);
     if (!edResp.ok) {
       return {
@@ -484,16 +478,23 @@ export async function resolveData(
     if (!block.binding.entity) {
       return { ok: false, status: 0, reason: "owned-list missing entity" };
     }
-    const ownedPath = `/me/owned/${enc(block.binding.entity)}`;
-    const schemaPromise = deps
-      .fetchImpl(
-        `/bff/${enc(deps.app)}/public/schema/${enc(block.binding.entity)}`,
-      )
-      .then(
-        (r) => r,
-        () => null,
-      );
-    const resp = await deps.fetchImpl(ownedPath);
+    const ownedPath = deps.provider.accountUrl(
+      `owned/${enc(block.binding.entity)}`,
+    );
+    // The schema path uses the `list` kind convention (same schema endpoint
+    // as a public list — owned-list reads the OWN rows but schema is per-type).
+    const schemaUrl = deps.provider.schemaUrl({
+      kind: "list",
+      entity: block.binding.entity,
+    });
+    const schemaPromise =
+      schemaUrl !== null
+        ? deps.provider.fetch(schemaUrl).then(
+            (r) => r,
+            () => null,
+          )
+        : null;
+    const resp = await deps.provider.fetch(ownedPath);
     if (!resp.ok) {
       return {
         ok: false,
@@ -503,7 +504,7 @@ export async function resolveData(
     }
     const data = await resp.json();
     let schema: OntologySchema | null = null;
-    const sresp = await schemaPromise;
+    const sresp = schemaPromise !== null ? await schemaPromise : null;
     if (sresp !== null && sresp.ok) {
       schema = (await sresp.json().catch(() => null)) as OntologySchema | null;
     }
@@ -519,13 +520,15 @@ export async function resolveData(
   // OPTIONS are resolved client-side by the widget (row-derived or via a
   // relation `optionsSource`), the same machinery the inline bars used.
   if (block.binding.kind === "filters") {
-    const sp = block.binding.entity
-      ? `/${deps.app}/public/schema/${enc(block.binding.entity)}`
+    // The schema path uses the `list` kind convention (same schema endpoint
+    // as a feed's underlying list surface).
+    const schemaUrl = block.binding.entity
+      ? deps.provider.schemaUrl({ kind: "list", entity: block.binding.entity })
       : null;
-    if (sp === null) {
+    if (schemaUrl === null) {
       return { ok: true, value: { data: null, schema: null, actionDef: null } };
     }
-    const r = await deps.fetchImpl(`/bff${sp}`);
+    const r = await deps.provider.fetch(schemaUrl);
     if (!r.ok) {
       // Optional slot → soft-empty (the FilterBar renders nothing). The schema
       // is the canonical declared-facet source; a 404 means the surface has no
@@ -539,7 +542,7 @@ export async function resolveData(
         data: await r.json(),
         schema: null,
         actionDef: null,
-        dataPath: sp,
+        dataPath: schemaUrl,
       },
     };
   }
@@ -557,25 +560,16 @@ export async function resolveData(
         }
       : block.binding;
 
-  const path = bffPathForBinding(effective, deps.app);
-  if (path === null) {
+  // Compute the calendar window from `now` (if present) and pass it to the
+  // provider so resolveData stays URL-logic-free (§14.8 / #492 P0).
+  const calWin = deps.now !== undefined ? calendarWindow(deps.now) : undefined;
+
+  const dataUrl = deps.provider.dataUrl(effective, {
+    calendarWindow: calWin,
+    filterParams: deps.filterParams,
+  });
+  if (dataUrl === null) {
     return { ok: false, status: 0, reason: "unresolvable binding" };
-  }
-
-  // The calendar feed needs a `start`/`end` window appended (the endpoint 422s
-  // without it). The window comes from the injected `now`; absent it, the bare
-  // path is fetched and fails closed on the upstream 422.
-  let dataPath = path;
-  if (effective.kind === "calendar" && deps.now !== undefined) {
-    const { start, end } = calendarWindow(deps.now);
-    dataPath = `${path}?start=${start}&end=${end}`;
-  }
-
-  // #308 — forward the URL facet/search params to a feed read so the SSR feed
-  // is server-FILTERED and paging rides `dataPath`. List + map are the only
-  // facet-honouring reads; the BFF drops anything undeclared.
-  if (effective.kind === "list" || effective.kind === "map") {
-    dataPath = appendQuery(dataPath, deps.filterParams);
   }
 
   // Fire the data fetch and the (best-effort) schema fetch in parallel. Data is
@@ -585,16 +579,16 @@ export async function resolveData(
   // rendering — it just yields `schema: null`. The `.then(ok, err)` neutralises
   // a schema network rejection so it can't surface as an unhandled rejection
   // when the data path returns early.
-  const schemaPath = schemaPathForBinding(effective, deps.app);
+  const schemaUrl = deps.provider.schemaUrl(effective);
   const schemaPromise =
-    schemaPath !== null
-      ? deps.fetchImpl(`/bff${schemaPath}`).then(
+    schemaUrl !== null
+      ? deps.provider.fetch(schemaUrl).then(
           (r) => r,
           () => null,
         )
       : null;
 
-  const resp = await deps.fetchImpl(`/bff${dataPath}`);
+  const resp = await deps.provider.fetch(dataUrl);
   if (!resp.ok) {
     return {
       ok: false,
@@ -618,5 +612,8 @@ export async function resolveData(
     }
   }
 
-  return { ok: true, value: { data, schema, actionDef: null, dataPath } };
+  return {
+    ok: true,
+    value: { data, schema, actionDef: null, dataPath: dataUrl },
+  };
 }

@@ -16,6 +16,7 @@ import {
   resolveData,
   type FetchLike,
 } from "../components/renderer/resolve-data";
+import { createPublicDataProvider } from "../components/renderer/data-provider";
 import type { Block } from "../components/renderer/types";
 
 // The civic ballot config, as the /edicoes/:id/votar page override supplies it.
@@ -292,8 +293,7 @@ describe("resolveData — `vote` composes a Ballot from two public reads", () =>
       },
     });
     const res = await resolveData(voteBlock({}), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(res.ok).toBe(true);
     if (!res.ok) return;
@@ -315,8 +315,7 @@ describe("resolveData — `vote` composes a Ballot from two public reads", () =>
       options: { ok: true, status: 200, body: { items: [] } },
     });
     const res = await resolveData(voteBlock({}), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(res.ok).toBe(true);
     if (res.ok)
@@ -329,8 +328,7 @@ describe("resolveData — `vote` composes a Ballot from two public reads", () =>
       options: { ok: true, status: 200 },
     });
     const res = await resolveData(voteBlock({ filter: null }), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(res.ok).toBe(false);
     expect(calls).toHaveLength(0); // never fetched a half-configured ballot
@@ -342,8 +340,7 @@ describe("resolveData — `vote` composes a Ballot from two public reads", () =>
       options: { ok: true, status: 200 },
     });
     const res = await resolveData(voteBlock({}, { open_phase: "voting" }), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(res.ok).toBe(false);
     expect(calls).toHaveLength(0);
@@ -355,8 +352,7 @@ describe("resolveData — `vote` composes a Ballot from two public reads", () =>
       options: { ok: true, status: 200, body: { items: [] } },
     });
     const res = await resolveData(voteBlock({}), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.status).toBe(404);
@@ -368,8 +364,7 @@ describe("resolveData — `vote` composes a Ballot from two public reads", () =>
       options: { ok: false, status: 502 },
     });
     const res = await resolveData(voteBlock({}), {
-      app: "civic-participation",
-      fetchImpl,
+      provider: createPublicDataProvider("civic-participation", fetchImpl),
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.status).toBe(502);
