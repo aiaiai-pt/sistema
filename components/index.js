@@ -102,6 +102,9 @@ export { default as PhaseTimeline } from "./PhaseTimeline.svelte";
 // encoding of its data); RankingBoard is a semantic ordered leaderboard.
 export { default as RankingBoard } from "./RankingBoard.svelte";
 export { default as ResultsChart } from "./ResultsChart.svelte";
+// EChart (#498) — the ECharts-backed sibling of ResultsChart: same data-table
+// a11y contract, lazy-loads echarts into its own async chunk.
+export { default as EChart } from "./EChart.svelte";
 
 // Account / preferences (#105 Phase 5) — the citizen account area's
 // notification-preferences panel: a toggle list over a citizen's subscriptions.

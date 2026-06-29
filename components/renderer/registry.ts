@@ -22,6 +22,7 @@ import {
 } from "./dispatch";
 import type { Block, OntologySchema, WidgetKind, WidgetProps } from "./types";
 
+import EChartWidget from "./EChartWidget.svelte";
 import ResultsChartWidget from "./ResultsChartWidget.svelte";
 import StatGridWidget from "./StatGridWidget.svelte";
 
@@ -67,6 +68,7 @@ const _entries: RegistryEntry<WidgetComponent>[] = [
   // DS base: the two clean widgets shipped by this package.
   byKind("stat-grid", "kpi", StatGridWidget),
   byTypeOnKind("results-chart", "aggregate", ResultsChartWidget),
+  byTypeOnKind("chart", "aggregate", EChartWidget),
 ];
 
 /**
