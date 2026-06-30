@@ -5,7 +5,11 @@
 // dropped by default; non-numeric value → 0) so a stray row never throws.
 
 import { describe, expect, it } from "vitest";
-import { toRankedItems } from "../components/renderer/aggregate";
+import {
+  toRankedItems,
+  toSeriesData,
+  type ChartSpec,
+} from "../components/renderer/aggregate";
 
 const ROWS = [
   { proposal_title: "Parque", total_votes: 5 },
@@ -92,5 +96,112 @@ describe("toRankedItems", () => {
 
   it("returns an empty array for no rows (soft-empty upstream)", () => {
     expect(toRankedItems([], {})).toEqual([]);
+  });
+});
+
+// #176 follow-on — multi-series projection. The contract: a public aggregate
+// VIEW's rows are projected to column-aligned `{ category, series[] }` per a
+// ChartSpec. Order/cap are the binding's job (server-side); this shaper is a
+// pure column projection that never re-sorts. Blank-category rows are dropped
+// from EVERY series (columns stay aligned); non-numeric cells coerce to 0.
+
+const STATUS_ROWS = [
+  { status: "Open", open_count: 12, resolved_count: 3, avg_db: 41 },
+  { status: "In progress", open_count: 5, resolved_count: 7, avg_db: 38 },
+  { status: "Resolved", open_count: 0, resolved_count: 31, avg_db: 44 },
+];
+
+describe("toSeriesData", () => {
+  it("projects one category column + multiple value columns, index-aligned", () => {
+    const spec: ChartSpec = {
+      category: { column: "status" },
+      series: [
+        { column: "open_count", type: "bar", name: "Open" },
+        { column: "resolved_count", type: "bar", name: "Resolved" },
+      ],
+    };
+    const out = toSeriesData(STATUS_ROWS, spec);
+    expect(out.category).toEqual(["Open", "In progress", "Resolved"]);
+    expect(out.series).toEqual([
+      { name: "Open", type: "bar", data: [12, 5, 0] },
+      { name: "Resolved", type: "bar", data: [3, 7, 31] },
+    ]);
+  });
+
+  it("carries stack + axis through and defaults series name to the column", () => {
+    const spec: ChartSpec = {
+      category: { column: "status" },
+      series: [
+        { column: "open_count", type: "bar", stack: "counts" },
+        { column: "avg_db", type: "line", axis: "secondary" },
+      ],
+    };
+    const out = toSeriesData(STATUS_ROWS, spec);
+    expect(out.series[0]).toEqual({
+      name: "open_count",
+      type: "bar",
+      data: [12, 5, 0],
+      stack: "counts",
+    });
+    expect(out.series[1]).toEqual({
+      name: "avg_db",
+      type: "line",
+      data: [41, 38, 44],
+      axis: "secondary",
+    });
+  });
+
+  it("drops blank-category rows from every series so columns stay aligned", () => {
+    const rows = [
+      { status: "Open", open_count: 12, resolved_count: 3 },
+      { status: "", open_count: 99, resolved_count: 99 },
+      { status: "Resolved", open_count: 0, resolved_count: 31 },
+    ];
+    const out = toSeriesData(rows, {
+      category: { column: "status" },
+      series: [
+        { column: "open_count", type: "bar" },
+        { column: "resolved_count", type: "bar" },
+      ],
+    });
+    expect(out.category).toEqual(["Open", "Resolved"]);
+    expect(out.series[0].data).toEqual([12, 0]);
+    expect(out.series[1].data).toEqual([3, 31]);
+  });
+
+  it("coerces non-numeric / missing cells to 0 (never throws)", () => {
+    const rows = [
+      { status: "A", n: 4 },
+      { status: "B", n: "7" },
+      { status: "C", n: "n/a" },
+      { status: "D" },
+    ];
+    const out = toSeriesData(rows, {
+      category: { column: "status" },
+      series: [{ column: "n", type: "bar" }],
+    });
+    expect(out.series[0].data).toEqual([4, 7, 0, 0]);
+  });
+
+  it("honours a defensive client-side limit cap", () => {
+    const out = toSeriesData(STATUS_ROWS, {
+      category: { column: "status" },
+      series: [{ column: "open_count", type: "bar" }],
+      limit: 2,
+    });
+    expect(out.category).toEqual(["Open", "In progress"]);
+    expect(out.series[0].data).toEqual([12, 5]);
+  });
+
+  it("returns empty when there is no category column or no series", () => {
+    expect(
+      toSeriesData(STATUS_ROWS, {
+        category: { column: "" },
+        series: [{ column: "open_count", type: "bar" }],
+      }),
+    ).toEqual({ category: [], series: [] });
+    expect(
+      toSeriesData(STATUS_ROWS, { category: { column: "status" }, series: [] }),
+    ).toEqual({ category: [], series: [] });
   });
 });
