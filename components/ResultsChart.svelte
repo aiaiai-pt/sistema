@@ -1,46 +1,53 @@
 <!--
   @component ResultsChart
 
-  A horizontal bar chart for a single categorical aggregate (votes per proposal,
-  reports per category, consumption per meter) that SHIPS ITS DATA TABLE. The
-  visual bars are decorative (`aria-hidden`); the accompanying `<table>` is the
-  accessible source of truth, always rendered — so the data is reachable with CSS
-  off, at any zoom, and to assistive tech. This is a hard requirement (WCAG /
-  ARTE: a chart must not be the only encoding of its data), not a toggle.
+  A dependency-free (pure-CSS) categorical chart that SHIPS ITS DATA TABLE — the
+  SSR / no-JS fallback sibling of `EChart`. The visual bars are decorative
+  (`aria-hidden`); the accompanying `<table>` is the accessible source of truth,
+  always rendered — so the data is reachable with CSS off, at any zoom, and to
+  assistive tech. This is a hard requirement (WCAG / ARTE: a chart must not be the
+  only encoding of its data), not a toggle.
 
-  Vertical-agnostic: `items` is already shaped to `{ label, value }`; the consumer
-  (a portal widget over a public aggregate VIEW) maps the view columns and orders
-  the rows. Dependency-free (pure CSS bars) so it stays a11y- and SSR-clean.
+  Declarative + multi-series (#176 follow-on): consumes the same column-aligned
+  `{ category, series[] }` (`ChartData`) as `EChart`. The data TABLE renders one
+  value column per series (full fidelity, no JS); the CSS bars render the FIRST
+  series only (a simple horizontal bar is the honest no-JS visual — stacked /
+  dual-axis geometry needs the canvas). Back-compat: legacy `items={[{label,
+  value}]}` synthesises a single series.
+
   Consumes semantic tokens so dark / high-contrast schemes (#244) ride through.
-  Soft-empty: no items → renders nothing.
+  Soft-empty: no series/category → renders nothing.
 
   @example
   <ResultsChart
     caption="Votes per proposal"
     labelHeader="Proposal"
-    valueHeader="Votes"
-    items={[
-      { label: "Ciclovia da Marginal", value: 1284 },
-      { label: "Parque infantil de Gaia", value: 967 },
-    ]}
+    category={["Ciclovia", "Parque"]}
+    series={[{ name: "Votes", type: "bar", data: [1284, 967] }]}
     locale="pt"
   />
 -->
 <script module>
   /**
    * @typedef {{ label: string, value: number }} ChartItem
+   * @typedef {import('./renderer/aggregate').ChartData} ChartData
+   * @typedef {import('./renderer/aggregate').SeriesData} SeriesData
    */
 </script>
 
 <script>
   let {
-    /** @type {ChartItem[]} The categorical rows to plot. */
+    /** @type {string[]} The category ticks. */
+    category = [],
+    /** @type {SeriesData[]} The series (≥1; the table shows all, bars show #1). */
+    series = [],
+    /** @type {ChartItem[]} BACK-COMPAT: single-series `{label,value}` rows. */
     items = [],
     /** @type {string} Accessible caption / heading for the chart + table. */
     caption = "Results",
     /** @type {string} Column header for the category (localize it). */
     labelHeader = "Item",
-    /** @type {string} Column header for the value (localize it). */
+    /** @type {string} Header for the (legacy single) value column (localize it). */
     valueHeader = "Value",
     /** @type {string} BCP-47 locale for number formatting. */
     locale = "en",
@@ -49,8 +56,26 @@
     ...rest
   } = $props();
 
+  /** @type {ChartData} */
+  const chartData = $derived.by(() => {
+    if (series.length > 0) return { category, series };
+    if (items.length === 0) return { category: [], series: [] };
+    return {
+      category: items.map((it) => it.label),
+      series: [
+        { name: valueHeader, type: /** @type {SeriesData["type"]} */ ("bar"), data: items.map((it) => it.value) },
+      ],
+    };
+  });
+
+  const hasData = $derived(
+    chartData.series.length > 0 && chartData.category.length > 0,
+  );
+
+  // CSS bars visualise the FIRST series only.
+  const barSeries = $derived(chartData.series[0]);
   const max = $derived(
-    items.reduce((m, it) => (it.value > m ? it.value : m), 0),
+    (barSeries?.data ?? []).reduce((m, v) => (v > m ? v : m), 0),
   );
 
   /** @param {number} value @returns {string} */
@@ -64,39 +89,44 @@
   }
 </script>
 
-{#if items.length > 0}
+{#if hasData}
   <figure class="results-chart {className}" aria-label={caption} {...rest}>
-    <!-- Decorative visual: the data lives in the table below. -->
+    <!-- Decorative visual (first series): the full data lives in the table below. -->
     <div class="results-chart-bars" aria-hidden="true">
-      {#each items as item, i (item.label + i)}
+      {#each chartData.category as cat, i (cat + i)}
         <div class="results-bar-row">
-          <span class="results-bar-label">{item.label}</span>
+          <span class="results-bar-label">{cat}</span>
           <span class="results-bar-track">
             <span
               class="results-bar-fill"
-              style="inline-size: {pct(item.value)}%"
+              style="inline-size: {pct(barSeries?.data[i] ?? 0)}%"
             ></span>
           </span>
-          <span class="results-bar-value">{fmt(item.value)}</span>
+          <span class="results-bar-value">{fmt(barSeries?.data[i] ?? 0)}</span>
         </div>
       {/each}
     </div>
 
-    <!-- Accessible source of truth — always rendered (ARTE #3/#6). Named via
-         aria-label, not a <caption>: position:absolute/clip is unreliable on a
-         display:table-caption element (it leaks visibly in some engines). -->
+    <!-- Accessible source of truth — always rendered (ARTE #3/#6), one value
+         column per series. Named via aria-label, not a <caption>:
+         position:absolute/clip is unreliable on a display:table-caption element
+         (it leaks visibly in some engines). -->
     <table class="results-chart-table" aria-label={caption}>
       <thead>
         <tr>
           <th scope="col">{labelHeader}</th>
-          <th scope="col">{valueHeader}</th>
+          {#each chartData.series as s (s.name)}
+            <th scope="col">{s.name}</th>
+          {/each}
         </tr>
       </thead>
       <tbody>
-        {#each items as item, i (item.label + i)}
+        {#each chartData.category as cat, r (cat + r)}
           <tr>
-            <th scope="row">{item.label}</th>
-            <td>{fmt(item.value)}</td>
+            <th scope="row">{cat}</th>
+            {#each chartData.series as s (s.name)}
+              <td>{fmt(s.data[r] ?? 0)}</td>
+            {/each}
           </tr>
         {/each}
       </tbody>
