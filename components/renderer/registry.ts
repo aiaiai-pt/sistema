@@ -22,9 +22,7 @@ import {
 } from "./dispatch";
 import type { Block, OntologySchema, WidgetKind, WidgetProps } from "./types";
 
-import DonutChartWidget from "./DonutChartWidget.svelte";
 import EChartWidget from "./EChartWidget.svelte";
-import LineChartWidget from "./LineChartWidget.svelte";
 import ResultsChartWidget from "./ResultsChartWidget.svelte";
 import StatGridWidget from "./StatGridWidget.svelte";
 
@@ -67,15 +65,16 @@ export function byKind(
  * appended in call order. Exported (readonly view) for introspection / testing.
  */
 const _entries: RegistryEntry<WidgetComponent>[] = [
-  // DS base: the two clean widgets shipped by this package.
+  // DS base: the clean widgets shipped by this package.
   byKind("stat-grid", "kpi", StatGridWidget),
   byTypeOnKind("results-chart", "aggregate", ResultsChartWidget),
+  // #176 follow-on — ONE ECharts widget renders any chart spec (supersedes ADR
+  // 0003 #4). The per-kind `line-chart` / `donut-chart` keys were a stopgap;
+  // in the declarative model the kind is PER-SERIES (a series carries its own
+  // bar/line/area/scatter/pie type), so EChartWidget renders every shape and
+  // the kind-specific registry keys + wrapper components are retired.
+  // `results-chart` stays as the SSR / no-JS a11y fallback key.
   byTypeOnKind("chart", "aggregate", EChartWidget),
-  // #176 Tier 1 — chart KINDS as registry entries, so the authoring `type`
-  // picker is a real chart picker. All three ECharts kinds share the same
-  // aggregate data path + a11y data table; only the rendered geometry differs.
-  byTypeOnKind("line-chart", "aggregate", LineChartWidget),
-  byTypeOnKind("donut-chart", "aggregate", DonutChartWidget),
 ];
 
 /**
