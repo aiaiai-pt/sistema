@@ -115,7 +115,7 @@
       <thead>
         <tr>
           <th scope="col">{labelHeader}</th>
-          {#each chartData.series as s (s.name)}
+          {#each chartData.series as s, si (si)}
             <th scope="col">{s.name}</th>
           {/each}
         </tr>
@@ -124,7 +124,7 @@
         {#each chartData.category as cat, r (cat + r)}
           <tr>
             <th scope="row">{cat}</th>
-            {#each chartData.series as s (s.name)}
+            {#each chartData.series as s, si (si)}
               <td>{fmt(s.data[r] ?? 0)}</td>
             {/each}
           </tr>
