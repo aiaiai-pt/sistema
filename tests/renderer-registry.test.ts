@@ -24,6 +24,9 @@ vi.mock("../components/renderer/ResultsChartWidget.svelte", () => ({
 vi.mock("../components/renderer/EChartWidget.svelte", () => ({
   default: "EChartWidget-stub",
 }));
+vi.mock("../components/renderer/MetabaseEmbedWidget.svelte", () => ({
+  default: "MetabaseEmbedWidget-stub",
+}));
 
 import {
   resolveWidget,
@@ -46,6 +49,12 @@ describe("DS base registry — shipped widgets (#492)", () => {
     const m = resolveWidget(block("kpi"));
     expect(m?.key).toBe("stat-grid");
     expect(m?.payload).toBe("StatGridWidget-stub");
+  });
+
+  it("routes embed → metabase-embed (MetabaseEmbedWidget) — #517", () => {
+    const m = resolveWidget(block("embed"));
+    expect(m?.key).toBe("metabase-embed");
+    expect(m?.payload).toBe("MetabaseEmbedWidget-stub");
   });
 
   it("routes aggregate (default) → ranking-board is NOT in the DS base; kpi → stat-grid", () => {
