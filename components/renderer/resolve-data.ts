@@ -35,6 +35,9 @@ export const PRESENTATIONAL_KINDS: ReadonlySet<WidgetKind> =
   new Set<WidgetKind>([
     "hero",
     "lookup",
+    // #517 — the Metabase embed renders from a host-resolved `props.src`; it has
+    // no DS-fetched data path, so short-circuit it like the other content kinds.
+    "embed",
     "feature-grid",
     "cta",
     "media-text",

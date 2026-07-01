@@ -14,6 +14,11 @@
     label?: string;
     value?: string;
     variant?: string;
+    /** #517 — optional Phosphor icon NAME (kebab-case, e.g. "chart-bar"),
+     * rendered via the Phosphor web font. Lets a dashboard KPI block carry its
+     * per-card icon through the DS widget, so KPI renders via `resolveWidget`
+     * like every other block (no host-side StatCard special-case). */
+    icon?: string;
   }
 
   const view = $derived((data ?? {}) as Record<string, unknown>);
@@ -24,10 +29,21 @@
         ? props.stats
         : []) as Stat[],
   );
+
+  // Phosphor web-font class names are kebab-case (`ph ph-chart-bar`); keep only
+  // the safe charset so a bad name can't leak into `class` (defensive — attribute
+  // values are escaped, but this keeps the class well-formed).
+  const iconClass = (name: string): string => `ph ph-${name.replace(/[^a-z0-9-]/gi, "")}`;
 </script>
 
 <StatGrid>
   {#each stats as stat (stat.label)}
-    <StatCard label={stat.label} value={stat.value} variant={stat.variant} />
+    {#snippet cardIcon()}<i class={iconClass(stat.icon ?? "")} aria-hidden="true"></i>{/snippet}
+    <StatCard
+      label={stat.label}
+      value={stat.value}
+      variant={stat.variant}
+      icon={stat.icon ? cardIcon : undefined}
+    />
   {/each}
 </StatGrid>

@@ -22,6 +22,12 @@ export type WidgetKind =
   | "calendar"
   | "kpi"
   | "content"
+  // #517 (atelier) — a Metabase analytics embed. Presentational: the DS
+  // `MetabaseEmbedWidget` renders an `<iframe>` from a HOST-resolved `props.src`
+  // (the signed/proxy URL), so the DS stays presentation-only and carries no
+  // metabase auth. Lets a dashboard/portal `Block[]` hold embeds uniformly
+  // (resolved via `resolveWidget`, not a host special-case).
+  | "embed"
   | "vote"
   | "status"
   | "forms"

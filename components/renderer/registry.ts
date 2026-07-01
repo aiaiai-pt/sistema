@@ -23,6 +23,7 @@ import {
 import type { Block, OntologySchema, WidgetKind, WidgetProps } from "./types";
 
 import EChartWidget from "./EChartWidget.svelte";
+import MetabaseEmbedWidget from "./MetabaseEmbedWidget.svelte";
 import ResultsChartWidget from "./ResultsChartWidget.svelte";
 import StatGridWidget from "./StatGridWidget.svelte";
 
@@ -75,6 +76,9 @@ const _entries: RegistryEntry<WidgetComponent>[] = [
   // the kind-specific registry keys + wrapper components are retired.
   // `results-chart` stays as the SSR / no-JS a11y fallback key.
   byTypeOnKind("chart", "aggregate", EChartWidget),
+  // #517 (atelier) — Metabase embed on the unified Block[] grid. Presentation-
+  // only (renders `props.src`); one kind-generic entry, no `type` ranking.
+  byKind("metabase-embed", "embed", MetabaseEmbedWidget),
 ];
 
 /**
