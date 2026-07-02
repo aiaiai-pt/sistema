@@ -20,6 +20,22 @@ const config = {
     alias: {
       $ui: path.resolve(__dirname, "../components"),
     },
+    prerender: {
+      // Component demo pages render nav/link components with REALISTIC hrefs
+      // (/ocorrencias, /participacao/…) that are demo DATA, not site routes —
+      // the crawler must not fail the build on them. Scoped to demo-page
+      // referrers so a genuinely broken link in the docs still fails loudly.
+      handleHttpError: ({ status, referrer, message }) => {
+        if (status === 404 && referrer?.startsWith("/components/")) return;
+        throw new Error(message);
+      },
+      // Same posture for in-page anchors: demo markup ships fragment hrefs
+      // (#brand …) that are illustrative, not a demo-page table of contents.
+      handleMissingId: ({ path, message }) => {
+        if (path.startsWith("/components/")) return;
+        throw new Error(message);
+      },
+    },
   },
 };
 
