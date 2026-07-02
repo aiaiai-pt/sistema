@@ -161,6 +161,11 @@
       flex-direction: column;
       align-items: stretch;
       min-width: var(--nav-service-dropdown-min-width);
+      /* #507 overflow fix: many sections used to grow the dropdown past the
+         viewport and cover the page — cap it and scroll internally instead. */
+      max-width: calc(100vw - 2 * var(--content-padding-x));
+      max-height: min(70vh, 28rem);
+      overflow-y: auto;
       padding: var(--space-2xs);
       background: var(--color-surface);
       border: var(--border-width) solid var(--color-border);
