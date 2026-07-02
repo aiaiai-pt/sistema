@@ -229,6 +229,11 @@
      rendered standalone, without SiteHeader's unified menu). */
   --nav-service-dropdown-min-width: 12rem;
 
+  /* MegaMenu (#507) — category column sizing + the panel's internal-scroll cap
+     so an 8-category panel scrolls inside itself instead of covering the page. */
+  --nav-mega-column-min-width: 13rem;
+  --nav-mega-panel-max-height: min(70vh, 32rem);
+
   /* ═══════════════════════════════════════════════
      DATA DISPLAY
      ═══════════════════════════════════════════════ */

@@ -36,6 +36,7 @@ export { default as PageContainer } from "./PageContainer.svelte";
 // Public site shell (locked a11y chrome — citizen portal, #7/#71)
 export { default as AppFrame } from "./AppFrame.svelte";
 export { default as SiteHeader } from "./SiteHeader.svelte";
+export { default as MegaMenu } from "./MegaMenu.svelte";
 export { default as SiteFooter } from "./SiteFooter.svelte";
 export { default as SkipLink } from "./SkipLink.svelte";
 export { default as TextSizeAdjuster } from "./TextSizeAdjuster.svelte";
