@@ -5,6 +5,8 @@
   import Button from "./Button.svelte";
   import Alert from "./Alert.svelte";
   import CodeBlock from "./CodeBlock.svelte";
+  import Combobox from "./Combobox.svelte";
+  import DateTimePicker from "./DateTimePicker.svelte";
   import Input from "./Input.svelte";
   import MapPicker from "./MapPicker.svelte";
   import FileUpload from "./FileUpload.svelte";
@@ -69,6 +71,17 @@
      *  the attachment_keys payload contract; the CONSUMER owns transport/auth
      *  (FileUpload philosophy). Omitted → file params render disabled. */
     uploadFile?: (file: File) => Promise<{ key: string } | { error: string }>;
+    /** Lookup for `object_reference`-typed parameters (#629 PR1b): receives the
+     *  parameter's `object_type` (the entity type code), the operator's query,
+     *  and the parameter's optional `object_filter`; returns picker items. The
+     *  renderer owns the Combobox UI + value plumbing; the CONSUMER owns
+     *  transport/auth/tenancy (the uploadFile seam pattern — the DS stays
+     *  presentation-only). Omitted → object_reference params render disabled. */
+    searchEntities?: (
+      typeCode: string,
+      query: string,
+      filter?: Record<string, string>,
+    ) => Promise<SelectOption[]>;
     /** Environment-specific captcha (e.g. Turnstile), rendered above the button
      *  in submit modes. */
     captcha?: Snippet;
@@ -112,6 +125,7 @@
     schema = null,
     onApply = undefined,
     uploadFile = undefined,
+    searchEntities = undefined,
     captcha = undefined,
     submitLabel = "Submit",
     boundary = undefined,
@@ -264,14 +278,20 @@
   }
 
   function sectionName(parameter: Entity): string {
-    const visibility = parameter.visibility;
-    if (visibility && typeof visibility === "object" && !Array.isArray(visibility)) {
-      const section = (visibility as Record<string, unknown>).section;
-      if (section) return String(section);
-    }
+    // Mirrors the BFF `_parameter_section` precedence (action_schema.py):
+    // ui_schema.section_label → ui_schema.section → visibility.section_label
+    // → visibility.section → "Details". `||` (not `??`) to match Python `or`
+    // falsy-chaining — an empty string falls through to the next rung.
     const uiSchema = parameter.ui_schema;
     if (uiSchema && typeof uiSchema === "object" && !Array.isArray(uiSchema)) {
-      const section = (uiSchema as Record<string, unknown>).section;
+      const row = uiSchema as Record<string, unknown>;
+      const section = row.section_label || row.section;
+      if (section) return String(section);
+    }
+    const visibility = parameter.visibility;
+    if (visibility && typeof visibility === "object" && !Array.isArray(visibility)) {
+      const row = visibility as Record<string, unknown>;
+      const section = row.section_label || row.section;
       if (section) return String(section);
     }
     return "Details";
@@ -400,6 +420,54 @@
     }
   }
 
+  // `object_reference` picker state (#629 PR1b): per-parameter items + loading
+  // for the lazy-search Combobox. A per-key generation counter drops stale
+  // responses (the host's validateGen pattern) so a slow early query can't
+  // clobber a fast later one.
+  let referenceItems = $state<Record<string, SelectOption[]>>({});
+  let referenceLoading = $state<Record<string, boolean>>({});
+  const referenceSearchGen: Record<string, number> = {};
+
+  function objectFilter(parameter: Entity): Record<string, string> | undefined {
+    const filter = parameter.object_filter;
+    return filter && typeof filter === "object" && !Array.isArray(filter)
+      ? (filter as Record<string, string>)
+      : undefined;
+  }
+
+  async function handleReferenceSearch(parameter: Entity, query: string) {
+    if (!searchEntities) return;
+    const key = parameterKey(parameter);
+    const gen = (referenceSearchGen[key] = (referenceSearchGen[key] ?? 0) + 1);
+    referenceLoading = { ...referenceLoading, [key]: true };
+    try {
+      const items = await searchEntities(
+        String(parameter.object_type ?? ""),
+        query,
+        objectFilter(parameter),
+      );
+      if (referenceSearchGen[key] !== gen) return;
+      referenceItems = { ...referenceItems, [key]: Array.isArray(items) ? items : [] };
+    } catch {
+      if (referenceSearchGen[key] === gen) referenceItems = { ...referenceItems, [key]: [] };
+    } finally {
+      if (referenceSearchGen[key] === gen)
+        referenceLoading = { ...referenceLoading, [key]: false };
+    }
+  }
+
+  // `datetime` params keep an ISO 8601 STRING in the value bag (the platform's
+  // datetime wire vocabulary — `$now` resolves to one) so the payload stays
+  // plain JSON; the DateTimePicker speaks Date on its prop edge.
+  function datetimeValue(value: unknown): Date | null {
+    if (value instanceof Date) return value;
+    if (typeof value === "string" && value) {
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) return parsed;
+    }
+    return null;
+  }
+
   function removeFile(key: string, storageKey: string) {
     fileUploads = {
       ...fileUploads,
@@ -489,6 +557,33 @@
       ]}
       onchange={(value: string) => setValue(key, value === "true")}
       aria-required={ariaRequired}
+    />
+  {:else if type === "datetime"}
+    <!-- `datetime` parameter (#629 PR1b): the DS date+time picker. The value
+         bag carries an ISO 8601 string (see datetimeValue). `datetime` is the
+         platform's one wire token today (sheets + ActionParam docs). -->
+    <DateTimePicker
+      label={String(parameter.label ?? key)}
+      value={datetimeValue(values[key])}
+      readonly={!editable}
+      onchange={(date: Date) => setValue(key, date.toISOString())}
+    />
+  {:else if type === "object_reference"}
+    <!-- `object_reference` parameter (#629 PR1b): lazy-search Combobox over
+         the entity type named by `object_type`; `object_filter` rides the
+         injected searchEntities seam. No seam → disabled (the file-param
+         convention for a missing consumer transport). -->
+    <Combobox
+      label={String(parameter.label ?? key)}
+      items={referenceItems[key] ?? []}
+      value={String(values[key] ?? "")}
+      placeholder={typeof parameter.object_type === "string" && parameter.object_type
+        ? `Search ${parameter.object_type}...`
+        : "Search..."}
+      disabled={!searchEntities || !editable}
+      loading={referenceLoading[key] ?? false}
+      onsearch={(query: string) => handleReferenceSearch(parameter, query)}
+      onchange={(value: string) => setValue(key, value)}
     />
   {:else if type === "file"}
     <!-- `file` parameter (#75 M5 slice 4b): upload-as-you-attach. The keys
