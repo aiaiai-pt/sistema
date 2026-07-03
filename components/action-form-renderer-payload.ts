@@ -46,6 +46,12 @@ export interface BuildArgs {
    *  attachment contract: a TOP-LEVEL `attachment_keys` sibling, never part
    *  of raw_values (the form schema doesn't validate file params). */
   attachmentKeys?: string[];
+  /** #629 follow-up — the SAME storage keys, attributed to the file param
+   *  each was uploaded against (`{param_key: [keys]}`). Additive: consumers
+   *  that only read the flat `attachment_keys` are unaffected; consumers
+   *  that must map keys back to parameters (the staff execute adapter) read
+   *  this instead of guessing positionally. */
+  attachmentsByParam?: Record<string, string[]>;
   schemaVersion: string | null;
   mode: RendererMode;
 }
@@ -53,6 +59,8 @@ export interface BuildArgs {
 export interface ActionPayload {
   /** Uploaded file storage keys (file-typed params) — absent when none. */
   attachment_keys?: string[];
+  /** Per-param attribution of the same keys — absent when none. */
+  attachments_by_param?: Record<string, string[]>;
   source: string;
   action: {
     id: string | null;
@@ -108,7 +116,7 @@ function pickScope(targetConfig: Record<string, unknown>): Record<string, unknow
 }
 
 export function buildActionPayload(args: BuildArgs): ActionPayload {
-  const { action, placement, targetConfig, sourceSchema, rawValues, schemaVersion, mode, attachmentKeys } = args;
+  const { action, placement, targetConfig, sourceSchema, rawValues, schemaVersion, mode, attachmentKeys, attachmentsByParam } = args;
 
   const sourceFromSchema = nullableString(sourceSchema.source);
   const targetModel =
@@ -151,6 +159,9 @@ export function buildActionPayload(args: BuildArgs): ActionPayload {
     },
     ...(attachmentKeys && attachmentKeys.length > 0
       ? { attachment_keys: attachmentKeys }
+      : {}),
+    ...(attachmentsByParam && Object.keys(attachmentsByParam).length > 0
+      ? { attachments_by_param: attachmentsByParam }
       : {}),
   };
 }

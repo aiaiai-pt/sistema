@@ -252,3 +252,37 @@ describe("sectionName precedence (BFF _parameter_section parity)", () => {
     expect(sectionHeadings(t)).toEqual(["Visibility Wins"]);
   });
 });
+
+describe("admin-execute chrome (#629 follow-up — 0.44.1)", () => {
+  const PARAMS = [
+    { key: "comment", label: "Comment", type: "string", required: true },
+    { key: "note", label: "Note", type: "string", required: false },
+  ];
+
+  it("suppresses the renderer header (the HOST container owns the heading)", () => {
+    const t = render({ parameters: PARAMS });
+    expect(t.querySelector(".renderer-header")).toBeNull();
+    expect(t.textContent).not.toContain("Placement preview");
+  });
+
+  it("field meta is the quiet Required hint, never the type-debug line", () => {
+    const t = render({ parameters: PARAMS });
+    const metas = [...t.querySelectorAll(".field-meta")].map((m) => m.textContent?.trim());
+    expect(metas).toEqual(["Required"]);
+    expect(t.textContent).not.toContain("/ string");
+  });
+
+  it("admin-preview keeps the operator chrome (parity)", () => {
+    const t = render({ parameters: PARAMS, mode: "admin-preview" });
+    expect(t.textContent).toContain("Placement preview");
+    expect(t.textContent).toContain("Required / string");
+  });
+
+  it("public-submit is untouched (header shown, quiet hint)", () => {
+    const t = render({ parameters: PARAMS, mode: "public-submit" });
+    expect(t.querySelector(".renderer-header")).not.toBeNull();
+    expect(t.textContent).not.toContain("Placement preview");
+    const metas = [...t.querySelectorAll(".field-meta")].map((m) => m.textContent?.trim());
+    expect(metas).toEqual(["Required"]);
+  });
+});

@@ -479,6 +479,16 @@
     return Object.values(fileUploads).flatMap((list) => list.map((f) => f.key));
   }
 
+  /** #629 follow-up — the same keys ATTRIBUTED to the param each was
+   *  uploaded against, so consumers never have to guess positionally. */
+  function attachmentsByParam(): Record<string, string[]> {
+    const out: Record<string, string[]> = {};
+    for (const [paramKey, list] of Object.entries(fileUploads)) {
+      if (list.length) out[paramKey] = list.map((f) => f.key);
+    }
+    return out;
+  }
+
   function buildPayload(): Record<string, unknown> {
     return buildActionPayload({
       action: renderedAction ?? null,
@@ -487,6 +497,7 @@
       sourceSchema: sourceSchema(),
       rawValues: visibleValueBag(),
       attachmentKeys: allAttachmentKeys(),
+      attachmentsByParam: attachmentsByParam(),
       schemaVersion: schema?.schema_version ?? null,
       mode,
     }) as unknown as Record<string, unknown>;
@@ -662,8 +673,10 @@
       aria-required={ariaRequired}
     />
   {/if}
-  {#if mode === "public-submit"}
-    <!-- Citizen-facing: just a quiet required hint, no operator type debug. -->
+  {#if isSubmitMode}
+    <!-- EXECUTE surfaces (citizen public-submit AND staff admin-execute,
+         #629 follow-up): just a quiet required hint — the "Required / type"
+         line is operator DEBUG chrome, preview modes only. -->
     {#if parameter.required}<p class="field-meta">Required</p>{/if}
   {:else}
     <p class="field-meta">
@@ -675,8 +688,12 @@
 <div class="renderer" data-testid={`action-form-renderer-${mode}`} data-layout={resolvedLayout.key}>
   <!-- Wizard pagination (#105 P6): the ServiceFlow shell owns the step
        heading, so the renderer's own action-title header is suppressed when a
-       section is active to avoid a duplicate heading per step. -->
-  {#if activeSectionKey == null}
+       section is active to avoid a duplicate heading per step.
+       admin-execute (#629 follow-up): the HOST container (drawer/modal) owns
+       the action heading — the renderer's header would duplicate it, and the
+       "Placement preview" eyebrow + placement Badge are authoring chrome that
+       has no meaning on an execute surface. -->
+  {#if activeSectionKey == null && mode !== "admin-execute"}
     <div class="renderer-header">
       <div>
         <!-- The placement-preview eyebrow + surface badge are operator chrome —
