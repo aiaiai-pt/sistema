@@ -18,6 +18,11 @@
   <Panel open persistent side="left" title="History">
     Always-visible sidebar content
   </Panel>
+
+  @example Modeless drawer (fixed slide-over, page behind stays interactive)
+  <Panel open modeless title="Execute action" onclose={() => showAction = false}>
+    Action form here — focus moves to the heading, Escape closes while inside
+  </Panel>
 -->
 <script module>
   let _panelUid = 0;
@@ -40,6 +45,14 @@
     side = 'right',
     /** @type {boolean} When true, removes backdrop and focus trap. Panel becomes an inline layout element. */
     persistent = false,
+    /** @type {boolean} Modeless drawer (#629): stays a FIXED slide-over like the
+     * default mode, but with no backdrop, no aria-modal, and no focus trap —
+     * the page behind remains browsable/interactive. On open the panel is a
+     * labelled region and focus MOVES to its heading (announced, not trapped);
+     * Escape closes only while focus is inside the panel; focus returns to the
+     * previously-focused element on close (the host owns any deep-link
+     * fallback). Ignored when `persistent` is set. */
+    modeless = false,
     /** @type {boolean} When false, body doesn't scroll — children manage their own overflow. */
     scrollBody = true,
     /** @type {(() => void) | undefined} */
@@ -62,10 +75,17 @@
 
   const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
+  // Resolved mode: persistent wins over modeless (persistent consumers are
+  // inline layout elements — a fixed slide-over would be a breaking change).
+  const isPersistent = $derived(persistent);
+  const isModeless = $derived(modeless && !persistent);
+  const isDialog = $derived(!persistent && !modeless);
+
   // Focus trap: save previous focus, trap Tab, restore on close
-  // Skipped in persistent mode (panel is inline, not modal)
+  // Skipped in persistent and modeless modes (persistent is inline; modeless
+  // deliberately leaves the page behind reachable — focus moved, not trapped)
   $effect(() => {
-    if (!open || !panelEl || persistent) return;
+    if (!open || !panelEl || !isDialog) return;
 
     const previouslyFocused = /** @type {HTMLElement | null} */ (document.activeElement);
 
@@ -107,11 +127,41 @@
   function handleBackdropClick() {
     onclose?.();
   }
+
+  // Modeless drawer (#629): initial focus to the panel heading (announces the
+  // labelled region without trapping), Escape scoped to the PANEL element so
+  // it closes only while focus is inside, previous focus restored on close.
+  $effect(() => {
+    if (!open || !panelEl || !isModeless) return;
+
+    const previouslyFocused = /** @type {HTMLElement | null} */ (document.activeElement);
+
+    const heading = /** @type {HTMLElement | null} */ (
+      panelEl.querySelector('.panel-heading-focus')
+    );
+    heading?.focus();
+
+    /** @param {KeyboardEvent} e */
+    function handlePanelKeydown(e) {
+      if (e.key === 'Escape') onclose?.();
+    }
+
+    panelEl.addEventListener('keydown', handlePanelKeydown);
+
+    return () => {
+      panelEl?.removeEventListener('keydown', handlePanelKeydown);
+      // Deep-link entries have no meaningful previous focus (body) — the HOST
+      // owns that fallback (e.g. page H1); restoring a disconnected node is a
+      // no-op by contract.
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+    };
+  });
 </script>
 
 {#if open}
-  <!-- Backdrop (hidden in persistent mode) -->
-  {#if !persistent}
+  <!-- Backdrop (dialog mode only — persistent is inline, modeless leaves the
+       page behind visible and interactive) -->
+  {#if isDialog}
     <div
       class="panel-backdrop"
       onclick={handleBackdropClick}
@@ -122,18 +172,25 @@
   <!-- Panel -->
   <aside
     bind:this={panelEl}
-    class="panel panel-{width} panel-side-{side} {persistent ? 'panel-persistent' : ''} {className}"
-    role={persistent ? 'complementary' : 'dialog'}
-    aria-modal={persistent ? undefined : 'true'}
+    class="panel panel-{width} panel-side-{side} {isPersistent ? 'panel-persistent' : ''} {className}"
+    role={isPersistent ? 'complementary' : isModeless ? 'region' : 'dialog'}
+    aria-modal={isDialog ? 'true' : undefined}
     aria-label={!header ? title : undefined}
     aria-labelledby={header ? headerId : undefined}
     {...rest}
   >
     <div class="panel-header">
       {#if header}
-        <div id={headerId}>{@render header()}</div>
+        <div
+          id={headerId}
+          class="panel-heading-focus"
+          tabindex={isModeless ? -1 : undefined}
+        >{@render header()}</div>
       {:else if title}
-        <h2 class="panel-title">{title}</h2>
+        <h2
+          class="panel-title panel-heading-focus"
+          tabindex={isModeless ? -1 : undefined}
+        >{title}</h2>
       {/if}
       {#if !persistent}
         <button
