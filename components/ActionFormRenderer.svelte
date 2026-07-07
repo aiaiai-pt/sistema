@@ -6,8 +6,11 @@
   import Alert from "./Alert.svelte";
   import CodeBlock from "./CodeBlock.svelte";
   import Combobox from "./Combobox.svelte";
+  import DatePicker from "./DatePicker.svelte";
   import DateTimePicker from "./DateTimePicker.svelte";
   import Input from "./Input.svelte";
+  import Textarea from "./Textarea.svelte";
+  import Toggle from "./Toggle.svelte";
   import MapPicker from "./MapPicker.svelte";
   import MultiSelectCombobox from "./MultiSelectCombobox.svelte";
   import FileUpload from "./FileUpload.svelte";
@@ -41,6 +44,14 @@
     normalizeRelIds,
     relationshipTypeCode,
   } from "./action-form-renderer-relationships";
+  // #36/#37 — widget-first dispatch (field summaries carry render intent in
+  // `widget`; derived-action params in `ui_schema.widget`; legacy params fall
+  // back to their `type`) + the date-only wire serialization.
+  import {
+    dateOnlyToDate,
+    dateToDateOnly,
+    widgetKind,
+  } from "./action-form-renderer-widgets";
 
   /**
    * The renderer treats every parameter/action/placement as a loose record
@@ -694,6 +705,7 @@
   {@const parameter = rawParameter as Entity}
   {@const key = parameterKey(parameter)}
   {@const type = parameterType(parameter)}
+  {@const kind = widgetKind(parameter)}
   <!-- A11y (#244 C7 / Selo item 4): required fields are marked
        `aria-required` on the control itself, so a screen reader announces
        "required" on the field — not just the disconnected visual hint below.
@@ -711,7 +723,60 @@
        yet); `fieldError` is the per-field server-error binding. -->
   {@const fieldDisabled = parameter.disabled === true || parameter.loading === true}
   {@const fieldError = fieldErrors?.[key]}
-  {#if type === "enum" || type === "select" || enumOptions(parameter).length}
+  {#if kind === "textarea"}
+    <!-- #36 — long text. Full-width-only (FULL_WIDTH_WIDGET_KINDS clamp). -->
+    <Textarea
+      label={String(parameter.label ?? key)}
+      name={key}
+      rows={4}
+      value={String(values[key] ?? initialValue(parameter) ?? "")}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      oninput={(event: Event) =>
+        setValue(key, (event.target as HTMLTextAreaElement).value)}
+      aria-required={ariaRequired}
+    />
+  {:else if kind === "toggle"}
+    <!-- #36 — boolean as the DS switch; the bag carries a BOOLEAN, never a
+         "yes"/"no" string. A bare bool param WITHOUT the widget keeps the
+         legacy Yes/No select (byte-identical action lane). -->
+    <Toggle
+      label={String(parameter.label ?? key)}
+      checked={values[key] === true}
+      disabled={fieldDisabled || !editable}
+      onchange={(checked: boolean) => setValue(key, checked)}
+      aria-required={ariaRequired}
+    />
+  {:else if kind === "slug"}
+    <!-- #36 — slug input-type refinement: machine-name typing affordances;
+         the value stays whatever the operator types (validation is the
+         server's). -->
+    <Input
+      label={String(parameter.label ?? key)}
+      name={key}
+      value={String(values[key] ?? initialValue(parameter) ?? "")}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      spellcheck="false"
+      autocapitalize="none"
+      autocorrect="off"
+      oninput={(event: Event) => setValue(key, (event.target as HTMLInputElement).value)}
+      aria-required={ariaRequired}
+    />
+  {:else if kind === "date"}
+    <!-- #37 — date-only picker; the bag carries the YYYY-MM-DD wire string
+         (LOCAL calendar parts — no toISOString, no DST off-by-one). -->
+    <DatePicker
+      label={String(parameter.label ?? key)}
+      value={dateOnlyToDate(values[key])}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      onchange={(date: Date | null) => setValue(key, date ? dateToDateOnly(date) : "")}
+    />
+  {:else if type === "enum" || type === "select" || enumOptions(parameter).length}
     {@const options = enumOptions(parameter)}
     <!-- #41 — empty state: an option-driven field with ZERO resolved options
          is inert with an explicit hint, never a dead control. -->

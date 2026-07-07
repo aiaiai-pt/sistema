@@ -52,17 +52,20 @@ export interface LayoutSection {
   visibleWhen?: Record<string, unknown> | null;
 }
 
-/** Parameter types that can never sit half-width in a two-column section —
- *  they carry their own wide UI (map canvas, upload list). Mirrors the CRUD
- *  form-surface compiler's full-width clamp (form-surface.ts). */
-const FULL_WIDTH_PARAM_TYPES = new Set(["geo", "file", "json"]);
+import {
+  FULL_WIDTH_WIDGET_KINDS,
+  widgetKind,
+} from "./action-form-renderer-widgets";
 
 /**
  * #634 S3 — whether a parameter's cell spans the full row inside a
  * `columns: 2` section. An explicit `span: "full"` on the parameter wins;
- * wide types clamp to full regardless; everything else flows half-width
- * (so a bare `columns: 2` declaration visibly two-columns its fields).
- * In a single-column section every cell is trivially full.
+ * wide WIDGET KINDS (map canvas, upload list, textarea, json editor —
+ * resolved widget-first per #36, so both the field summary's `widget` and
+ * a bare legacy `type` clamp) go full regardless; everything else flows
+ * half-width (so a bare `columns: 2` declaration visibly two-columns its
+ * fields). In a single-column section every cell is trivially full.
+ * Mirrors the CRUD form-surface compilers' FULL_WIDTH_WIDGETS clamp.
  */
 export function fieldSpansFull(
   parameter: Record<string, unknown>,
@@ -70,7 +73,7 @@ export function fieldSpansFull(
 ): boolean {
   if ((columns ?? 1) < 2) return true;
   if (parameter.span === "full") return true;
-  return FULL_WIDTH_PARAM_TYPES.has(String(parameter.type ?? ""));
+  return FULL_WIDTH_WIDGET_KINDS.has(widgetKind(parameter));
 }
 
 import type { Snippet } from "svelte";
