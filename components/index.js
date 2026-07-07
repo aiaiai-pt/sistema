@@ -173,3 +173,11 @@ export { default as Calendar } from "./Calendar.svelte";
 
 // Action form renderer (placement-aware; admin preview + portal runtime, #73)
 export { default as ActionFormRenderer } from "./ActionFormRenderer.svelte";
+// #634 S4 — pure client-side `visible_when` evaluation (section show/hide).
+// Exported at the root so host step-models (wizard rails) share the exact
+// evaluator the renderer applies internally.
+export {
+  evaluateVisibleWhen,
+  isBlankFormValue,
+  sectionVisible,
+} from "./action-form-visibility";

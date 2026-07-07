@@ -41,6 +41,36 @@ export interface LayoutEntry {
 export interface LayoutSection {
   name: string;
   items: Array<Record<string, unknown>>;
+  /** #634 S3 — stable contract key (schema.sections[].key), when present. */
+  key?: string;
+  /** #634 S3 — declared section density (1|2). Layouts that arrange rows
+   *  vertically render a two-column grid when 2; other layouts may ignore
+   *  it (their arrangement is their own contract). Default 1. */
+  columns?: number;
+  /** #634 S4 — the section's optional `visible_when` predicate, carried
+   *  from the contract for live show/hide (see action-form-visibility). */
+  visibleWhen?: Record<string, unknown> | null;
+}
+
+/** Parameter types that can never sit half-width in a two-column section —
+ *  they carry their own wide UI (map canvas, upload list). Mirrors the CRUD
+ *  form-surface compiler's full-width clamp (form-surface.ts). */
+const FULL_WIDTH_PARAM_TYPES = new Set(["geo", "file", "json"]);
+
+/**
+ * #634 S3 — whether a parameter's cell spans the full row inside a
+ * `columns: 2` section. An explicit `span: "full"` on the parameter wins;
+ * wide types clamp to full regardless; everything else flows half-width
+ * (so a bare `columns: 2` declaration visibly two-columns its fields).
+ * In a single-column section every cell is trivially full.
+ */
+export function fieldSpansFull(
+  parameter: Record<string, unknown>,
+  columns: number | undefined,
+): boolean {
+  if ((columns ?? 1) < 2) return true;
+  if (parameter.span === "full") return true;
+  return FULL_WIDTH_PARAM_TYPES.has(String(parameter.type ?? ""));
 }
 
 import type { Snippet } from "svelte";
@@ -56,9 +86,11 @@ export interface LayoutComponentProps {
 /** The registry. Order is the order shown to operators in the
  *  AddPlacementPanel select; the first entry is the default. */
 const REGISTRY: Record<LayoutKey, Component<LayoutComponentProps>> = {
-  "stacked-default": LayoutStackedDefault as unknown as Component<LayoutComponentProps>,
+  "stacked-default":
+    LayoutStackedDefault as unknown as Component<LayoutComponentProps>,
   "inline-row": LayoutInlineRow as unknown as Component<LayoutComponentProps>,
-  "compact-mobile": LayoutCompactMobile as unknown as Component<LayoutComponentProps>,
+  "compact-mobile":
+    LayoutCompactMobile as unknown as Component<LayoutComponentProps>,
 };
 
 const DEFAULT_KEY: LayoutKey = "stacked-default";
@@ -79,4 +111,6 @@ export function resolveLayout(key: unknown): LayoutEntry {
 }
 
 /** All known keys, in registry order. Useful for picker UIs. */
-export const LAYOUT_KEYS: readonly LayoutKey[] = Object.keys(REGISTRY) as LayoutKey[];
+export const LAYOUT_KEYS: readonly LayoutKey[] = Object.keys(
+  REGISTRY,
+) as LayoutKey[];
