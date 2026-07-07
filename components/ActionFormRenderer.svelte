@@ -12,6 +12,7 @@
   import Textarea from "./Textarea.svelte";
   import Toggle from "./Toggle.svelte";
   import MapPicker from "./MapPicker.svelte";
+  import MoneyInput from "./MoneyInput.svelte";
   import MultiSelectCombobox from "./MultiSelectCombobox.svelte";
   import FileUpload from "./FileUpload.svelte";
   import FileUploadItem from "./FileUploadItem.svelte";
@@ -723,7 +724,20 @@
        yet); `fieldError` is the per-field server-error binding. -->
   {@const fieldDisabled = parameter.disabled === true || parameter.loading === true}
   {@const fieldError = fieldErrors?.[key]}
-  {#if kind === "textarea"}
+  {#if kind === "currency"}
+    <!-- #35 — money: the bag carries the RAW number ("" when empty — the
+         number-field empty sentinel); formatting is display-only. -->
+    <MoneyInput
+      label={String(parameter.label ?? key)}
+      name={key}
+      value={typeof values[key] === "number" ? (values[key] as number) : null}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      onchange={(amount: number | null) => setValue(key, amount === null ? "" : amount)}
+      aria-required={ariaRequired}
+    />
+  {:else if kind === "textarea"}
     <!-- #36 — long text. Full-width-only (FULL_WIDTH_WIDGET_KINDS clamp). -->
     <Textarea
       label={String(parameter.label ?? key)}
