@@ -24,7 +24,11 @@
   // `target_config.layout_key` and validated through `resolveLayout`,
   // so an operator-supplied string never reaches the DOM verbatim
   // (RH#11 / R-SEC-07 / TH-08).
-  import { resolveLayout } from "./action-form-renderer-layouts";
+  import { resolveLayout, type LayoutSection } from "./action-form-renderer-layouts";
+  // #634 S4 — live section show/hide from the contract's `visible_when`
+  // predicate (pure client evaluation over the value bag; the server owns
+  // enforcement).
+  import { sectionVisible } from "./action-form-visibility";
 
   /**
    * The renderer treats every parameter/action/placement as a loose record
@@ -42,7 +46,15 @@
     placement?: Entity | null;
     target?: Record<string, unknown> | null;
     source?: Record<string, unknown> | null;
-    sections?: Array<{ key?: string; label?: string; parameters?: Entity[] }>;
+    sections?: Array<{
+      key?: string;
+      label?: string;
+      order?: number | null;
+      columns?: number | null;
+      /** Read defensively (hosts carry concrete precondition types). */
+      visible_when?: unknown;
+      parameters?: Entity[];
+    }>;
     parameters?: Entity[];
     criteria?: Entity[];
   };
@@ -193,12 +205,21 @@
   );
   const schemaSections = $derived(schemaSectionsFromContract());
   const sections = $derived(schemaSections ?? groupIntoSections(visibleParameters));
+  // #634 S4 — LIVE conditional sections: a section whose `visible_when`
+  // predicate fails against the current value bag is hidden (and re-appears
+  // the moment the driving value changes). Sections without a predicate —
+  // including every legacy fold section — always pass, so this is inert
+  // until a sheet declares `visible_when`. The value bag still spans ALL
+  // parameters (hidden sections keep their answers).
+  const liveSections = $derived(
+    sections.filter((section) => sectionVisible(section, values)),
+  );
   // Wizard pagination (#105 P6): when a section is active, render only it. The
   // value bag is unaffected — every parameter is still seeded and submitted.
   const displaySections = $derived(
     activeSectionKey == null
-      ? sections
-      : sections.filter((section) => section.name === activeSectionKey),
+      ? liveSections
+      : liveSections.filter((section) => section.name === activeSectionKey),
   );
   const payload = $derived(buildPayload());
   const payloadJson = $derived(JSON.stringify(payload, null, 2));
@@ -216,8 +237,13 @@
   function isEmpty(value: unknown): boolean {
     return value === undefined || value === null || value === "";
   }
+  // #634 S4 — the gate counts only parameters whose section is LIVE-visible:
+  // a required field inside a `visible_when`-hidden section must not block
+  // submit (it is unreachable). In the legacy fold path this flattens back
+  // to exactly `visibleParameters`.
+  const gateParameters = $derived(liveSections.flatMap((section) => section.items));
   const canSubmit = $derived(
-    visibleParameters
+    gateParameters
       .filter((parameter) => parameter.required)
       .every((parameter) =>
         String(parameter.type ?? "") === "file"
@@ -306,18 +332,34 @@
     return [...byName.entries()].map(([name, sectionItems]) => ({ name, items: sectionItems }));
   }
 
-  function schemaSectionsFromContract(): Array<{ name: string; items: Entity[] }> | null {
+  function schemaSectionsFromContract(): LayoutSection[] | null {
     if (!Array.isArray(schema?.sections)) return null;
     const next = schema.sections
-      .map((section) => {
+      .map((section, index) => {
         const items = Array.isArray(section.parameters)
           ? section.parameters
               .filter((parameter) => parameter.is_active !== false && isVisible(parameter))
               .sort((a, b) => Number(a.order ?? 0) - Number(b.order ?? 0))
           : [];
-        return { name: String(section.label ?? section.key ?? "Details"), items };
+        // #634 S3/S4 — carry the contract's presentation keys through to the
+        // layouts: stable `key`, declared `columns`, the `visible_when`
+        // predicate, and `order` (the server emits sections pre-sorted; the
+        // sort below is a defensive mirror, stable via declaration index).
+        return {
+          name: String(section.label ?? section.key ?? "Details"),
+          key: section.key ? String(section.key) : undefined,
+          columns: Number(section.columns ?? 1),
+          visibleWhen:
+            section.visible_when && typeof section.visible_when === "object"
+              ? (section.visible_when as Record<string, unknown>)
+              : null,
+          order: Number(section.order ?? 0),
+          index,
+          items,
+        };
       })
-      .filter((section) => section.items.length);
+      .filter((section) => section.items.length)
+      .sort((a, b) => a.order - b.order || a.index - b.index);
     return next.length ? next : null;
   }
 

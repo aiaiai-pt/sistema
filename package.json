@@ -1,6 +1,6 @@
 {
   "name": "@aiaiai-pt/design-system",
-  "version": "0.44.1",
+  "version": "0.45.0",
   "description": "Design system tokens and Svelte components for aiaiai products",
   "license": "MIT",
   "type": "module",
@@ -30,6 +30,10 @@
       "types": "./components/index.d.ts",
       "svelte": "./components/index.js",
       "default": "./components/index.js"
+    },
+    "./components/action-form-visibility": {
+      "types": "./components/action-form-visibility.d.ts",
+      "default": "./components/action-form-visibility.ts"
     },
     "./components/*.svelte": {
       "types": "./components/*.svelte.d.ts",
