@@ -54,6 +54,7 @@
     dateToDateOnly,
     geoJsonPointToLonLat,
     lonLatToGeoJsonPoint,
+    storedFileDescriptor,
     widgetKind,
   } from "./action-form-renderer-widgets";
 
@@ -496,13 +497,17 @@
       : {};
   }
 
-  async function handleFiles(key: string, files: File[]) {
+  // #40 — `replace` (a stored current exists on the edit form): SINGLE slot,
+  // a new upload supersedes the pending one; the stored file itself is only
+  // superseded host-side when the new key rides the payload. Default
+  // (append) keeps the legacy up-to-3 behavior byte-identical.
+  async function handleFiles(key: string, files: File[], replace = false) {
     if (!uploadFile) return;
     fileError = { ...fileError, [key]: "" };
-    const existing = fileUploads[key] ?? [];
-    const room = FILE_MAX_COUNT - existing.length;
+    const existing = replace ? [] : (fileUploads[key] ?? []);
+    const room = replace ? 1 : FILE_MAX_COUNT - existing.length;
     const batch = files.slice(0, room);
-    if (files.length > room) {
+    if (!replace && files.length > room) {
       fileError = { ...fileError, [key]: `Up to ${FILE_MAX_COUNT} files` };
     }
     if (batch.length === 0) return;
@@ -513,7 +518,9 @@
         if ("key" in result) {
           fileUploads = {
             ...fileUploads,
-            [key]: [...(fileUploads[key] ?? []), { key: result.key, name: file.name }],
+            [key]: replace
+              ? [{ key: result.key, name: file.name }]
+              : [...(fileUploads[key] ?? []), { key: result.key, name: file.name }],
           };
         } else {
           fileError = { ...fileError, [key]: result.error };
@@ -930,25 +937,46 @@
     <!-- A11y: the file param is a labelled group (the FileUpload's own input
          can't take a `for`/label from here), so SR users get the field name +
          required state when they enter it. -->
+    {@const storedFile = storedFileDescriptor(parameter.default_value)}
+    {@const replaceMode = storedFile !== null}
     <div class="afr-file-param" role="group" aria-labelledby={`${key}-file-label`}>
       <span id={`${key}-file-label`} class="afr-file-label"
         >{String(parameter.label ?? key)}{parameter.required
           ? " (required)"
           : ""}</span
       >
+      <!-- #40 — REPLACE semantics: the stored current shows until a pending
+           replacement exists; untouched emits NO attachment key (the host
+           keeps the stored file); removing the pending replacement restores
+           untouched. -->
+      {#if replaceMode && storedFile && !(fileUploads[key] ?? []).length}
+        <div class="afr-file-current" data-testid="afr-file-current">
+          {#if storedFile.url}
+            <a
+              class="afr-file-current-name"
+              href={storedFile.url}
+              target="_blank"
+              rel="noopener noreferrer">{storedFile.name}</a
+            >
+          {:else}
+            <span class="afr-file-current-name">{storedFile.name}</span>
+          {/if}
+          <span class="afr-file-current-hint">Current file — uploading replaces it</span>
+        </div>
+      {/if}
       {#each fileUploads[key] ?? [] as f (f.key)}
         <FileUploadItem
           name={f.name}
           onremove={() => removeFile(key, f.key)}
         />
       {/each}
-      {#if (fileUploads[key] ?? []).length < FILE_MAX_COUNT}
+      {#if replaceMode || (fileUploads[key] ?? []).length < FILE_MAX_COUNT}
         <FileUpload
           accept={fileAccept(parameter)}
           maxSize={fileMaxBytes(parameter)}
-          multiple
+          multiple={!replaceMode}
           disabled={!uploadFile || fileBusy[key]}
-          onfiles={(files: File[]) => handleFiles(key, files)}
+          onfiles={(files: File[]) => handleFiles(key, files, replaceMode)}
           onreject={() => {
             fileError = {
               ...fileError,
@@ -1235,6 +1263,24 @@
     margin: 0;
     font-size: var(--type-body-sm-size);
     color: var(--input-error-text);
+  }
+
+  .afr-file-current {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+  }
+
+  .afr-file-current-name {
+    font-family: var(--input-font);
+    font-size: var(--input-font-size);
+    color: var(--color-text);
+  }
+
+  .afr-file-current-hint {
+    font-family: var(--input-help-font);
+    font-size: var(--input-help-size);
+    color: var(--input-help-color);
   }
 
 

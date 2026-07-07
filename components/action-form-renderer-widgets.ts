@@ -94,3 +94,34 @@ export function geoJsonPointToLonLat(value: unknown): {
 export function lonLatToGeoJsonPoint(coords: [number, number]): GeoJsonPoint {
   return { type: "Point", coordinates: [coords[0], coords[1]] };
 }
+
+export type StoredFile = { name: string; url?: string };
+
+/** #40 — normalize a file param's stored-current value (the edit form's
+ *  prefill) onto {name, url?}. Accepts a bare name, a URL string (name =
+ *  last path segment), or a {name?, url?} descriptor. Anything else → null
+ *  (no stored file → the legacy append-mode upload field). */
+export function storedFileDescriptor(value: unknown): StoredFile | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (/^https?:\/\//i.test(trimmed)) {
+      const segments = trimmed.split("?")[0].split("/").filter(Boolean);
+      return { name: segments[segments.length - 1] || trimmed, url: trimmed };
+    }
+    return { name: trimmed };
+  }
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const row = value as Record<string, unknown>;
+    const url = typeof row.url === "string" && row.url ? row.url : undefined;
+    const name =
+      typeof row.name === "string" && row.name
+        ? row.name
+        : url
+          ? (url.split("?")[0].split("/").filter(Boolean).pop() ?? url)
+          : null;
+    if (!name) return null;
+    return url ? { name, url } : { name };
+  }
+  return null;
+}
