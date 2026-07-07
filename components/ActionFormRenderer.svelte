@@ -6,9 +6,15 @@
   import Alert from "./Alert.svelte";
   import CodeBlock from "./CodeBlock.svelte";
   import Combobox from "./Combobox.svelte";
+  import DatePicker from "./DatePicker.svelte";
   import DateTimePicker from "./DateTimePicker.svelte";
   import Input from "./Input.svelte";
+  import JsonEditor from "./JsonEditor.svelte";
+  import Textarea from "./Textarea.svelte";
+  import Toggle from "./Toggle.svelte";
   import MapPicker from "./MapPicker.svelte";
+  import MoneyInput from "./MoneyInput.svelte";
+  import MultiSelectCombobox from "./MultiSelectCombobox.svelte";
   import FileUpload from "./FileUpload.svelte";
   import FileUploadItem from "./FileUploadItem.svelte";
   import Select from "./Select.svelte";
@@ -16,6 +22,8 @@
   import type { Snippet } from "svelte";
   import {
     buildActionPayload,
+    isPayloadIncluded,
+    isReadonlyParam,
     placementConsequenceRows as buildPlacementConsequenceRows,
     type RendererMode,
   } from "./action-form-renderer-payload";
@@ -29,6 +37,26 @@
   // predicate (pure client evaluation over the value bag; the server owns
   // enforcement).
   import { sectionVisible } from "./action-form-visibility";
+  // #34 (atelier#669 V1, D6) — cardinality-aware relationship picking over the
+  // two rel param shapes (form-surface.v1 `relationship` summaries and
+  // derived-action `object_reference` + `multiple` params).
+  import {
+    isMultiRelationship,
+    isRelationshipParam,
+    normalizeRelIds,
+    relationshipTypeCode,
+  } from "./action-form-renderer-relationships";
+  // #36/#37 — widget-first dispatch (field summaries carry render intent in
+  // `widget`; derived-action params in `ui_schema.widget`; legacy params fall
+  // back to their `type`) + the date-only wire serialization.
+  import {
+    dateOnlyToDate,
+    dateToDateOnly,
+    geoJsonPointToLonLat,
+    lonLatToGeoJsonPoint,
+    storedFileDescriptor,
+    widgetKind,
+  } from "./action-form-renderer-widgets";
 
   /**
    * The renderer treats every parameter/action/placement as a loose record
@@ -94,6 +122,20 @@
       query: string,
       filter?: Record<string, string>,
     ) => Promise<SelectOption[]>;
+    /** Edit-time label hydration for relationship params (#34): receives the
+     *  target entity type code and the currently-linked ids, returns
+     *  `{value, label}` items so the picker renders labels, never raw ids.
+     *  Same philosophy as searchEntities — the CONSUMER owns transport/auth;
+     *  omitted → the picker falls back to showing the ids. Best-effort: a
+     *  failed hydration never blocks the form. */
+    hydrateEntities?: (
+      typeCode: string,
+      ids: string[],
+    ) => Promise<SelectOption[]>;
+    /** #41 — per-field server-error binding: `{param_key: message}` rendered
+     *  as each field's inline error (the V2a adapter re-binds proxy 4xx field
+     *  errors here). Display-only — the HOST owns when errors set and clear. */
+    fieldErrors?: Record<string, string>;
     /** Environment-specific captcha (e.g. Turnstile), rendered above the button
      *  in submit modes. */
     captcha?: Snippet;
@@ -138,6 +180,8 @@
     onApply = undefined,
     uploadFile = undefined,
     searchEntities = undefined,
+    hydrateEntities = undefined,
+    fieldErrors = undefined,
     captcha = undefined,
     submitLabel = "Submit",
     boundary = undefined,
@@ -235,6 +279,8 @@
   // parameter must have a non-empty value. Server-side submission criteria are
   // enforced by the BFF on submit and surfaced via `submitError`.
   function isEmpty(value: unknown): boolean {
+    // #34 — an empty ID list (required m2m with zero picks) must block submit.
+    if (Array.isArray(value)) return value.length === 0;
     return value === undefined || value === null || value === "";
   }
   // #634 S4 — the gate counts only parameters whose section is LIVE-visible:
@@ -243,13 +289,15 @@
   // to exactly `visibleParameters`.
   const gateParameters = $derived(liveSections.flatMap((section) => section.items));
   const canSubmit = $derived(
-    gateParameters
-      .filter((parameter) => parameter.required)
-      .every((parameter) =>
-        String(parameter.type ?? "") === "file"
-          ? (fileUploads[parameterKey(parameter)] ?? []).length > 0
-          : !isEmpty(values[parameterKey(parameter)]),
-      ),
+    // #38 — any invalid json draft blocks submit, required or not.
+    !Object.values(jsonInvalid).some((message) => message !== null) &&
+      gateParameters
+        .filter((parameter) => parameter.required)
+        .every((parameter) =>
+          String(parameter.type ?? "") === "file"
+            ? (fileUploads[parameterKey(parameter)] ?? []).length > 0
+            : !isEmpty(values[parameterKey(parameter)]),
+        ),
   );
 
   async function handleSubmit(): Promise<void> {
@@ -388,6 +436,11 @@
   }
 
   function initialValue(parameter: Entity): unknown {
+    // #34 — a multi-value rel param holds an ID LIST in the bag (the m2m wire
+    // shape), normalized even when the default arrives as a scalar.
+    if (isRelationshipParam(parameter) && isMultiRelationship(parameter)) {
+      return normalizeRelIds(parameter.default_value);
+    }
     if (parameter.default_value !== null && parameter.default_value !== undefined) {
       return parameter.default_value;
     }
@@ -395,6 +448,12 @@
     if (type === "bool" || type === "boolean") return false;
     if (type === "number" || type === "integer") return "";
     if (type === "enum" || type === "select") return enumOptions(parameter)[0]?.value ?? "";
+    // #34 — an unset single `relationship` summary is null on the wire
+    // (string|null contract). Legacy `object_reference` keeps its "" seed.
+    if (type === "relationship") return null;
+    // #38 — an unset json field is null (empty editor), never the ""
+    // string (which would render as a literal '""' draft).
+    if (type === "json" || widgetKind(parameter) === "json") return null;
     return "";
   }
 
@@ -407,6 +466,10 @@
     for (const parameter of orderedParameters) {
       const key = parameterKey(parameter);
       if (!key) continue;
+      // #41 / D3 — payload include|exclude: excluded params render but never
+      // reach the wire (readonly defaults OUT on the form-surface.v1 lane;
+      // `payload: "include"` declares prefill-and-send).
+      if (!isPayloadIncluded(parameter)) continue;
       bag[key] = values[key] ?? initialValue(parameter);
     }
     return bag;
@@ -434,13 +497,17 @@
       : {};
   }
 
-  async function handleFiles(key: string, files: File[]) {
+  // #40 — `replace` (a stored current exists on the edit form): SINGLE slot,
+  // a new upload supersedes the pending one; the stored file itself is only
+  // superseded host-side when the new key rides the payload. Default
+  // (append) keeps the legacy up-to-3 behavior byte-identical.
+  async function handleFiles(key: string, files: File[], replace = false) {
     if (!uploadFile) return;
     fileError = { ...fileError, [key]: "" };
-    const existing = fileUploads[key] ?? [];
-    const room = FILE_MAX_COUNT - existing.length;
+    const existing = replace ? [] : (fileUploads[key] ?? []);
+    const room = replace ? 1 : FILE_MAX_COUNT - existing.length;
     const batch = files.slice(0, room);
-    if (files.length > room) {
+    if (!replace && files.length > room) {
       fileError = { ...fileError, [key]: `Up to ${FILE_MAX_COUNT} files` };
     }
     if (batch.length === 0) return;
@@ -451,7 +518,9 @@
         if ("key" in result) {
           fileUploads = {
             ...fileUploads,
-            [key]: [...(fileUploads[key] ?? []), { key: result.key, name: file.name }],
+            [key]: replace
+              ? [{ key: result.key, name: file.name }]
+              : [...(fileUploads[key] ?? []), { key: result.key, name: file.name }],
           };
         } else {
           fileError = { ...fileError, [key]: result.error };
@@ -483,8 +552,10 @@
     const gen = (referenceSearchGen[key] = (referenceSearchGen[key] ?? 0) + 1);
     referenceLoading = { ...referenceLoading, [key]: true };
     try {
+      // #34 — the type code comes from the relationship meta when present
+      // (form-surface lane), else the param's own object_type (action lane).
       const items = await searchEntities(
-        String(parameter.object_type ?? ""),
+        relationshipTypeCode(parameter),
         query,
         objectFilter(parameter),
       );
@@ -496,6 +567,96 @@
       if (referenceSearchGen[key] === gen)
         referenceLoading = { ...referenceLoading, [key]: false };
     }
+  }
+
+  // #34 — relationship label bookkeeping. `relLabels` maps, per param key, a
+  // linked entity id → its display label, fed by (a) edit-time hydration
+  // through the `hydrateEntities` seam and (b) pick-time capture from the
+  // search results — so a chip / selected value never degrades to a raw id
+  // when a later search replaces the Combobox items. (The m2m search-to-add
+  // draft is MultiSelectCombobox-internal — the renderer never sees it.)
+  let relLabels = $state<Record<string, Record<string, string>>>({});
+  const relHydrateRequested: Record<string, Set<string>> = {};
+
+  // #38 — per-param json parse invalidity (JsonEditor oninvalid seam). A
+  // non-null message anywhere blocks submit: invalid text must never reach
+  // the wire OR be silently dropped by submitting around it.
+  let jsonInvalid = $state<Record<string, string | null>>({});
+
+  $effect(() => {
+    if (!hydrateEntities) return;
+    for (const parameter of orderedParameters) {
+      if (!isRelationshipParam(parameter)) continue;
+      const key = parameterKey(parameter);
+      if (!key) continue;
+      const ids = normalizeRelIds(values[key] ?? initialValue(parameter));
+      const known = relLabels[key] ?? {};
+      const requested = (relHydrateRequested[key] ??= new Set());
+      const missing = ids.filter((id) => !(id in known) && !requested.has(id));
+      if (!missing.length) continue;
+      for (const id of missing) requested.add(id);
+      hydrateEntities(relationshipTypeCode(parameter), missing)
+        .then((items) => {
+          if (!Array.isArray(items) || !items.length) return;
+          const next = { ...(relLabels[key] ?? {}) };
+          for (const item of items) {
+            const value = String(item.value ?? "");
+            if (value) next[value] = String(item.label ?? value);
+          }
+          relLabels = { ...relLabels, [key]: next };
+        })
+        .catch(() => {
+          // Best-effort: the picker falls back to raw ids.
+        });
+    }
+  });
+
+  function relLabel(key: string, id: string): string {
+    return relLabels[key]?.[id] ?? id;
+  }
+
+  function captureRelLabel(key: string, id: string) {
+    const item = (referenceItems[key] ?? []).find((entry) => entry.value === id);
+    if (!item) return;
+    relLabels = {
+      ...relLabels,
+      [key]: { ...(relLabels[key] ?? {}), [id]: item.label },
+    };
+  }
+
+  /** Combobox items for a rel param. Multi: the raw search results —
+   *  MultiSelectCombobox itself excludes already-picked ids. Single: prepends
+   *  the current selection when a later search dropped it (label
+   *  persistence). */
+  function relComboItems(parameter: Entity): SelectOption[] {
+    const key = parameterKey(parameter);
+    const searched = referenceItems[key] ?? [];
+    if (isMultiRelationship(parameter)) return searched;
+    const current = typeof values[key] === "string" ? String(values[key]) : "";
+    if (!current || searched.some((item) => item.value === current)) {
+      return searched;
+    }
+    return [{ value: current, label: relLabel(key, current) }, ...searched];
+  }
+
+  function pickSingleRel(key: string, id: string) {
+    captureRelLabel(key, id);
+    setValue(key, id);
+  }
+
+  function addRelId(key: string, id: string) {
+    if (!id) return;
+    const current = normalizeRelIds(values[key]);
+    if (current.includes(id)) return;
+    captureRelLabel(key, id);
+    setValue(key, [...current, id]);
+  }
+
+  function removeRelId(key: string, id: string) {
+    setValue(
+      key,
+      normalizeRelIds(values[key]).filter((value) => value !== id),
+    );
   }
 
   // `datetime` params keep an ISO 8601 STRING in the value bag (the platform's
@@ -565,6 +726,7 @@
   {@const parameter = rawParameter as Entity}
   {@const key = parameterKey(parameter)}
   {@const type = parameterType(parameter)}
+  {@const kind = widgetKind(parameter)}
   <!-- A11y (#244 C7 / Selo item 4): required fields are marked
        `aria-required` on the control itself, so a screen reader announces
        "required" on the field — not just the disconnected visual hint below.
@@ -572,17 +734,113 @@
   {@const ariaRequired = parameter.required ? "true" : undefined}
   <!-- #252 — a parameter with `editable: false` (visibility.editable === false)
        renders READ-ONLY: its value (e.g. a logged-in citizen's prefilled
-       identity — name/email) is shown but not editable. The value still rides
-       the payload; the field just can't be changed. Default (undefined/true) is
-       editable, so this is purely additive. -->
-  {@const editable = parameter.editable !== false}
-  {#if type === "enum" || type === "select" || enumOptions(parameter).length}
+       identity — name/email) is shown but not editable. On the ACTION lane the
+       value still rides the payload; on the form-surface.v1 lane
+       (`visibility: "readonly"` string) it defaults OFF the wire per D3 —
+       see isPayloadIncluded. -->
+  {@const editable = !isReadonlyParam(parameter)}
+  <!-- #41 — first-class field states: `disabled` and `loading` are host/
+       contract-declared inertness (loading = options/context not resolved
+       yet); `fieldError` is the per-field server-error binding. -->
+  {@const fieldDisabled = parameter.disabled === true || parameter.loading === true}
+  {@const fieldError = fieldErrors?.[key]}
+  {#if kind === "currency"}
+    <!-- #35 — money: the bag carries the RAW number ("" when empty — the
+         number-field empty sentinel); formatting is display-only. -->
+    <MoneyInput
+      label={String(parameter.label ?? key)}
+      name={key}
+      value={typeof values[key] === "number" ? (values[key] as number) : null}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      onchange={(amount: number | null) => setValue(key, amount === null ? "" : amount)}
+      aria-required={ariaRequired}
+    />
+  {:else if kind === "textarea"}
+    <!-- #36 — long text. Full-width-only (FULL_WIDTH_WIDGET_KINDS clamp). -->
+    <Textarea
+      label={String(parameter.label ?? key)}
+      name={key}
+      rows={4}
+      value={String(values[key] ?? initialValue(parameter) ?? "")}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      oninput={(event: Event) =>
+        setValue(key, (event.target as HTMLTextAreaElement).value)}
+      aria-required={ariaRequired}
+    />
+  {:else if kind === "toggle"}
+    <!-- #36 — boolean as the DS switch; the bag carries a BOOLEAN, never a
+         "yes"/"no" string. A bare bool param WITHOUT the widget keeps the
+         legacy Yes/No select (byte-identical action lane). -->
+    <Toggle
+      label={String(parameter.label ?? key)}
+      checked={values[key] === true}
+      disabled={fieldDisabled || !editable}
+      onchange={(checked: boolean) => setValue(key, checked)}
+      aria-required={ariaRequired}
+    />
+  {:else if kind === "slug"}
+    <!-- #36 — slug input-type refinement: machine-name typing affordances;
+         the value stays whatever the operator types (validation is the
+         server's). -->
+    <Input
+      label={String(parameter.label ?? key)}
+      name={key}
+      value={String(values[key] ?? initialValue(parameter) ?? "")}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      spellcheck="false"
+      autocapitalize="none"
+      autocorrect="off"
+      oninput={(event: Event) => setValue(key, (event.target as HTMLInputElement).value)}
+      aria-required={ariaRequired}
+    />
+  {:else if kind === "json"}
+    <!-- #38 — json editor with the invalid-state contract: invalid text
+         surfaces its parse error, emits nothing, and blocks submit via the
+         jsonInvalid gate. -->
+    <JsonEditor
+      label={String(parameter.label ?? key)}
+      value={values[key] ?? initialValue(parameter)}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      onchange={(value: unknown) => setValue(key, value)}
+      oninvalid={(message: string | null) =>
+        (jsonInvalid = { ...jsonInvalid, [key]: message })}
+    />
+  {:else if kind === "date"}
+    <!-- #37 — date-only picker; the bag carries the YYYY-MM-DD wire string
+         (LOCAL calendar parts — no toISOString, no DST off-by-one). -->
+    <DatePicker
+      label={String(parameter.label ?? key)}
+      value={dateOnlyToDate(values[key])}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      onchange={(date: Date | null) => setValue(key, date ? dateToDateOnly(date) : "")}
+    />
+  {:else if type === "enum" || type === "select" || enumOptions(parameter).length}
+    {@const options = enumOptions(parameter)}
+    <!-- #41 — empty state: an option-driven field with ZERO resolved options
+         is inert with an explicit hint, never a dead control. -->
     <Select
       label={String(parameter.label ?? key)}
       name={key}
       value={String(values[key] ?? initialValue(parameter) ?? "")}
-      options={enumOptions(parameter)}
+      {options}
       placeholder="Select value"
+      disabled={fieldDisabled || !editable || options.length === 0}
+      error={fieldError}
+      help={parameter.loading === true
+        ? "Loading options..."
+        : options.length === 0
+          ? "No options available"
+          : undefined}
       onchange={(value: string) => setValue(key, value)}
       aria-required={ariaRequired}
     />
@@ -593,6 +851,8 @@
       type="number"
       value={String(values[key] ?? "")}
       readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
       oninput={(event: Event) => {
         const value = (event.target as HTMLInputElement).value;
         setValue(key, value === "" ? "" : Number(value));
@@ -608,6 +868,8 @@
         { value: "true", label: "Yes" },
         { value: "false", label: "No" },
       ]}
+      disabled={fieldDisabled || !editable}
+      error={fieldError}
       onchange={(value: string) => setValue(key, value === "true")}
       aria-required={ariaRequired}
     />
@@ -619,50 +881,102 @@
       label={String(parameter.label ?? key)}
       value={datetimeValue(values[key])}
       readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
       onchange={(date: Date) => setValue(key, date.toISOString())}
     />
-  {:else if type === "object_reference"}
-    <!-- `object_reference` parameter (#629 PR1b): lazy-search Combobox over
-         the entity type named by `object_type`; `object_filter` rides the
-         injected searchEntities seam. No seam → disabled (the file-param
-         convention for a missing consumer transport). -->
-    <Combobox
-      label={String(parameter.label ?? key)}
-      items={referenceItems[key] ?? []}
-      value={String(values[key] ?? "")}
-      placeholder={typeof parameter.object_type === "string" && parameter.object_type
-        ? `Search ${parameter.object_type}...`
-        : "Search..."}
-      disabled={!searchEntities || !editable}
-      loading={referenceLoading[key] ?? false}
-      onsearch={(query: string) => handleReferenceSearch(parameter, query)}
-      onchange={(value: string) => setValue(key, value)}
-    />
+  {:else if isRelationshipParam(parameter)}
+    <!-- Relationship / `object_reference` picking, cardinality-aware (#34,
+         atelier#669 D6). Covers the form-surface.v1 `relationship` summary
+         AND the derived-action `object_reference` (+ `multiple`) param.
+         `object_filter` rides the injected searchEntities seam; no seam →
+         disabled (the file-param convention for a missing transport). -->
+    {#if isMultiRelationship(parameter)}
+      <!-- many_to_many: the DS MultiSelectCombobox widget (chips +
+           search-to-add). The renderer contributes only SEMANTICS: the value
+           bag carries the ID LIST, labels come from hydration/pick capture —
+           a single-pick replace of an m2m value is impossible by
+           construction (the widget never holds the selection). -->
+      <MultiSelectCombobox
+        data-testid="afr-rel-multi"
+        label={String(parameter.label ?? key)}
+        required={parameter.required === true}
+        items={relComboItems(parameter)}
+        selected={normalizeRelIds(values[key]).map((id) => ({
+          value: id,
+          label: relLabel(key, id),
+        }))}
+        placeholder={relationshipTypeCode(parameter)
+          ? `Search ${relationshipTypeCode(parameter)}...`
+          : "Search..."}
+        disabled={!searchEntities || !editable || fieldDisabled}
+        loading={(referenceLoading[key] ?? false) || parameter.loading === true}
+        error={fieldError}
+        onsearch={(query: string) => handleReferenceSearch(parameter, query)}
+        onadd={(value: string) => addRelId(key, value)}
+        onremove={(value: string) => removeRelId(key, value)}
+      />
+    {:else}
+      <Combobox
+        label={String(parameter.label ?? key)}
+        items={relComboItems(parameter)}
+        value={String(values[key] ?? "")}
+        placeholder={relationshipTypeCode(parameter)
+          ? `Search ${relationshipTypeCode(parameter)}...`
+          : "Search..."}
+        disabled={!searchEntities || !editable || fieldDisabled}
+        loading={(referenceLoading[key] ?? false) || parameter.loading === true}
+        error={fieldError}
+        onsearch={(query: string) => handleReferenceSearch(parameter, query)}
+        onchange={(value: string) => pickSingleRel(key, value)}
+      />
+    {/if}
   {:else if type === "file"}
     <!-- `file` parameter (#75 M5 slice 4b): upload-as-you-attach. The keys
          ride payload.attachment_keys; raw_values never sees this param. -->
     <!-- A11y: the file param is a labelled group (the FileUpload's own input
          can't take a `for`/label from here), so SR users get the field name +
          required state when they enter it. -->
+    {@const storedFile = storedFileDescriptor(parameter.default_value)}
+    {@const replaceMode = storedFile !== null}
     <div class="afr-file-param" role="group" aria-labelledby={`${key}-file-label`}>
       <span id={`${key}-file-label`} class="afr-file-label"
         >{String(parameter.label ?? key)}{parameter.required
           ? " (required)"
           : ""}</span
       >
+      <!-- #40 — REPLACE semantics: the stored current shows until a pending
+           replacement exists; untouched emits NO attachment key (the host
+           keeps the stored file); removing the pending replacement restores
+           untouched. -->
+      {#if replaceMode && storedFile && !(fileUploads[key] ?? []).length}
+        <div class="afr-file-current" data-testid="afr-file-current">
+          {#if storedFile.url}
+            <a
+              class="afr-file-current-name"
+              href={storedFile.url}
+              target="_blank"
+              rel="noopener noreferrer">{storedFile.name}</a
+            >
+          {:else}
+            <span class="afr-file-current-name">{storedFile.name}</span>
+          {/if}
+          <span class="afr-file-current-hint">Current file — uploading replaces it</span>
+        </div>
+      {/if}
       {#each fileUploads[key] ?? [] as f (f.key)}
         <FileUploadItem
           name={f.name}
           onremove={() => removeFile(key, f.key)}
         />
       {/each}
-      {#if (fileUploads[key] ?? []).length < FILE_MAX_COUNT}
+      {#if replaceMode || (fileUploads[key] ?? []).length < FILE_MAX_COUNT}
         <FileUpload
           accept={fileAccept(parameter)}
           maxSize={fileMaxBytes(parameter)}
-          multiple
+          multiple={!replaceMode}
           disabled={!uploadFile || fileBusy[key]}
-          onfiles={(files: File[]) => handleFiles(key, files)}
+          onfiles={(files: File[]) => handleFiles(key, files, replaceMode)}
           onreject={() => {
             fileError = {
               ...fileError,
@@ -673,8 +987,29 @@
       {/if}
       {#if fileError[key]}
         <p class="afr-file-error" role="alert">{fileError[key]}</p>
+      {:else if fieldError}
+        <p class="afr-file-error" role="alert">{fieldError}</p>
       {/if}
     </div>
+  {:else if kind === "geometry"}
+    <!-- #39 — the form-surface.v1 geometry widget: the value bag carries a
+         GeoJSON Point (the CRUD wire shape); the MapPicker keeps speaking
+         [lon, lat] at its prop edge; the pure adapters translate. A
+         non-Point value fails LOUD on the field instead of rendering a
+         silently-empty map over real data. The legacy `geo` param (bare
+         tuple) is the branch below, untouched. -->
+    {@const hydrated = geoJsonPointToLonLat(values[key])}
+    <MapPicker
+      mode="point"
+      height="20rem"
+      {boundary}
+      {layers}
+      {onoutofbounds}
+      error={fieldError ?? hydrated.error ?? geoError}
+      label={String(parameter.label ?? key)}
+      value={hydrated.coords ?? undefined}
+      onchange={(coords: [number, number]) => setValue(key, lonLatToGeoJsonPoint(coords))}
+    />
   {:else if type === "geo"}
     <!-- A `geo` parameter renders the DS map-picker; its value is the
          [lon, lat] the BFF's GEO_PARSE binding transform turns into a Point.
@@ -690,7 +1025,7 @@
       {boundary}
       {layers}
       {onoutofbounds}
-      error={geoError}
+      error={fieldError ?? geoError}
       label={String(parameter.label ?? key)}
       center={Array.isArray(parameter.default_value)
         ? (parameter.default_value as [number, number])
@@ -711,6 +1046,8 @@
       name={key}
       value={String(values[key] ?? initialValue(parameter) ?? "")}
       readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
       oninput={(event: Event) => setValue(key, (event.target as HTMLInputElement).value)}
       aria-required={ariaRequired}
     />
@@ -927,6 +1264,25 @@
     font-size: var(--type-body-sm-size);
     color: var(--input-error-text);
   }
+
+  .afr-file-current {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+  }
+
+  .afr-file-current-name {
+    font-family: var(--input-font);
+    font-size: var(--input-font-size);
+    color: var(--color-text);
+  }
+
+  .afr-file-current-hint {
+    font-family: var(--input-help-font);
+    font-size: var(--input-help-size);
+    color: var(--input-help-color);
+  }
+
 
   .submit-captcha {
     min-height: var(--space-4xl);

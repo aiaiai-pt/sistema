@@ -14,7 +14,38 @@
  * source_schema, raw_values, mode), returns the canonical payload. The
  * Svelte component owns the reactive plumbing; this module owns the shape.
  */
-export type RendererMode = "admin-preview" | "admin-execute" | "public-submit" | "adapter-preview";
+export type RendererMode =
+  "admin-preview" | "admin-execute" | "public-submit" | "adapter-preview";
+
+/** #41 (atelier#669 V1, operator decision D3) — readonly across the two param
+ *  shapes: the form-surface.v1 summary says `visibility: "readonly"` (a
+ *  STRING); the action lane says `visibility: {editable: false}` (an object,
+ *  mirrored onto `editable` by the schema builders). */
+export function isReadonlyParam(parameter: Record<string, unknown>): boolean {
+  if (parameter.editable === false) return true;
+  const visibility = parameter.visibility;
+  if (typeof visibility === "string") return visibility === "readonly";
+  if (
+    visibility &&
+    typeof visibility === "object" &&
+    !Array.isArray(visibility)
+  ) {
+    return (visibility as Record<string, unknown>).editable === false;
+  }
+  return false;
+}
+
+/** #41 / D3 — whether a param's value belongs in `form.raw_values`:
+ *  an explicit `payload: "include" | "exclude"` always wins; the
+ *  form-surface.v1 lane (string visibility) defaults readonly OUT of the
+ *  wire; the LEGACY action lane (object visibility, no payload key) keeps
+ *  its #252 ride-the-payload behavior — flipping it would silently drop
+ *  citizen identity prefills from deployed intake forms. */
+export function isPayloadIncluded(parameter: Record<string, unknown>): boolean {
+  if (parameter.payload === "include") return true;
+  if (parameter.payload === "exclude") return false;
+  return parameter.visibility !== "readonly";
+}
 
 /**
  * Minimal action/placement references the payload builder reads. Callers may
@@ -106,7 +137,9 @@ function defaultSurfaceFor(mode: RendererMode): string {
   return mode === "public-submit" ? "public_submit" : "admin_preview";
 }
 
-function pickScope(targetConfig: Record<string, unknown>): Record<string, unknown> {
+function pickScope(
+  targetConfig: Record<string, unknown>,
+): Record<string, unknown> {
   const scope: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(targetConfig)) {
     if (RESERVED_TARGET_KEYS.has(key)) continue;
@@ -116,7 +149,17 @@ function pickScope(targetConfig: Record<string, unknown>): Record<string, unknow
 }
 
 export function buildActionPayload(args: BuildArgs): ActionPayload {
-  const { action, placement, targetConfig, sourceSchema, rawValues, schemaVersion, mode, attachmentKeys, attachmentsByParam } = args;
+  const {
+    action,
+    placement,
+    targetConfig,
+    sourceSchema,
+    rawValues,
+    schemaVersion,
+    mode,
+    attachmentKeys,
+    attachmentsByParam,
+  } = args;
 
   const sourceFromSchema = nullableString(sourceSchema.source);
   const targetModel =
