@@ -9,6 +9,7 @@
   import DateTimePicker from "./DateTimePicker.svelte";
   import Input from "./Input.svelte";
   import MapPicker from "./MapPicker.svelte";
+  import MultiSelectCombobox from "./MultiSelectCombobox.svelte";
   import FileUpload from "./FileUpload.svelte";
   import FileUploadItem from "./FileUploadItem.svelte";
   import Select from "./Select.svelte";
@@ -16,6 +17,8 @@
   import type { Snippet } from "svelte";
   import {
     buildActionPayload,
+    isPayloadIncluded,
+    isReadonlyParam,
     placementConsequenceRows as buildPlacementConsequenceRows,
     type RendererMode,
   } from "./action-form-renderer-payload";
@@ -113,6 +116,10 @@
       typeCode: string,
       ids: string[],
     ) => Promise<SelectOption[]>;
+    /** #41 — per-field server-error binding: `{param_key: message}` rendered
+     *  as each field's inline error (the V2a adapter re-binds proxy 4xx field
+     *  errors here). Display-only — the HOST owns when errors set and clear. */
+    fieldErrors?: Record<string, string>;
     /** Environment-specific captcha (e.g. Turnstile), rendered above the button
      *  in submit modes. */
     captcha?: Snippet;
@@ -158,6 +165,7 @@
     uploadFile = undefined,
     searchEntities = undefined,
     hydrateEntities = undefined,
+    fieldErrors = undefined,
     captcha = undefined,
     submitLabel = "Submit",
     boundary = undefined,
@@ -437,6 +445,10 @@
     for (const parameter of orderedParameters) {
       const key = parameterKey(parameter);
       if (!key) continue;
+      // #41 / D3 — payload include|exclude: excluded params render but never
+      // reach the wire (readonly defaults OUT on the form-surface.v1 lane;
+      // `payload: "include"` declares prefill-and-send).
+      if (!isPayloadIncluded(parameter)) continue;
       bag[key] = values[key] ?? initialValue(parameter);
     }
     return bag;
@@ -534,10 +546,9 @@
   // linked entity id → its display label, fed by (a) edit-time hydration
   // through the `hydrateEntities` seam and (b) pick-time capture from the
   // search results — so a chip / selected value never degrades to a raw id
-  // when a later search replaces the Combobox items. `relDraft` is the m2m
-  // search-to-add Combobox's transient selection (reset after every add).
+  // when a later search replaces the Combobox items. (The m2m search-to-add
+  // draft is MultiSelectCombobox-internal — the renderer never sees it.)
   let relLabels = $state<Record<string, Record<string, string>>>({});
-  let relDraft = $state<Record<string, string>>({});
   const relHydrateRequested: Record<string, Set<string>> = {};
 
   $effect(() => {
@@ -581,16 +592,14 @@
     };
   }
 
-  /** Combobox items for a rel param: m2m excludes already-picked ids (a
-   *  double-add is impossible by construction); single prepends the current
-   *  selection when a later search dropped it (label persistence). */
+  /** Combobox items for a rel param. Multi: the raw search results —
+   *  MultiSelectCombobox itself excludes already-picked ids. Single: prepends
+   *  the current selection when a later search dropped it (label
+   *  persistence). */
   function relComboItems(parameter: Entity): SelectOption[] {
     const key = parameterKey(parameter);
     const searched = referenceItems[key] ?? [];
-    if (isMultiRelationship(parameter)) {
-      const selected = new Set(normalizeRelIds(values[key]));
-      return searched.filter((item) => !selected.has(item.value));
-    }
+    if (isMultiRelationship(parameter)) return searched;
     const current = typeof values[key] === "string" ? String(values[key]) : "";
     if (!current || searched.some((item) => item.value === current)) {
       return searched;
@@ -604,15 +613,11 @@
   }
 
   function addRelId(key: string, id: string) {
-    if (id) {
-      const current = normalizeRelIds(values[key]);
-      if (!current.includes(id)) {
-        captureRelLabel(key, id);
-        setValue(key, [...current, id]);
-      }
-    }
-    // Reset the draft so the Combobox is ready for the next add.
-    relDraft = { ...relDraft, [key]: "" };
+    if (!id) return;
+    const current = normalizeRelIds(values[key]);
+    if (current.includes(id)) return;
+    captureRelLabel(key, id);
+    setValue(key, [...current, id]);
   }
 
   function removeRelId(key: string, id: string) {
@@ -696,17 +701,33 @@
   {@const ariaRequired = parameter.required ? "true" : undefined}
   <!-- #252 — a parameter with `editable: false` (visibility.editable === false)
        renders READ-ONLY: its value (e.g. a logged-in citizen's prefilled
-       identity — name/email) is shown but not editable. The value still rides
-       the payload; the field just can't be changed. Default (undefined/true) is
-       editable, so this is purely additive. -->
-  {@const editable = parameter.editable !== false}
+       identity — name/email) is shown but not editable. On the ACTION lane the
+       value still rides the payload; on the form-surface.v1 lane
+       (`visibility: "readonly"` string) it defaults OFF the wire per D3 —
+       see isPayloadIncluded. -->
+  {@const editable = !isReadonlyParam(parameter)}
+  <!-- #41 — first-class field states: `disabled` and `loading` are host/
+       contract-declared inertness (loading = options/context not resolved
+       yet); `fieldError` is the per-field server-error binding. -->
+  {@const fieldDisabled = parameter.disabled === true || parameter.loading === true}
+  {@const fieldError = fieldErrors?.[key]}
   {#if type === "enum" || type === "select" || enumOptions(parameter).length}
+    {@const options = enumOptions(parameter)}
+    <!-- #41 — empty state: an option-driven field with ZERO resolved options
+         is inert with an explicit hint, never a dead control. -->
     <Select
       label={String(parameter.label ?? key)}
       name={key}
       value={String(values[key] ?? initialValue(parameter) ?? "")}
-      options={enumOptions(parameter)}
+      {options}
       placeholder="Select value"
+      disabled={fieldDisabled || !editable || options.length === 0}
+      error={fieldError}
+      help={parameter.loading === true
+        ? "Loading options..."
+        : options.length === 0
+          ? "No options available"
+          : undefined}
       onchange={(value: string) => setValue(key, value)}
       aria-required={ariaRequired}
     />
@@ -717,6 +738,8 @@
       type="number"
       value={String(values[key] ?? "")}
       readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
       oninput={(event: Event) => {
         const value = (event.target as HTMLInputElement).value;
         setValue(key, value === "" ? "" : Number(value));
@@ -732,6 +755,8 @@
         { value: "true", label: "Yes" },
         { value: "false", label: "No" },
       ]}
+      disabled={fieldDisabled || !editable}
+      error={fieldError}
       onchange={(value: string) => setValue(key, value === "true")}
       aria-required={ariaRequired}
     />
@@ -743,6 +768,8 @@
       label={String(parameter.label ?? key)}
       value={datetimeValue(values[key])}
       readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
       onchange={(date: Date) => setValue(key, date.toISOString())}
     />
   {:else if isRelationshipParam(parameter)}
@@ -752,43 +779,30 @@
          `object_filter` rides the injected searchEntities seam; no seam →
          disabled (the file-param convention for a missing transport). -->
     {#if isMultiRelationship(parameter)}
-      <!-- many_to_many: removable Tag chips + a search-to-add Combobox whose
-           draft NEVER holds the selection — the value bag carries the ID LIST,
-           so a single-pick replace of an m2m value is impossible by
-           construction. -->
-      <div
-        class="afr-rel-multi"
+      <!-- many_to_many: the DS MultiSelectCombobox widget (chips +
+           search-to-add). The renderer contributes only SEMANTICS: the value
+           bag carries the ID LIST, labels come from hydration/pick capture —
+           a single-pick replace of an m2m value is impossible by
+           construction (the widget never holds the selection). -->
+      <MultiSelectCombobox
         data-testid="afr-rel-multi"
-        role="group"
-        aria-labelledby={`${key}-rel-label`}
-      >
-        <span id={`${key}-rel-label`} class="afr-rel-label"
-          >{String(parameter.label ?? key)}{parameter.required
-            ? " (required)"
-            : ""}</span
-        >
-        {#if normalizeRelIds(values[key]).length}
-          <div class="afr-rel-chips">
-            {#each normalizeRelIds(values[key]) as id (id)}
-              <Tag removable={editable} onremove={() => removeRelId(key, id)}>
-                {relLabel(key, id)}
-              </Tag>
-            {/each}
-          </div>
-        {/if}
-        <Combobox
-          items={relComboItems(parameter)}
-          bind:value={() => relDraft[key] ?? "",
-          (value) => (relDraft = { ...relDraft, [key]: value })}
-          placeholder={relationshipTypeCode(parameter)
-            ? `Search ${relationshipTypeCode(parameter)}...`
-            : "Search..."}
-          disabled={!searchEntities || !editable}
-          loading={referenceLoading[key] ?? false}
-          onsearch={(query: string) => handleReferenceSearch(parameter, query)}
-          onchange={(value: string) => addRelId(key, value)}
-        />
-      </div>
+        label={String(parameter.label ?? key)}
+        required={parameter.required === true}
+        items={relComboItems(parameter)}
+        selected={normalizeRelIds(values[key]).map((id) => ({
+          value: id,
+          label: relLabel(key, id),
+        }))}
+        placeholder={relationshipTypeCode(parameter)
+          ? `Search ${relationshipTypeCode(parameter)}...`
+          : "Search..."}
+        disabled={!searchEntities || !editable || fieldDisabled}
+        loading={(referenceLoading[key] ?? false) || parameter.loading === true}
+        error={fieldError}
+        onsearch={(query: string) => handleReferenceSearch(parameter, query)}
+        onadd={(value: string) => addRelId(key, value)}
+        onremove={(value: string) => removeRelId(key, value)}
+      />
     {:else}
       <Combobox
         label={String(parameter.label ?? key)}
@@ -797,8 +811,9 @@
         placeholder={relationshipTypeCode(parameter)
           ? `Search ${relationshipTypeCode(parameter)}...`
           : "Search..."}
-        disabled={!searchEntities || !editable}
-        loading={referenceLoading[key] ?? false}
+        disabled={!searchEntities || !editable || fieldDisabled}
+        loading={(referenceLoading[key] ?? false) || parameter.loading === true}
+        error={fieldError}
         onsearch={(query: string) => handleReferenceSearch(parameter, query)}
         onchange={(value: string) => pickSingleRel(key, value)}
       />
@@ -838,6 +853,8 @@
       {/if}
       {#if fileError[key]}
         <p class="afr-file-error" role="alert">{fileError[key]}</p>
+      {:else if fieldError}
+        <p class="afr-file-error" role="alert">{fieldError}</p>
       {/if}
     </div>
   {:else if type === "geo"}
@@ -855,7 +872,7 @@
       {boundary}
       {layers}
       {onoutofbounds}
-      error={geoError}
+      error={fieldError ?? geoError}
       label={String(parameter.label ?? key)}
       center={Array.isArray(parameter.default_value)
         ? (parameter.default_value as [number, number])
@@ -876,6 +893,8 @@
       name={key}
       value={String(values[key] ?? initialValue(parameter) ?? "")}
       readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
       oninput={(event: Event) => setValue(key, (event.target as HTMLInputElement).value)}
       aria-required={ariaRequired}
     />
@@ -1093,24 +1112,6 @@
     color: var(--input-error-text);
   }
 
-  .afr-rel-multi {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-  }
-
-  .afr-rel-label {
-    font-family: var(--input-label-font);
-    font-size: var(--input-label-size);
-    letter-spacing: var(--input-label-tracking);
-    color: var(--input-label-color);
-  }
-
-  .afr-rel-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-xs);
-  }
 
   .submit-captcha {
     min-height: var(--space-4xl);

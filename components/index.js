@@ -25,6 +25,7 @@ export { default as Checkbox } from "./Checkbox.svelte";
 export { default as Label } from "./Label.svelte";
 export { default as FileUpload } from "./FileUpload.svelte";
 export { default as FileUploadItem } from "./FileUploadItem.svelte";
+export { default as MultiSelectCombobox } from "./MultiSelectCombobox.svelte";
 
 // Layout
 export { default as Separator } from "./Separator.svelte";
