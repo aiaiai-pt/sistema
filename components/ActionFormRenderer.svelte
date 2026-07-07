@@ -52,6 +52,8 @@
   import {
     dateOnlyToDate,
     dateToDateOnly,
+    geoJsonPointToLonLat,
+    lonLatToGeoJsonPoint,
     widgetKind,
   } from "./action-form-renderer-widgets";
 
@@ -961,6 +963,25 @@
         <p class="afr-file-error" role="alert">{fieldError}</p>
       {/if}
     </div>
+  {:else if kind === "geometry"}
+    <!-- #39 — the form-surface.v1 geometry widget: the value bag carries a
+         GeoJSON Point (the CRUD wire shape); the MapPicker keeps speaking
+         [lon, lat] at its prop edge; the pure adapters translate. A
+         non-Point value fails LOUD on the field instead of rendering a
+         silently-empty map over real data. The legacy `geo` param (bare
+         tuple) is the branch below, untouched. -->
+    {@const hydrated = geoJsonPointToLonLat(values[key])}
+    <MapPicker
+      mode="point"
+      height="20rem"
+      {boundary}
+      {layers}
+      {onoutofbounds}
+      error={fieldError ?? hydrated.error ?? geoError}
+      label={String(parameter.label ?? key)}
+      value={hydrated.coords ?? undefined}
+      onchange={(coords: [number, number]) => setValue(key, lonLatToGeoJsonPoint(coords))}
+    />
   {:else if type === "geo"}
     <!-- A `geo` parameter renders the DS map-picker; its value is the
          [lon, lat] the BFF's GEO_PARSE binding transform turns into a Point.

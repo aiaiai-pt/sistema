@@ -53,3 +53,44 @@ export function dateToDateOnly(date: Date): string {
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+export type GeoJsonPoint = { type: "Point"; coordinates: [number, number] };
+
+/** #39 — hydrate the contract's GeoJSON value onto the MapPicker's
+ *  [lon, lat] prop edge. Empty → no pin, no error. A non-Point (or
+ *  malformed Point) fails LOUD: null coords + a named error the field
+ *  renders — never a silently-empty map over real data. */
+export function geoJsonPointToLonLat(value: unknown): {
+  coords: [number, number] | null;
+  error: string | null;
+} {
+  if (value === null || value === undefined || value === "") {
+    return { coords: null, error: null };
+  }
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const row = value as Record<string, unknown>;
+    if (row.type === "Point" && Array.isArray(row.coordinates)) {
+      const [lon, lat] = row.coordinates as unknown[];
+      if (typeof lon === "number" && typeof lat === "number") {
+        return { coords: [lon, lat], error: null };
+      }
+      return {
+        coords: null,
+        error: "Unsupported geometry: malformed Point coordinates",
+      };
+    }
+    return {
+      coords: null,
+      error: `Unsupported geometry: expected a GeoJSON Point, got ${String(row.type ?? "unknown")}`,
+    };
+  }
+  return {
+    coords: null,
+    error: "Unsupported geometry: expected a GeoJSON Point",
+  };
+}
+
+/** #39 — serialize a placed pin back onto the GeoJSON wire shape. */
+export function lonLatToGeoJsonPoint(coords: [number, number]): GeoJsonPoint {
+  return { type: "Point", coordinates: [coords[0], coords[1]] };
+}
