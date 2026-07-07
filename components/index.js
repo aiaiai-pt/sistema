@@ -27,6 +27,7 @@ export { default as FileUpload } from "./FileUpload.svelte";
 export { default as FileUploadItem } from "./FileUploadItem.svelte";
 export { default as MultiSelectCombobox } from "./MultiSelectCombobox.svelte";
 export { default as MoneyInput } from "./MoneyInput.svelte";
+export { default as JsonEditor } from "./JsonEditor.svelte";
 
 // Layout
 export { default as Separator } from "./Separator.svelte";

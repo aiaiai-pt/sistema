@@ -43,6 +43,10 @@
       "types": "./components/action-form-renderer-widgets.d.ts",
       "default": "./components/action-form-renderer-widgets.ts"
     },
+    "./components/json-editor-contract": {
+      "types": "./components/json-editor-contract.d.ts",
+      "default": "./components/json-editor-contract.ts"
+    },
     "./components/*.svelte": {
       "types": "./components/*.svelte.d.ts",
       "svelte": "./components/*.svelte",

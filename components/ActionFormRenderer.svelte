@@ -9,6 +9,7 @@
   import DatePicker from "./DatePicker.svelte";
   import DateTimePicker from "./DateTimePicker.svelte";
   import Input from "./Input.svelte";
+  import JsonEditor from "./JsonEditor.svelte";
   import Textarea from "./Textarea.svelte";
   import Toggle from "./Toggle.svelte";
   import MapPicker from "./MapPicker.svelte";
@@ -285,13 +286,15 @@
   // to exactly `visibleParameters`.
   const gateParameters = $derived(liveSections.flatMap((section) => section.items));
   const canSubmit = $derived(
-    gateParameters
-      .filter((parameter) => parameter.required)
-      .every((parameter) =>
-        String(parameter.type ?? "") === "file"
-          ? (fileUploads[parameterKey(parameter)] ?? []).length > 0
-          : !isEmpty(values[parameterKey(parameter)]),
-      ),
+    // #38 — any invalid json draft blocks submit, required or not.
+    !Object.values(jsonInvalid).some((message) => message !== null) &&
+      gateParameters
+        .filter((parameter) => parameter.required)
+        .every((parameter) =>
+          String(parameter.type ?? "") === "file"
+            ? (fileUploads[parameterKey(parameter)] ?? []).length > 0
+            : !isEmpty(values[parameterKey(parameter)]),
+        ),
   );
 
   async function handleSubmit(): Promise<void> {
@@ -445,6 +448,9 @@
     // #34 — an unset single `relationship` summary is null on the wire
     // (string|null contract). Legacy `object_reference` keeps its "" seed.
     if (type === "relationship") return null;
+    // #38 — an unset json field is null (empty editor), never the ""
+    // string (which would render as a literal '""' draft).
+    if (type === "json" || widgetKind(parameter) === "json") return null;
     return "";
   }
 
@@ -562,6 +568,11 @@
   // draft is MultiSelectCombobox-internal — the renderer never sees it.)
   let relLabels = $state<Record<string, Record<string, string>>>({});
   const relHydrateRequested: Record<string, Set<string>> = {};
+
+  // #38 — per-param json parse invalidity (JsonEditor oninvalid seam). A
+  // non-null message anywhere blocks submit: invalid text must never reach
+  // the wire OR be silently dropped by submitting around it.
+  let jsonInvalid = $state<Record<string, string | null>>({});
 
   $effect(() => {
     if (!hydrateEntities) return;
@@ -778,6 +789,20 @@
       autocorrect="off"
       oninput={(event: Event) => setValue(key, (event.target as HTMLInputElement).value)}
       aria-required={ariaRequired}
+    />
+  {:else if kind === "json"}
+    <!-- #38 — json editor with the invalid-state contract: invalid text
+         surfaces its parse error, emits nothing, and blocks submit via the
+         jsonInvalid gate. -->
+    <JsonEditor
+      label={String(parameter.label ?? key)}
+      value={values[key] ?? initialValue(parameter)}
+      readonly={!editable}
+      disabled={fieldDisabled}
+      error={fieldError}
+      onchange={(value: unknown) => setValue(key, value)}
+      oninvalid={(message: string | null) =>
+        (jsonInvalid = { ...jsonInvalid, [key]: message })}
     />
   {:else if kind === "date"}
     <!-- #37 — date-only picker; the bag carries the YYYY-MM-DD wire string
