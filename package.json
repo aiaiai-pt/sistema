@@ -35,6 +35,10 @@
       "types": "./components/action-form-visibility.d.ts",
       "default": "./components/action-form-visibility.ts"
     },
+    "./components/action-form-renderer-relationships": {
+      "types": "./components/action-form-renderer-relationships.d.ts",
+      "default": "./components/action-form-renderer-relationships.ts"
+    },
     "./components/*.svelte": {
       "types": "./components/*.svelte.d.ts",
       "svelte": "./components/*.svelte",

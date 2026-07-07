@@ -33,7 +33,11 @@
     {@render children()}
   {/if}
   {#if removable}
+    <!-- type="button": inside a <form> (e.g. ActionFormRenderer m2m chips) a
+         typeless button is a SUBMIT button — removing a chip must never
+         submit the form. -->
     <button
+      type="button"
       class="tag-remove"
       aria-label="Remove tag"
       onclick={(e) => {

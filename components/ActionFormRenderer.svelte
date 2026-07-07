@@ -29,6 +29,15 @@
   // predicate (pure client evaluation over the value bag; the server owns
   // enforcement).
   import { sectionVisible } from "./action-form-visibility";
+  // #34 (atelier#669 V1, D6) — cardinality-aware relationship picking over the
+  // two rel param shapes (form-surface.v1 `relationship` summaries and
+  // derived-action `object_reference` + `multiple` params).
+  import {
+    isMultiRelationship,
+    isRelationshipParam,
+    normalizeRelIds,
+    relationshipTypeCode,
+  } from "./action-form-renderer-relationships";
 
   /**
    * The renderer treats every parameter/action/placement as a loose record
@@ -94,6 +103,16 @@
       query: string,
       filter?: Record<string, string>,
     ) => Promise<SelectOption[]>;
+    /** Edit-time label hydration for relationship params (#34): receives the
+     *  target entity type code and the currently-linked ids, returns
+     *  `{value, label}` items so the picker renders labels, never raw ids.
+     *  Same philosophy as searchEntities — the CONSUMER owns transport/auth;
+     *  omitted → the picker falls back to showing the ids. Best-effort: a
+     *  failed hydration never blocks the form. */
+    hydrateEntities?: (
+      typeCode: string,
+      ids: string[],
+    ) => Promise<SelectOption[]>;
     /** Environment-specific captcha (e.g. Turnstile), rendered above the button
      *  in submit modes. */
     captcha?: Snippet;
@@ -138,6 +157,7 @@
     onApply = undefined,
     uploadFile = undefined,
     searchEntities = undefined,
+    hydrateEntities = undefined,
     captcha = undefined,
     submitLabel = "Submit",
     boundary = undefined,
@@ -235,6 +255,8 @@
   // parameter must have a non-empty value. Server-side submission criteria are
   // enforced by the BFF on submit and surfaced via `submitError`.
   function isEmpty(value: unknown): boolean {
+    // #34 — an empty ID list (required m2m with zero picks) must block submit.
+    if (Array.isArray(value)) return value.length === 0;
     return value === undefined || value === null || value === "";
   }
   // #634 S4 — the gate counts only parameters whose section is LIVE-visible:
@@ -388,6 +410,11 @@
   }
 
   function initialValue(parameter: Entity): unknown {
+    // #34 — a multi-value rel param holds an ID LIST in the bag (the m2m wire
+    // shape), normalized even when the default arrives as a scalar.
+    if (isRelationshipParam(parameter) && isMultiRelationship(parameter)) {
+      return normalizeRelIds(parameter.default_value);
+    }
     if (parameter.default_value !== null && parameter.default_value !== undefined) {
       return parameter.default_value;
     }
@@ -395,6 +422,9 @@
     if (type === "bool" || type === "boolean") return false;
     if (type === "number" || type === "integer") return "";
     if (type === "enum" || type === "select") return enumOptions(parameter)[0]?.value ?? "";
+    // #34 — an unset single `relationship` summary is null on the wire
+    // (string|null contract). Legacy `object_reference` keeps its "" seed.
+    if (type === "relationship") return null;
     return "";
   }
 
@@ -483,8 +513,10 @@
     const gen = (referenceSearchGen[key] = (referenceSearchGen[key] ?? 0) + 1);
     referenceLoading = { ...referenceLoading, [key]: true };
     try {
+      // #34 — the type code comes from the relationship meta when present
+      // (form-surface lane), else the param's own object_type (action lane).
       const items = await searchEntities(
-        String(parameter.object_type ?? ""),
+        relationshipTypeCode(parameter),
         query,
         objectFilter(parameter),
       );
@@ -496,6 +528,98 @@
       if (referenceSearchGen[key] === gen)
         referenceLoading = { ...referenceLoading, [key]: false };
     }
+  }
+
+  // #34 — relationship label bookkeeping. `relLabels` maps, per param key, a
+  // linked entity id → its display label, fed by (a) edit-time hydration
+  // through the `hydrateEntities` seam and (b) pick-time capture from the
+  // search results — so a chip / selected value never degrades to a raw id
+  // when a later search replaces the Combobox items. `relDraft` is the m2m
+  // search-to-add Combobox's transient selection (reset after every add).
+  let relLabels = $state<Record<string, Record<string, string>>>({});
+  let relDraft = $state<Record<string, string>>({});
+  const relHydrateRequested: Record<string, Set<string>> = {};
+
+  $effect(() => {
+    if (!hydrateEntities) return;
+    for (const parameter of orderedParameters) {
+      if (!isRelationshipParam(parameter)) continue;
+      const key = parameterKey(parameter);
+      if (!key) continue;
+      const ids = normalizeRelIds(values[key] ?? initialValue(parameter));
+      const known = relLabels[key] ?? {};
+      const requested = (relHydrateRequested[key] ??= new Set());
+      const missing = ids.filter((id) => !(id in known) && !requested.has(id));
+      if (!missing.length) continue;
+      for (const id of missing) requested.add(id);
+      hydrateEntities(relationshipTypeCode(parameter), missing)
+        .then((items) => {
+          if (!Array.isArray(items) || !items.length) return;
+          const next = { ...(relLabels[key] ?? {}) };
+          for (const item of items) {
+            const value = String(item.value ?? "");
+            if (value) next[value] = String(item.label ?? value);
+          }
+          relLabels = { ...relLabels, [key]: next };
+        })
+        .catch(() => {
+          // Best-effort: the picker falls back to raw ids.
+        });
+    }
+  });
+
+  function relLabel(key: string, id: string): string {
+    return relLabels[key]?.[id] ?? id;
+  }
+
+  function captureRelLabel(key: string, id: string) {
+    const item = (referenceItems[key] ?? []).find((entry) => entry.value === id);
+    if (!item) return;
+    relLabels = {
+      ...relLabels,
+      [key]: { ...(relLabels[key] ?? {}), [id]: item.label },
+    };
+  }
+
+  /** Combobox items for a rel param: m2m excludes already-picked ids (a
+   *  double-add is impossible by construction); single prepends the current
+   *  selection when a later search dropped it (label persistence). */
+  function relComboItems(parameter: Entity): SelectOption[] {
+    const key = parameterKey(parameter);
+    const searched = referenceItems[key] ?? [];
+    if (isMultiRelationship(parameter)) {
+      const selected = new Set(normalizeRelIds(values[key]));
+      return searched.filter((item) => !selected.has(item.value));
+    }
+    const current = typeof values[key] === "string" ? String(values[key]) : "";
+    if (!current || searched.some((item) => item.value === current)) {
+      return searched;
+    }
+    return [{ value: current, label: relLabel(key, current) }, ...searched];
+  }
+
+  function pickSingleRel(key: string, id: string) {
+    captureRelLabel(key, id);
+    setValue(key, id);
+  }
+
+  function addRelId(key: string, id: string) {
+    if (id) {
+      const current = normalizeRelIds(values[key]);
+      if (!current.includes(id)) {
+        captureRelLabel(key, id);
+        setValue(key, [...current, id]);
+      }
+    }
+    // Reset the draft so the Combobox is ready for the next add.
+    relDraft = { ...relDraft, [key]: "" };
+  }
+
+  function removeRelId(key: string, id: string) {
+    setValue(
+      key,
+      normalizeRelIds(values[key]).filter((value) => value !== id),
+    );
   }
 
   // `datetime` params keep an ISO 8601 STRING in the value bag (the platform's
@@ -621,23 +745,64 @@
       readonly={!editable}
       onchange={(date: Date) => setValue(key, date.toISOString())}
     />
-  {:else if type === "object_reference"}
-    <!-- `object_reference` parameter (#629 PR1b): lazy-search Combobox over
-         the entity type named by `object_type`; `object_filter` rides the
-         injected searchEntities seam. No seam → disabled (the file-param
-         convention for a missing consumer transport). -->
-    <Combobox
-      label={String(parameter.label ?? key)}
-      items={referenceItems[key] ?? []}
-      value={String(values[key] ?? "")}
-      placeholder={typeof parameter.object_type === "string" && parameter.object_type
-        ? `Search ${parameter.object_type}...`
-        : "Search..."}
-      disabled={!searchEntities || !editable}
-      loading={referenceLoading[key] ?? false}
-      onsearch={(query: string) => handleReferenceSearch(parameter, query)}
-      onchange={(value: string) => setValue(key, value)}
-    />
+  {:else if isRelationshipParam(parameter)}
+    <!-- Relationship / `object_reference` picking, cardinality-aware (#34,
+         atelier#669 D6). Covers the form-surface.v1 `relationship` summary
+         AND the derived-action `object_reference` (+ `multiple`) param.
+         `object_filter` rides the injected searchEntities seam; no seam →
+         disabled (the file-param convention for a missing transport). -->
+    {#if isMultiRelationship(parameter)}
+      <!-- many_to_many: removable Tag chips + a search-to-add Combobox whose
+           draft NEVER holds the selection — the value bag carries the ID LIST,
+           so a single-pick replace of an m2m value is impossible by
+           construction. -->
+      <div
+        class="afr-rel-multi"
+        data-testid="afr-rel-multi"
+        role="group"
+        aria-labelledby={`${key}-rel-label`}
+      >
+        <span id={`${key}-rel-label`} class="afr-rel-label"
+          >{String(parameter.label ?? key)}{parameter.required
+            ? " (required)"
+            : ""}</span
+        >
+        {#if normalizeRelIds(values[key]).length}
+          <div class="afr-rel-chips">
+            {#each normalizeRelIds(values[key]) as id (id)}
+              <Tag removable={editable} onremove={() => removeRelId(key, id)}>
+                {relLabel(key, id)}
+              </Tag>
+            {/each}
+          </div>
+        {/if}
+        <Combobox
+          items={relComboItems(parameter)}
+          bind:value={() => relDraft[key] ?? "",
+          (value) => (relDraft = { ...relDraft, [key]: value })}
+          placeholder={relationshipTypeCode(parameter)
+            ? `Search ${relationshipTypeCode(parameter)}...`
+            : "Search..."}
+          disabled={!searchEntities || !editable}
+          loading={referenceLoading[key] ?? false}
+          onsearch={(query: string) => handleReferenceSearch(parameter, query)}
+          onchange={(value: string) => addRelId(key, value)}
+        />
+      </div>
+    {:else}
+      <Combobox
+        label={String(parameter.label ?? key)}
+        items={relComboItems(parameter)}
+        value={String(values[key] ?? "")}
+        placeholder={relationshipTypeCode(parameter)
+          ? `Search ${relationshipTypeCode(parameter)}...`
+          : "Search..."}
+        disabled={!searchEntities || !editable}
+        loading={referenceLoading[key] ?? false}
+        onsearch={(query: string) => handleReferenceSearch(parameter, query)}
+        onchange={(value: string) => pickSingleRel(key, value)}
+      />
+    {/if}
   {:else if type === "file"}
     <!-- `file` parameter (#75 M5 slice 4b): upload-as-you-attach. The keys
          ride payload.attachment_keys; raw_values never sees this param. -->
@@ -926,6 +1091,25 @@
     margin: 0;
     font-size: var(--type-body-sm-size);
     color: var(--input-error-text);
+  }
+
+  .afr-rel-multi {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .afr-rel-label {
+    font-family: var(--input-label-font);
+    font-size: var(--input-label-size);
+    letter-spacing: var(--input-label-tracking);
+    color: var(--input-label-color);
+  }
+
+  .afr-rel-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
   }
 
   .submit-captcha {
