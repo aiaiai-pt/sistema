@@ -92,20 +92,49 @@ export function formatTimestamp(value: string, locale: string): string {
   }
 }
 
+/** Locale date+time for an ISO timestamp (UTC-stable so SSR == hydrate); the
+ *  raw string when unparseable. Unlike `formatTimestamp` (date-only), this keeps
+ *  the time — for a schema `datetime` field the staff admin renders the full
+ *  instant (incl. 00:00), since a datetime's time is meaningful data (SLA
+ *  stamps, acknowledgements). A `date`-typed field uses `formatTimestamp`. */
+export function formatDateTime(value: string, locale: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  try {
+    return new Intl.DateTimeFormat(locale || "en", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "UTC",
+    }).format(parsed);
+  } catch {
+    return value;
+  }
+}
+
 /**
  * The single display boundary for list cells / detail values. Formats a value
- * as a locale date when it's a timestamp — either because `opts.treatAsDate`
- * forces it (the admin, from the schema field type) or because the value itself
- * looks like an ISO timestamp (the portal, value-shape). Everything else goes
- * through `formatScalar` (with the host's object-fallback policy).
+ * as a locale date/datetime when it's a timestamp — the caller drives which
+ * from the schema FIELD TYPE (not a value-shape guess):
+ *   - `treatAsDate`      → date-only  (a `date`-typed field)
+ *   - `treatAsDateTime`  → date+time  (a `datetime`-typed field; time is data)
+ *   - neither            → value-shape: an ISO-timestamp STRING renders
+ *                          date-only (the portal, whose public schema strips
+ *                          typed created_at/updated_at). Unchanged.
+ * Everything else goes through `formatScalar` (with the host's object policy).
+ * `treatAsDate` wins if a caller mistakenly sets both.
  */
 export function displayCell(
   value: unknown,
   locale: string,
-  opts: { treatAsDate?: boolean; objectFallback?: ObjectFallback } = {},
+  opts: {
+    treatAsDate?: boolean;
+    treatAsDateTime?: boolean;
+    objectFallback?: ObjectFallback;
+  } = {},
 ): string {
-  if (opts.treatAsDate && typeof value === "string" && value) {
-    return formatTimestamp(value, locale);
+  if (typeof value === "string" && value) {
+    if (opts.treatAsDate) return formatTimestamp(value, locale);
+    if (opts.treatAsDateTime) return formatDateTime(value, locale);
   }
   if (isIsoTimestamp(value)) return formatTimestamp(value, locale);
   return formatScalar(value, { objectFallback: opts.objectFallback });

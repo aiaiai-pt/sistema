@@ -9,6 +9,7 @@ import {
   formatScalar,
   isIsoTimestamp,
   formatTimestamp,
+  formatDateTime,
   displayCell,
   statusLabel,
   statusVariant,
@@ -69,6 +70,18 @@ describe("timestamps", () => {
       "9999-99-99T99:99:99Z",
     );
   });
+
+  it("formatDateTime keeps the time, UTC-stable; raw on unparseable", () => {
+    expect(formatDateTime("2026-06-11T23:30:00Z", "en")).toBe(
+      "Jun 11, 2026, 11:30 PM",
+    );
+    expect(formatDateTime("2026-06-11T23:30:00Z", "pt")).toMatch(
+      /11.*jun.*2026.*23:30/i,
+    );
+    expect(formatDateTime("9999-99-99T99:99:99Z", "en")).toBe(
+      "9999-99-99T99:99:99Z",
+    );
+  });
 });
 
 describe("displayCell — date routing + forks", () => {
@@ -88,6 +101,35 @@ describe("displayCell — date routing + forks", () => {
     expect(displayCell("not-a-date", "en", { treatAsDate: true })).toBe(
       "not-a-date",
     );
+  });
+
+  it("admin type-mode: treatAsDateTime KEEPS the time (schema datetime field)", () => {
+    // a `datetime`-typed field renders its full instant — the time is data
+    // (SLA stamps, acknowledgements), not noise. Contrast treatAsDate above,
+    // which drops it. Midnight is still shown (it's a real datetime).
+    expect(
+      displayCell("2026-06-11T08:30:00Z", "en", { treatAsDateTime: true }),
+    ).toBe("Jun 11, 2026, 8:30 AM");
+    expect(
+      displayCell("2026-06-11T00:00:00Z", "en", { treatAsDateTime: true }),
+    ).toBe("Jun 11, 2026, 12:00 AM");
+    expect(displayCell("not-a-date", "en", { treatAsDateTime: true })).toBe(
+      "not-a-date",
+    );
+  });
+
+  it("treatAsDate wins when a caller mistakenly sets both", () => {
+    expect(
+      displayCell("2026-06-11T08:30:00Z", "en", {
+        treatAsDate: true,
+        treatAsDateTime: true,
+      }),
+    ).toBe("Jun 11, 2026");
+  });
+
+  it("portal value-mode is UNCHANGED by the new option (no flag → date-only)", () => {
+    // regression guard: the citizen path must not gain times.
+    expect(displayCell("2026-06-11T08:30:00Z", "en")).toBe("Jun 11, 2026");
   });
 
   it("threads objectFallback through to formatScalar", () => {
