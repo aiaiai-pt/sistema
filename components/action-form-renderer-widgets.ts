@@ -95,6 +95,37 @@ export function lonLatToGeoJsonPoint(coords: [number, number]): GeoJsonPoint {
   return { type: "Point", coordinates: [coords[0], coords[1]] };
 }
 
+/** #46 — the map picker's INITIAL CENTRE, from its declared home:
+ *  `ui_schema.map.initial_center` ([lon, lat]). A viewport hint is
+ *  presentation, not a value — it lives in ui_schema so `default_value`
+ *  keeps its one meaning (the initial VALUE). Malformed/absent → undefined
+ *  (the picker keeps its own default). Consumers still passing a bare
+ *  [lon, lat] `default_value` on a legacy geo param keep working via the
+ *  renderer's fallback (deprecated; removed next minor). */
+export function mapInitialCenter(parameter: {
+  ui_schema?: unknown;
+  [key: string]: unknown;
+}): [number, number] | undefined {
+  const ui =
+    parameter.ui_schema && typeof parameter.ui_schema === "object"
+      ? (parameter.ui_schema as Record<string, unknown>)
+      : null;
+  const map =
+    ui?.map && typeof ui.map === "object"
+      ? (ui.map as Record<string, unknown>)
+      : null;
+  const c = map?.initial_center;
+  if (
+    Array.isArray(c) &&
+    c.length >= 2 &&
+    typeof c[0] === "number" &&
+    typeof c[1] === "number"
+  ) {
+    return [c[0], c[1]];
+  }
+  return undefined;
+}
+
 export type StoredFile = { name: string; url?: string };
 
 /** #40 — normalize a file param's stored-current value (the edit form's
