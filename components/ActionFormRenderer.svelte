@@ -54,6 +54,7 @@
     dateToDateOnly,
     geoJsonPointToLonLat,
     lonLatToGeoJsonPoint,
+    mapInitialCenter,
     storedFileDescriptor,
     widgetKind,
   } from "./action-form-renderer-widgets";
@@ -1007,6 +1008,7 @@
       {onoutofbounds}
       error={fieldError ?? hydrated.error ?? geoError}
       label={String(parameter.label ?? key)}
+      center={mapInitialCenter(parameter)}
       value={hydrated.coords ?? undefined}
       onchange={(coords: [number, number]) => setValue(key, lonLatToGeoJsonPoint(coords))}
     />
@@ -1027,9 +1029,10 @@
       {onoutofbounds}
       error={fieldError ?? geoError}
       label={String(parameter.label ?? key)}
-      center={Array.isArray(parameter.default_value)
-        ? (parameter.default_value as [number, number])
-        : undefined}
+      center={mapInitialCenter(parameter) ??
+        (Array.isArray(parameter.default_value)
+          ? (parameter.default_value as [number, number])
+          : undefined)}
       value={Array.isArray(values[key])
         ? (values[key] as [number, number])
         : undefined}

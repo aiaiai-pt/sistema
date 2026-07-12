@@ -119,3 +119,27 @@ describe("geometry widget (renderer dispatch)", () => {
     expect(t.textContent).toContain("Unsupported geometry");
   });
 });
+
+// #46 (atelier#752) — the map centre's declared home is ui_schema.map.
+// initial_center; default_value keeps its one meaning (the initial VALUE).
+import { mapInitialCenter } from "../components/action-form-renderer-widgets";
+
+describe("mapInitialCenter", () => {
+  it("reads a [lon, lat] pair from ui_schema.map.initial_center", () => {
+    expect(
+      mapInitialCenter({ ui_schema: { map: { initial_center: [-8.61, 41.15] } } }),
+    ).toEqual([-8.61, 41.15]);
+  });
+
+  it("is undefined when absent or malformed (picker keeps its own default)", () => {
+    expect(mapInitialCenter({})).toBeUndefined();
+    expect(mapInitialCenter({ ui_schema: null })).toBeUndefined();
+    expect(mapInitialCenter({ ui_schema: { map: {} } })).toBeUndefined();
+    expect(
+      mapInitialCenter({ ui_schema: { map: { initial_center: ["-8.61", "41.15"] } } }),
+    ).toBeUndefined();
+    expect(
+      mapInitialCenter({ ui_schema: { map: { initial_center: [1] } } }),
+    ).toBeUndefined();
+  });
+});
