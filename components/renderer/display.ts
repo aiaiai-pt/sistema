@@ -24,21 +24,37 @@
 
 export type ObjectFallback = "redact" | "json";
 
+/** How a boolean renders: "raw" (default) → "true"/"false" (both hosts'
+ *  historical output); "yes-no" → "Yes"/"No" (the staff admin's cell copy —
+ *  #748 lifts it here so the admin's private renderCell fork can retire). */
+export type BooleanDisplay = "raw" | "yes-no";
+
 /**
- * Pure value → display string. Scalars stringify; arrays join their non-empty
- * formatted members; a disclosed relationship object ({id,label}|{name}|{title})
- * renders its human label then its id. An UNKNOWN object renders per
- * `objectFallback`: "redact" (default) → "" (never dumps internals — the public
- * security boundary); "json" → pretty JSON (the admin operator view).
+ * Pure value → display string. Scalars stringify (booleans per
+ * `booleanDisplay`); arrays join their non-empty formatted members; a
+ * disclosed relationship object renders its human handle
+ * (label→name→display_name→title→code) then its id — `display_name`/`code`
+ * joined the order in #748 so an expanded rel carrying only those (ontology
+ * rows commonly do) renders its handle, not its UUID. An UNKNOWN object
+ * renders per `objectFallback`: "redact" (default) → "" (never dumps
+ * internals — the public security boundary); "json" → pretty JSON (the admin
+ * operator view).
  */
 export function formatScalar(
   value: unknown,
-  opts: { objectFallback?: ObjectFallback } = {},
+  opts: {
+    objectFallback?: ObjectFallback;
+    booleanDisplay?: BooleanDisplay;
+  } = {},
 ): string {
   // `== null` catches both null and undefined.
   if (value == null) return "";
   if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") {
+  if (typeof value === "boolean") {
+    if (opts.booleanDisplay === "yes-no") return value ? "Yes" : "No";
+    return String(value);
+  }
+  if (typeof value === "number") {
     return String(value);
   }
   if (Array.isArray(value)) {
@@ -49,7 +65,7 @@ export function formatScalar(
   }
   if (typeof value === "object") {
     const o = value as Record<string, unknown>;
-    for (const k of ["label", "name", "title"]) {
+    for (const k of ["label", "name", "display_name", "title", "code"]) {
       const v = o[k];
       if (typeof v === "string" && v) return v;
     }
@@ -130,6 +146,7 @@ export function displayCell(
     treatAsDate?: boolean;
     treatAsDateTime?: boolean;
     objectFallback?: ObjectFallback;
+    booleanDisplay?: BooleanDisplay;
   } = {},
 ): string {
   if (typeof value === "string" && value) {
@@ -137,7 +154,10 @@ export function displayCell(
     if (opts.treatAsDateTime) return formatDateTime(value, locale);
   }
   if (isIsoTimestamp(value)) return formatTimestamp(value, locale);
-  return formatScalar(value, { objectFallback: opts.objectFallback });
+  return formatScalar(value, {
+    objectFallback: opts.objectFallback,
+    booleanDisplay: opts.booleanDisplay,
+  });
 }
 
 /** Operator copy for a status value (falls back to the raw value). `labels` is
