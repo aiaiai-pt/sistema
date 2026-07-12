@@ -31,11 +31,41 @@ describe("formatScalar — pure value→string + object policy", () => {
     expect(formatScalar([{ label: "X" }, { id: "y" }])).toBe("X, y");
   });
 
-  it("relationship object renders label→name→title→id", () => {
+  it("relationship object renders label→name→display_name→title→code→id", () => {
     expect(formatScalar({ id: "u1", label: "Ana" })).toBe("Ana");
     expect(formatScalar({ id: "u1", name: "Bob" })).toBe("Bob");
     expect(formatScalar({ id: "u1", title: "Doc" })).toBe("Doc");
     expect(formatScalar({ id: "u1" })).toBe("u1");
+  });
+
+  it("#748 — display_name and code join the handle order (expanded ontology rels)", () => {
+    // An expanded rel carrying only display_name/code must render its handle,
+    // never its UUID (the gap that kept the admin's private renderCell alive).
+    expect(formatScalar({ id: "u1", display_name: "Ana Silva" })).toBe(
+      "Ana Silva",
+    );
+    expect(formatScalar({ id: "u1", code: "PROVEZERO" })).toBe("PROVEZERO");
+    // Precedence: name beats display_name (the admin's order), display_name
+    // beats title, title beats code.
+    expect(formatScalar({ name: "N", display_name: "D", code: "C" })).toBe("N");
+    expect(formatScalar({ display_name: "D", title: "T", code: "C" })).toBe(
+      "D",
+    );
+    expect(formatScalar({ title: "T", code: "C" })).toBe("T");
+  });
+
+  it("#748 — booleanDisplay 'yes-no' renders the staff cell copy; default stays raw", () => {
+    expect(formatScalar(true, { booleanDisplay: "yes-no" })).toBe("Yes");
+    expect(formatScalar(false, { booleanDisplay: "yes-no" })).toBe("No");
+    expect(formatScalar(true)).toBe("true");
+    expect(formatScalar(false)).toBe("false");
+    // arrays thread the option through
+    expect(formatScalar([true, false], { booleanDisplay: "yes-no" })).toBe(
+      "Yes, No",
+    );
+    // displayCell threads it too
+    expect(displayCell(true, "en", { booleanDisplay: "yes-no" })).toBe("Yes");
+    expect(displayCell(false, "en")).toBe("false");
   });
 
   it("REDACTS an unknown object by default (never leaks internals)", () => {
