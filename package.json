@@ -1,6 +1,6 @@
 {
   "name": "@aiaiai-pt/design-system",
-  "version": "0.46.3",
+  "version": "0.47.0",
   "description": "Design system tokens and Svelte components for aiaiai products",
   "license": "MIT",
   "type": "module",
@@ -83,14 +83,14 @@
     "@codemirror/view": "^6.40.0",
     "@lezer/highlight": "^1.0.0",
     "date-fns": "^4.1.0",
-    "echarts": "^5.5.0",
+    "echarts": "^6.1.0",
     "ol": "^10.0.0",
     "svelte": "^5.0.0"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.5.7",
     "date-fns": "^4.1.0",
-    "echarts": "^5.6.0",
+    "echarts": "^6.1.0",
     "jsdom": "^29.1.1",
     "ol": "^10.8.0",
     "svelte": "^5.55.3",
