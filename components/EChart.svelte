@@ -167,11 +167,12 @@
 
     (async () => {
       try {
-        const [core, charts, components, renderers] = await Promise.all([
+        const [core, charts, components, renderers, features] = await Promise.all([
           import("echarts/core"),
           import("echarts/charts"),
           import("echarts/components"),
           import("echarts/renderers"),
+          import("echarts/features"),
         ]);
         if (disposed || !container) return;
 
@@ -184,6 +185,11 @@
           components.TooltipComponent,
           components.LegendComponent,
           renderers.CanvasRenderer,
+          // echarts 6 (#773): `grid.containLabel` moved behind this opt-in
+          // feature. Registering it preserves the v5 layout (labels contained
+          // inside the grid) our `buildChartOption` relies on — without it
+          // echarts 6 silently ignores `containLabel` and clips axis labels.
+          features.LegacyGridContainLabel,
         ]);
 
         chart = core.init(container, null, { renderer: "canvas" });
