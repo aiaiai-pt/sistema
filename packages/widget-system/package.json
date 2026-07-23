@@ -30,28 +30,6 @@
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "check-deps": "node scripts/check-deps.js"
-  },
-  "devDependencies": {
-    "vitest": "*",
-    "typescript": "*",
-    "svelte": "*"
-  },
-  "peerDependencies": {
-    "echarts": "^6.0.0",
-    "svelte": "^5.0.0",
-    "@aiaiai-pt/design-system": "^0.47.0"
-  },
-  "peerDependenciesMeta": {
-    "echarts": {
-      "optional": true
-    },
-    "svelte": {
-      "optional": true
-    },
-    "@aiaiai-pt/design-system": {
-      "optional": true
-    }
+    "typecheck": "tsc --noEmit"
   }
 }
