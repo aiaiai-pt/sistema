@@ -91,7 +91,7 @@ Full color ramps for reference. These are building blocks -- never used directly
 | 700 | `--raw-color-neutral-700` | `#57534e` | (available, not assigned) |
 | 800 | `--raw-color-neutral-800` | `#3d3835` | (available, not assigned) |
 | 900 | `--raw-color-neutral-900` | `#2c2825` | `--color-text` |
-| 950 | `--raw-color-neutral-950` | `#1c1917` | (available for dark mode) |
+| 950 | `--raw-color-neutral-950` | `#1c1917` | Generic dark-scheme base surface (`data-scheme="dark"`) |
 
 ### Orange
 

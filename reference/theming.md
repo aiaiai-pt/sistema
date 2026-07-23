@@ -1,12 +1,33 @@
 # aiaiai Design System — Theming Reference
 
-Last updated: 2026-02-20
+Last updated: 2026-07-23
 
 Guide for creating themes at Tier 1 (Branded) and Tier 2 (Bespoke) levels. Includes token override maps, examples, application method, and verification checklists.
 
 ---
 
 ## Theming Architecture Overview
+
+### Theme, scheme, and accessibility preferences are separate axes
+
+- `data-theme` selects brand/personality tokens (`aiaiai`, `valongo`, future
+  `ubp`).
+- `data-scheme="dark"` activates the generic dark semantic layer already
+  shipped in `tokens/semantic.css`. Light is the base layer.
+- `data-contrast`, `data-text-size`, and `data-link-highlight` layer
+  accessibility preferences over any theme/scheme combination.
+
+Consumers must place the resolved theme and scheme on `<html>` before content
+paints. If a user setting is `auto`, resolve `prefers-color-scheme` before
+paint and stamp `light` or `dark`; never write `data-scheme="auto"`. A theme may
+add `[data-theme="x"][data-scheme="dark"]` overrides only for brand values that
+need different dark-surface contrast. The generic neutral roles stay in
+`semantic.css`.
+
+Current status: generic dark exists. A supported UBP theme does not; DS-H0 #65
+owns its contract, implementation and complete conformance evidence. Host
+persistence, pre-paint application and hydration belong to the consumer
+platform, not this package.
 
 | Aspect | Tier 1: Branded | Tier 2: Bespoke |
 |--------|----------------|-----------------|
@@ -298,7 +319,7 @@ Tier 2 themes may override ALL of the following categories. Items marked "FIXED"
 ### Method: `data-theme` Attribute
 
 ```html
-<html data-theme="verdant-finance">
+<html data-theme="verdant-finance" data-scheme="dark">
 ```
 
 ### Server-Side (prevent FOUC)
@@ -309,9 +330,12 @@ For SvelteKit projects, use `hooks.server.ts` with `transformPageChunk`:
 // src/hooks.server.ts
 export const handle: Handle = async ({ event, resolve }) => {
   const theme = event.cookies.get('theme') || 'aiaiai';
+  // Host-owned policy validates and resolves this to "light" or "dark"
+  // before render; Sistema does not own persistence or an "auto" runtime.
+  const scheme = event.locals.resolvedScheme;
   return resolve(event, {
     transformPageChunk: ({ html }) =>
-      html.replace('<html', `<html data-theme="${theme}"`)
+      html.replace('<html', `<html data-theme="${theme}" data-scheme="${scheme}"`)
   });
 };
 ```
@@ -320,6 +344,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 ```javascript
 document.documentElement.setAttribute('data-theme', 'verdant-finance');
+document.documentElement.setAttribute('data-scheme', 'dark');
 ```
 
 ### CSS Loading
@@ -339,6 +364,13 @@ document.documentElement.setAttribute('data-theme', 'verdant-finance');
 ## Theme Verification Checklist
 
 Run this checklist after creating any new theme.
+
+Every supported theme must also be exercised across its declared matrix:
+light, dark, high contrast, 100/120/140/160% text, link highlighting, reduced
+motion, keyboard/screen reader, overflow and realistic long copy. Contrast must
+be measured after alpha compositing, including accent text and text-on-accent.
+Verify server first paint and hydration with no default-theme flash. A local
+preview or light-only token audit is not release evidence.
 
 ### Tier 1 Verification
 
