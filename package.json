@@ -12,7 +12,8 @@
     "access": "public"
   },
   "workspaces": [
-    "site"
+    "site",
+    "packages/widget-system"
   ],
   "scripts": {
     "build:types": "rm -f components/*.d.ts components/renderer/*.d.ts && svelte-package --input . --output dist && cp dist/components/*.d.ts components/ && cp dist/components/renderer/*.d.ts components/renderer/ && rm -rf dist",
