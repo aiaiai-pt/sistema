@@ -1,0 +1,35 @@
+{
+  "name": "@aiaiai-pt/widget-system",
+  "version": "0.1.0",
+  "description": "Generic widget registry, dispatch, display transforms, and transport-neutral widgets for aiaiai products",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aiaiai-pt/sistema.git",
+    "directory": "packages/widget-system"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    "./core": {
+      "types": "./src/core/index.ts",
+      "default": "./src/core/index.ts"
+    },
+    "./svelte": {
+      "types": "./src/svelte/index.ts",
+      "svelte": "./src/svelte/index.ts",
+      "default": "./src/svelte/index.ts"
+    },
+    "./widgets": {
+      "types": "./src/widgets/index.ts",
+      "svelte": "./src/widgets/index.ts",
+      "default": "./src/widgets/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  }
+}
