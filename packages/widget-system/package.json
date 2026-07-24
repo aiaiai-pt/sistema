@@ -28,6 +28,22 @@
       "default": "./src/widgets/index.ts"
     }
   },
+  "peerDependencies": {
+    "svelte": "^5.0.0",
+    "echarts": "^5.0.0",
+    "@aiaiai-pt/design-system": "^0.47.0"
+  },
+  "peerDependenciesMeta": {
+    "svelte": {
+      "optional": true
+    },
+    "echarts": {
+      "optional": true
+    },
+    "@aiaiai-pt/design-system": {
+      "optional": true
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
