@@ -140,6 +140,22 @@ describe("duplicate key policy", () => {
     const match = r.resolve(baseReq("kpi"));
     expect(match?.payload.label).toBe("replacement");
   });
+
+  it("override preserves the original entry's position for tie-breaking", () => {
+    const r = createRegistry<StubPayload, WidgetRenderRequest & { kind?: string }>();
+    // A is registered first, B second — both at score 10.
+    // First-registered wins ties, so A wins before the override.
+    r.register(makeEntry("widget-a", "kpi", 10, stub("original-a")));
+    r.register(makeEntry("widget-b", "kpi", 10, stub("b")));
+
+    // Override A with a replacement — position must be preserved so A
+    // still sits before B and continues to win the tie.
+    r.register(makeEntry("widget-a", "kpi", 10, stub("override-a")), { override: true });
+
+    const match = r.resolve(baseReq("kpi"));
+    expect(match?.key).toBe("widget-a");
+    expect(match?.payload.label).toBe("override-a");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -195,6 +211,17 @@ describe("decideRender", () => {
   it("optional slot with no match → empty", () => {
     expect(decideRender("optional", false, false)).toEqual({ render: "empty" });
     expect(decideRender(undefined, false, false)).toEqual({ render: "empty" });
+  });
+
+  it("optional/undefined: matched without dataOk → empty (not widget)", () => {
+    // Both conditions must hold for "widget"; partial is not enough.
+    expect(decideRender("optional", true, false)).toEqual({ render: "empty" });
+    expect(decideRender(undefined, true, false)).toEqual({ render: "empty" });
+  });
+
+  it("optional/undefined: dataOk without match → empty (not widget)", () => {
+    expect(decideRender("optional", false, true)).toEqual({ render: "empty" });
+    expect(decideRender(undefined, false, true)).toEqual({ render: "empty" });
   });
 });
 

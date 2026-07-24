@@ -161,11 +161,15 @@ export function createRegistry<
               "Pass { override: true } to replace an existing entry intentionally.",
           );
         }
-        // Remove the existing entry, then append the replacement at the end
-        // so the override wins ties (last-in position, but score determines
-        // the winner anyway; override replaces the entry, not the position).
+        // Replace the existing entry in-place so its position in the list
+        // is preserved. Position matters for tie-breaking: first-registered
+        // wins when two entries have equal scores, so silently changing the
+        // position of an overridden entry would change which entry wins ties
+        // involving other registrations — a surprising and hard-to-debug
+        // behaviour. Replacing at the same index keeps the contract stable.
         const idx = _entries.findIndex((e) => e.key === entry.key);
-        _entries.splice(idx, 1);
+        _entries.splice(idx, 1, entry);
+        return;
       }
       _entries.push(entry);
     },
