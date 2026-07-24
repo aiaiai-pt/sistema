@@ -1,0 +1,30 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: vitest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Root vitest suite. It includes the widget-system contract tests
+      # (action-form-renderer-widgets, action-form-renderer-widget-dispatch)
+      # and the jsdom EChart render smoke (renderer-chart-components), which
+      # is the render-level check that catches echarts dependency-major drift
+      # (see #81). All suites live under tests/**/*.test.ts today; when the
+      # widget-system package is extracted (#49) add its suite as a step here.
+      - name: Run tests
+        run: npm test
