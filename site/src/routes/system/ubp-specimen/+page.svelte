@@ -32,8 +32,13 @@
 	let drawerOpen = $state(false);
 	let activeNav = $state('ocorrencias');
 
+	// ─── Drawer a11y — element ref + trigger focus-restore ref ──────────────
+	let drawerEl: HTMLElement | null = $state(null);
+	let navTriggerEl: HTMLElement | null = null;
+
 	function toggleNav() {
 		if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+			if (!drawerOpen) navTriggerEl = document.activeElement as HTMLElement;
 			drawerOpen = !drawerOpen;
 		} else {
 			sidebarCollapsed = !sidebarCollapsed;
@@ -42,7 +47,44 @@
 
 	function closeDrawer() {
 		drawerOpen = false;
+		navTriggerEl?.focus();
 	}
+
+	// ─── Focus trap: Escape-to-close + Tab cycling while drawer is open ──────
+	$effect(() => {
+		if (!drawerOpen || !drawerEl) return;
+
+		const sel = [
+			'a[href]',
+			'button:not([disabled])',
+			'input:not([disabled])',
+			'select:not([disabled])',
+			'textarea:not([disabled])',
+			'[tabindex]:not([tabindex="-1"])',
+		].join(', ');
+		const nodes = Array.from(drawerEl.querySelectorAll<HTMLElement>(sel));
+		if (!nodes.length) return;
+
+		nodes[0].focus();
+
+		function trapFocus(e: KeyboardEvent) {
+			if (e.key === 'Escape') {
+				closeDrawer();
+				return;
+			}
+			if (e.key !== 'Tab' || nodes.length < 2) return;
+			const first = nodes[0];
+			const last = nodes[nodes.length - 1];
+			if (e.shiftKey) {
+				if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+			} else {
+				if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+			}
+		}
+
+		document.addEventListener('keydown', trapFocus);
+		return () => document.removeEventListener('keydown', trapFocus);
+	});
 
 	// ─── Table state ────────────────────────────────────────────────────────
 	let sortKey = $state('reportado_em');
@@ -158,7 +200,14 @@
 	{/if}
 
 	<!-- ─── Inner rail navigation (desktop: sticky rail; mobile: drawer) ────── -->
-	<div class="rail-wrapper" class:drawer-open={drawerOpen}>
+	<div
+		class="rail-wrapper"
+		class:drawer-open={drawerOpen}
+		bind:this={drawerEl}
+		role={drawerOpen ? 'dialog' : undefined}
+		aria-modal={drawerOpen ? 'true' : undefined}
+		aria-label={drawerOpen ? 'Navegação principal' : undefined}
+	>
 		<Sidebar bind:collapsed={sidebarCollapsed} class="instrument-rail">
 			{#snippet header()}
 				{#if !sidebarCollapsed}
