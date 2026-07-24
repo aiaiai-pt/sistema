@@ -8,13 +8,46 @@
  */
 
 // ---------------------------------------------------------------------------
+// WidgetMatchContext — the selection input (what the registry dispatches on)
+// ---------------------------------------------------------------------------
+
+/**
+ * Selection input — what the registry dispatches on.
+ *
+ * A coarse `kind` bucket (e.g. "kpi", "chart", "embed") narrows the candidate
+ * set; the optional `type` hint lets a specific widget outrank the kind-generic
+ * one. Neither field belongs on the render payload — selection is resolved once
+ * from the compiled surface; data arrives per-request and refreshes independently.
+ *
+ * This matches the JSONForms pattern: the tester sees the descriptor (schema +
+ * uischema); the matched control receives the data separately. Selection input
+ * and render payload are different objects by design.
+ *
+ * TH-08: `type` is UNTRUSTED (operator-authored). It only influences ranking;
+ * the resolved key always comes from the matched entry's `key` field.
+ */
+export interface WidgetMatchContext {
+  /** Coarse discriminant — matches the kind-generic widget for this bucket. */
+  kind: string;
+  /**
+   * UNTRUSTED variant hint — used for ranking only; never becomes the resolved
+   * key (TH-08). A caller passes a `type` to designate a more-specific widget
+   * than the kind-generic default.
+   */
+  type?: string;
+}
+
+// ---------------------------------------------------------------------------
 // WidgetRenderRequest — the generic per-widget data contract (BD-PROPS-01)
 // ---------------------------------------------------------------------------
 
 /**
  * The generic per-widget data contract. Every widget in
  * `@aiaiai-pt/widget-system/widgets` receives this shape.
- * No Atelier vocabulary; no BFF paths; no ontology schema.
+ * No Atelier vocabulary; no BFF paths; no ontology schema; no `kind`/`type`
+ * discriminants — those belong to the match context, not the render payload.
+ *
+ * Render flow: `const m = registry.resolve({ kind, type }); if (m) renderWidget(m.payload, { data, props, locale });`
  */
 export interface WidgetRenderRequest {
   /** The resolved data handed to the widget (schema-free). */
@@ -26,32 +59,28 @@ export interface WidgetRenderRequest {
 }
 
 // ---------------------------------------------------------------------------
-// Dispatch — tester/priority core (generic over payload P and request R)
+// Dispatch — tester/priority core (generic over payload P and match context Ctx)
 // ---------------------------------------------------------------------------
 
-/** Tester sentinel — "this entry does not apply to this request". */
+/** Tester sentinel — "this entry does not apply to this context". */
 export const NOT_APPLICABLE = -1;
 
 /**
- * A tester ranks a registry entry against a render request.
+ * A tester ranks a registry entry against a match context.
  * Returns a score > NOT_APPLICABLE when the entry applies; NOT_APPLICABLE
  * when it does not. Higher scores win; ties resolve to first-registered.
  *
- * `type` is the operator-authored widget type hint (UNTRUSTED — used only
- * to influence ranking; the resolved key always comes from the entry, never
- * from the type string — TH-08).
+ * TH-08: the entry `key` is the known-good literal; the context's `type` hint
+ * only influences scoring, never the resolved key.
  */
-export type WidgetTester<R = WidgetRenderRequest> = (
-  request: R,
-  type?: string,
-) => number;
+export type WidgetTester<Ctx = WidgetMatchContext> = (ctx: Ctx) => number;
 
 /** An entry in the widget registry. */
-export interface RegistryEntry<P, R = WidgetRenderRequest> {
+export interface RegistryEntry<P, Ctx = WidgetMatchContext> {
   /** Known-good literal key — safe to render in data attributes (TH-08). */
   key: string;
   payload: P;
-  tester: WidgetTester<R>;
+  tester: WidgetTester<Ctx>;
 }
 
 /** The matched entry returned by `selectEntry`. */
@@ -67,27 +96,24 @@ export interface Match<P> {
  * - `error`: no match, visible error (structural slot)
  */
 export type RenderDecision =
-  | { render: "widget" }
-  | { render: "empty" }
-  | { render: "error" };
+  { render: "widget" } | { render: "empty" } | { render: "error" };
 
 /**
- * Run every tester against the request; highest applicable score wins.
+ * Run every tester against the match context; highest applicable score wins.
  * Ties resolve to the first-registered entry (stable, deterministic).
  * Returns `null` when no entry is applicable.
  *
  * TH-08: the returned `key` comes from the matched entry, never from the
- * request's type hint.
+ * context's `type` hint.
  */
-export function selectEntry<P, R>(
-  entries: ReadonlyArray<RegistryEntry<P, R>>,
-  request: R,
-  type?: string,
+export function selectEntry<P, Ctx>(
+  entries: ReadonlyArray<RegistryEntry<P, Ctx>>,
+  ctx: Ctx,
 ): Match<P> | null {
-  let best: RegistryEntry<P, R> | null = null;
+  let best: RegistryEntry<P, Ctx> | null = null;
   let bestScore: number = NOT_APPLICABLE;
   for (const entry of entries) {
-    const score = entry.tester(request, type);
+    const score = entry.tester(ctx);
     // Strictly greater: first-registered wins ties.
     if (score > bestScore) {
       bestScore = score;
@@ -95,7 +121,7 @@ export function selectEntry<P, R>(
     }
   }
   if (best === null) return null;
-  // TH-08: key from the matched entry, never from the request.
+  // TH-08: key from the matched entry, never from the context.
   return { key: best.key, payload: best.payload };
 }
 
@@ -112,7 +138,9 @@ export function decideRender(
   dataOk: boolean,
 ): RenderDecision {
   if (matched && dataOk) return { render: "widget" };
-  return importance === "structural" ? { render: "error" } : { render: "empty" };
+  return importance === "structural"
+    ? { render: "error" }
+    : { render: "empty" };
 }
 
 // ---------------------------------------------------------------------------
@@ -120,17 +148,17 @@ export function decideRender(
 // ---------------------------------------------------------------------------
 
 /** Opaque registry handle returned by createRegistry(). */
-export interface WidgetRegistry<P = unknown, R = WidgetRenderRequest> {
+export interface WidgetRegistry<P = unknown, Ctx = WidgetMatchContext> {
   /**
    * Register a widget entry.
    * Throws when the key already exists unless `override: true` is passed
    * (deterministic duplicate policy — no silent clobbering).
    */
-  register(entry: RegistryEntry<P, R>, opts?: { override?: boolean }): void;
-  /** Resolve a request to its widget. Returns null when no entry applies. */
-  resolve(request: R, type?: string): Match<P> | null;
+  register(entry: RegistryEntry<P, Ctx>, opts?: { override?: boolean }): void;
+  /** Resolve a match context to its widget. Returns null when no entry applies. */
+  resolve(ctx: Ctx): Match<P> | null;
   /** Introspection: entries in registration order (for tests / diagnostics). */
-  readonly entries: ReadonlyArray<RegistryEntry<P, R>>;
+  readonly entries: ReadonlyArray<RegistryEntry<P, Ctx>>;
 }
 
 /**
@@ -142,16 +170,18 @@ export interface WidgetRegistry<P = unknown, R = WidgetRenderRequest> {
  * will fail: registering in r1 never appears in r2.
  *
  * The initial entries list is empty; hosts preload their own base widgets
- * at startup, avoiding the hidden-coupling of a baked-in default set.
+ * by calling `registerBaseWidgets(registry)` from
+ * `@aiaiai-pt/widget-system/widgets` at startup, avoiding the
+ * hidden-coupling of a baked-in default set.
  */
 export function createRegistry<
   P = unknown,
-  R = WidgetRenderRequest,
->(): WidgetRegistry<P, R> {
+  Ctx = WidgetMatchContext,
+>(): WidgetRegistry<P, Ctx> {
   // Local (not module-global) — this is what makes instances isolated.
-  const _entries: RegistryEntry<P, R>[] = [];
+  const _entries: RegistryEntry<P, Ctx>[] = [];
 
-  const registry: WidgetRegistry<P, R> = {
+  const registry: WidgetRegistry<P, Ctx> = {
     register(entry, opts) {
       const exists = _entries.some((e) => e.key === entry.key);
       if (exists) {
@@ -174,12 +204,12 @@ export function createRegistry<
       _entries.push(entry);
     },
 
-    resolve(request, type) {
-      return selectEntry(_entries, request, type);
+    resolve(ctx) {
+      return selectEntry(_entries, ctx);
     },
 
     get entries() {
-      return _entries as ReadonlyArray<RegistryEntry<P, R>>;
+      return _entries as ReadonlyArray<RegistryEntry<P, Ctx>>;
     },
   };
 
@@ -191,41 +221,42 @@ export function createRegistry<
 // ---------------------------------------------------------------------------
 
 /**
- * Build a registry entry that matches when `request.kind === kind` (score 10).
+ * Build a registry entry that matches when `ctx.kind === kind` (score 10).
  * The kind-generic widget — used when no more-specific widget is registered.
  *
  * TH-08: the entry `key` is the known-good literal, never derived from the
- * untrusted `type` hint.
+ * untrusted `ctx.type` hint.
  */
-export function byKind<P, R extends { kind?: string }>(
+export function byKind<P>(
   key: string,
   kind: string,
   component: P,
-): RegistryEntry<P, R> {
+): RegistryEntry<P> {
   return {
     key,
     payload: component,
-    tester: (request) => (request.kind === kind ? 10 : NOT_APPLICABLE),
+    tester: (ctx) => (ctx.kind === kind ? 10 : NOT_APPLICABLE),
   };
 }
 
 /**
- * Build a registry entry that matches when both `request.kind === kind` AND
- * the untrusted `type` hint equals `key` (score 20). A type-specific widget
- * outranks the kind-generic widget for the same kind, per the JSONForms model.
+ * Build a registry entry that matches when both `ctx.kind === kind` AND
+ * the untrusted `ctx.type` hint equals `key` (score 20). A type-specific
+ * widget outranks the kind-generic widget for the same kind, per the
+ * JSONForms model.
  *
- * TH-08: `type` is UNTRUSTED (operator-authored) — it only influences ranking;
- * the resolved key always comes from this entry's `key` field.
+ * TH-08: `ctx.type` is UNTRUSTED (operator-authored) — it only influences
+ * ranking; the resolved key always comes from this entry's `key` field.
  */
-export function byTypeOnKind<P, R extends { kind?: string }>(
+export function byTypeOnKind<P>(
   key: string,
   kind: string,
   component: P,
-): RegistryEntry<P, R> {
+): RegistryEntry<P> {
   return {
     key,
     payload: component,
-    tester: (request, type) =>
-      request.kind === kind && type === key ? 20 : NOT_APPLICABLE,
+    tester: (ctx) =>
+      ctx.kind === kind && ctx.type === key ? 20 : NOT_APPLICABLE,
   };
 }
