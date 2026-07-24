@@ -60,10 +60,13 @@ function merge(...layers: TokenMap[]): TokenMap {
 /** Resolve `var(--x[, fallback])` chains to raw values (max 20 hops). */
 function resolve(value: string, tokens: TokenMap, depth = 0): string {
   if (depth > 20 || !value.includes("var(")) return value;
-  return value.replace(/var\(\s*(--[\w-]+)(?:\s*,\s*([^)]*))?\s*\)/g, (_, name, fallback) => {
-    const raw = tokens.get(name) ?? fallback ?? name;
-    return resolve(raw, tokens, depth + 1);
-  });
+  return value.replace(
+    /var\(\s*(--[\w-]+)(?:\s*,\s*([^)]*))?\s*\)/g,
+    (_, name, fallback) => {
+      const raw = tokens.get(name) ?? fallback ?? name;
+      return resolve(raw, tokens, depth + 1);
+    },
+  );
 }
 
 // ─── Color parsing + alpha compositing ───────────────────────────────────────
@@ -101,7 +104,9 @@ function parseHex(hex: string): RGBA | null {
 }
 
 function parseRgba(value: string): RGBA | null {
-  const m = value.match(/rgba?\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)/);
+  const m = value.match(
+    /rgba?\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)/,
+  );
   if (!m) return null;
   return {
     r: parseFloat(m[1]),
@@ -161,7 +166,8 @@ function resolveColor(name: string, tokens: TokenMap, bg?: RGBA): RGBA {
   if (!raw) throw new Error(`Token ${name} not found`);
   const resolved = resolve(raw, tokens);
   const color = parseColor(resolved);
-  if (!color) throw new Error(`Cannot parse ${name}: "${resolved}" (raw: "${raw}")`);
+  if (!color)
+    throw new Error(`Cannot parse ${name}: "${resolved}" (raw: "${raw}")`);
   if (color.a < 1 && bg) return composite(color, bg);
   return color;
 }
@@ -178,11 +184,17 @@ const baseTokens = extractTokens(baseCss, ":root");
 // Layer 2: semantic defaults (:root in semantic.css)
 const semanticTokens = extractTokens(semanticCss, ":root");
 // Layer 3: generic dark override (:root[data-scheme="dark"] in semantic.css)
-const darkGenericTokens = extractTokens(semanticCss, `:root[data-scheme="dark"]`);
+const darkGenericTokens = extractTokens(
+  semanticCss,
+  `:root[data-scheme="dark"]`,
+);
 // Layer 4: UBP theme base ([data-theme="ubp"])
 const ubpTokens = extractTokens(ubpCss, `[data-theme="ubp"]`);
 // Layer 5: UBP dark override ([data-theme="ubp"][data-scheme="dark"])
-const ubpDarkTokens = extractTokens(ubpCss, `[data-theme="ubp"][data-scheme="dark"]`);
+const ubpDarkTokens = extractTokens(
+  ubpCss,
+  `[data-theme="ubp"][data-scheme="dark"]`,
+);
 
 // Resolved contexts — merge order matches CSS specificity cascade.
 //
@@ -200,7 +212,13 @@ const ubpDarkTokens = extractTokens(ubpCss, `[data-theme="ubp"][data-scheme="dar
 // Light: base + semantic + ubp (no dark layers)
 const lightTokens: TokenMap = merge(baseTokens, semanticTokens, ubpTokens);
 // Dark: base + semantic + ubp + genericDark (beats ubp) + ubpDark (beats genericDark)
-const darkTokens: TokenMap = merge(baseTokens, semanticTokens, ubpTokens, darkGenericTokens, ubpDarkTokens);
+const darkTokens: TokenMap = merge(
+  baseTokens,
+  semanticTokens,
+  ubpTokens,
+  darkGenericTokens,
+  ubpDarkTokens,
+);
 
 // ─── Contrast assertions ─────────────────────────────────────────────────────
 
@@ -238,30 +256,93 @@ describe("[DS-H0 #66] UBP theme — no Google Fonts runtime dependency", () => {
 
 describe("[DS-H0 #66] UBP light scheme — WCAG contrast (AA = 4.5:1 text, 3:1 UI)", () => {
   const cases = [
-    { fg: "--color-text", bg: "--color-surface", min: 4.5, role: "body text [AA]" },
-    { fg: "--color-text", bg: "--color-surface-secondary", min: 4.5, role: "body text on secondary [AA]" },
-    { fg: "--color-text-secondary", bg: "--color-surface", min: 4.5, role: "subtitle text [AA] — regression control" },
-    { fg: "--color-text-secondary", bg: "--color-surface-secondary", min: 4.5, role: "subtitle on secondary [AA]" },
-    { fg: "--color-text-muted", bg: "--color-surface", min: 3.0, role: "muted (non-essential UI) [≥3:1]" },
-    { fg: "--color-accent", bg: "--color-surface", min: 3.0, role: "accent on surface [≥3:1 for UI controls]" },
-    { fg: "--color-text-on-accent", bg: "--color-accent", min: 4.5, role: "text-on-accent [AA]" },
-    { fg: "--color-destructive", bg: "--color-surface", min: 4.5, role: "destructive text [AA]" },
-    { fg: "--color-success", bg: "--color-surface", min: 3.0, role: "success text [≥3:1]" },
-    { fg: "--color-info", bg: "--color-surface", min: 4.5, role: "info text [AA]" },
+    {
+      fg: "--color-text",
+      bg: "--color-surface",
+      min: 4.5,
+      role: "body text [AA]",
+    },
+    {
+      fg: "--color-text",
+      bg: "--color-surface-secondary",
+      min: 4.5,
+      role: "body text on secondary [AA]",
+    },
+    {
+      fg: "--color-text-secondary",
+      bg: "--color-surface",
+      min: 4.5,
+      role: "subtitle text [AA] — regression control",
+    },
+    {
+      fg: "--color-text-secondary",
+      bg: "--color-surface-secondary",
+      min: 4.5,
+      role: "subtitle on secondary [AA]",
+    },
+    {
+      fg: "--color-text-muted",
+      bg: "--color-surface",
+      min: 3.0,
+      role: "muted (non-essential UI) [≥3:1]",
+    },
+    {
+      fg: "--color-accent",
+      bg: "--color-surface",
+      min: 3.0,
+      role: "accent on surface [≥3:1 for UI controls]",
+    },
+    {
+      fg: "--color-text-on-accent",
+      bg: "--color-accent",
+      min: 4.5,
+      role: "text-on-accent [AA]",
+    },
+    {
+      fg: "--color-destructive",
+      bg: "--color-surface",
+      min: 4.5,
+      role: "destructive text [AA]",
+    },
+    {
+      fg: "--color-success",
+      bg: "--color-surface",
+      min: 3.0,
+      role: "success text [≥3:1]",
+    },
+    {
+      fg: "--color-info",
+      bg: "--color-surface",
+      min: 4.5,
+      role: "info text [AA]",
+    },
   ];
 
   for (const c of cases) {
     it(`${c.fg} on ${c.bg} — ${c.role}`, () => {
       const result = assertContrast(c.role, c.fg, c.bg, lightTokens, c.min);
-      expect(result.ratio, `ratio ${result.ratio.toFixed(2)} must be ≥${c.min}`).toBeGreaterThanOrEqual(c.min);
+      expect(
+        result.ratio,
+        `ratio ${result.ratio.toFixed(2)} must be ≥${c.min}`,
+      ).toBeGreaterThanOrEqual(c.min);
     });
   }
 });
 
 describe("[DS-H0 #66] UBP dark scheme — WCAG contrast (3.0:1 subtitle regression control)", () => {
   const cases = [
-    { fg: "--color-text", bg: "--color-surface", min: 7.0, role: "body text [AAA on dark]" },
-    { fg: "--color-text", bg: "--color-surface-secondary", min: 4.5, role: "body text on secondary [AA]" },
+    {
+      fg: "--color-text",
+      bg: "--color-surface",
+      min: 7.0,
+      role: "body text [AAA on dark]",
+    },
+    {
+      fg: "--color-text",
+      bg: "--color-surface-secondary",
+      min: 4.5,
+      role: "body text on secondary [AA]",
+    },
     {
       fg: "--color-text-secondary",
       bg: "--color-surface",
@@ -274,17 +355,45 @@ describe("[DS-H0 #66] UBP dark scheme — WCAG contrast (3.0:1 subtitle regressi
       min: 4.5,
       role: "subtitle on secondary [AA]",
     },
-    { fg: "--color-text-muted", bg: "--color-surface", min: 3.0, role: "muted (non-essential) [≥3:1]" },
-    { fg: "--color-accent", bg: "--color-surface", min: 4.5, role: "accent link text on dark [AA]" },
-    { fg: "--color-text-on-accent", bg: "--color-accent", min: 4.5, role: "text-on-accent dark [AA]" },
-    { fg: "--color-destructive", bg: "--color-surface", min: 4.5, role: "destructive on dark [AA]" },
-    { fg: "--color-info", bg: "--color-surface", min: 4.5, role: "info on dark [AA]" },
+    {
+      fg: "--color-text-muted",
+      bg: "--color-surface",
+      min: 3.0,
+      role: "muted (non-essential) [≥3:1]",
+    },
+    {
+      fg: "--color-accent",
+      bg: "--color-surface",
+      min: 4.5,
+      role: "accent link text on dark [AA]",
+    },
+    {
+      fg: "--color-text-on-accent",
+      bg: "--color-accent",
+      min: 4.5,
+      role: "text-on-accent dark [AA]",
+    },
+    {
+      fg: "--color-destructive",
+      bg: "--color-surface",
+      min: 4.5,
+      role: "destructive on dark [AA]",
+    },
+    {
+      fg: "--color-info",
+      bg: "--color-surface",
+      min: 4.5,
+      role: "info on dark [AA]",
+    },
   ];
 
   for (const c of cases) {
     it(`${c.fg} on ${c.bg} (dark) — ${c.role}`, () => {
       const result = assertContrast(c.role, c.fg, c.bg, darkTokens, c.min);
-      expect(result.ratio, `ratio ${result.ratio.toFixed(2)} must be ≥${c.min}`).toBeGreaterThanOrEqual(c.min);
+      expect(
+        result.ratio,
+        `ratio ${result.ratio.toFixed(2)} must be ≥${c.min}`,
+      ).toBeGreaterThanOrEqual(c.min);
     });
   }
 });
@@ -315,13 +424,17 @@ describe("[DS-H0 #66] UBP theme — structural requirements", () => {
       /padding\s*:/,
     ];
     for (const pattern of forbiddenPatterns) {
-      expect(ubpCss, `ubp.css must not contain layout rule ${pattern}`).not.toMatch(pattern);
+      expect(
+        ubpCss,
+        `ubp.css must not contain layout rule ${pattern}`,
+      ).not.toMatch(pattern);
     }
   });
 
   it("dark override selector has higher specificity indication (no duplicate of generic layer)", () => {
     // The dark override block must contain [data-theme="ubp"][data-scheme="dark"]
-    // (both attributes = specificity 0,2,0 beats the generic 0,1,1 dark layer)
+    // (0,2,0 — ties the generic :root[data-scheme="dark"] layer at 0,2,0 and
+    // wins by source order, ubp.css loading after semantic.css)
     expect(ubpCss).toContain('[data-theme="ubp"][data-scheme="dark"]');
   });
 });
@@ -332,7 +445,10 @@ describe("[DS-H0 #66] UBP alpha compositing — overlay and accent-subtle colors
     // by creating sufficient visual separation. We verify it composites to a
     // value that's meaningfully different from the base surface.
     const surfaceColor = resolveColor("--color-surface", lightTokens);
-    const overlayRaw = resolve(lightTokens.get("--color-overlay") ?? "", lightTokens);
+    const overlayRaw = resolve(
+      lightTokens.get("--color-overlay") ?? "",
+      lightTokens,
+    );
     const overlayColor = parseColor(overlayRaw);
     expect(overlayColor).not.toBeNull();
     if (!overlayColor) return;
@@ -345,7 +461,10 @@ describe("[DS-H0 #66] UBP alpha compositing — overlay and accent-subtle colors
 
   it("dark overlay (#000 with alpha=0.7) composited on dark surface is near-opaque dark", () => {
     const surfaceColor = resolveColor("--color-surface", darkTokens);
-    const overlayRaw = resolve(darkTokens.get("--color-overlay") ?? "", darkTokens);
+    const overlayRaw = resolve(
+      darkTokens.get("--color-overlay") ?? "",
+      darkTokens,
+    );
     const overlayColor = parseColor(overlayRaw);
     expect(overlayColor).not.toBeNull();
     if (!overlayColor) return;
