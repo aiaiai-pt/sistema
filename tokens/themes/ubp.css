@@ -11,19 +11,15 @@
  *   the [data-theme="ubp"][data-scheme="dark"] block below adjusts only
  *   the brand values that need different treatment on a cool-dark surface.
  *
- * ─── Font decision: Inter Variable ───────────────────────────────────────
- * Family:  Inter Variable (https://rsms.me/inter/)
- * Weights: 400 (regular) · 500 (medium) · 600 (semibold)
- * License: SIL Open Font License 1.1 — free to self-host, no runtime
- *          dependency on Google Fonts or any CDN allowed.
- * Fallback chain: system-ui → -apple-system → BlinkMacSystemFont → sans-serif
- *   (system-ui resolves to San Francisco on macOS, Segoe UI on Windows, and
- *   Roboto on Android — all near-metric-compatible with Inter Variable, which
- *   minimises layout shift when the web font loads via `font-display: swap`).
- * Self-hosting: the consumer app must declare @font-face for "Inter" using
- *   the variable font (InterVariable.woff2) or weight-specific woff2 files.
- *   No @font-face is included here; font-face belongs in the host, not DS.
- *   Guidance: dev_docs/solutions/ubp-font-self-hosting.md
+ * ─── Font decision: inherit DS pairing ──────────────────────────────────
+ * UBP inherits Sistema's default type pairing unchanged:
+ *   sans  → Instrument Sans (--font-sans / --raw-font-sans)
+ *   mono  → JetBrains Mono, ui-monospace (--font-mono / --raw-font-mono)
+ *   (Berkeley Mono leads the mono stack in the token but ships no @font-face;
+ *    JetBrains Mono is the effective shipped face — see sistema #82.)
+ * The theme sets NO --font-sans or --font-mono override; font role-tokens
+ * resolve to the DS defaults via semantic.css inheritance.
+ * Full decision record: dev_docs/solutions/ubp-font-self-hosting.md
  *
  * ─── Historical 3.0:1 subtitle regression control ────────────────────────
  * The 3.0:1 defect occurred when --color-text-muted was used in subtitle
@@ -39,11 +35,9 @@
 
 [data-theme="ubp"] {
   /* ═══════════════════════════════════════════════════════════════
-     TYPOGRAPHY — Inter Variable (Tier-2 override)
+     TYPOGRAPHY — inherited from DS (no override)
+     Instrument Sans (sans) + JetBrains Mono (mono) via semantic.css.
      ═══════════════════════════════════════════════════════════════ */
-
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  /* Mono: Berkeley Mono / JetBrains Mono — unchanged, fits the instrument aesthetic */
 
   /* ═══════════════════════════════════════════════════════════════
      COLOR — Cool slate palette (light-scheme base)
@@ -112,17 +106,8 @@
      the host's ws.css, not the theme.
      ═══════════════════════════════════════════════════════════════ */
 
-  /* ═══════════════════════════════════════════════════════════════
-     COMPONENTS — base (mobile-first)
-     ═══════════════════════════════════════════════════════════════ */
-  --button-font: var(--font-sans);
-
-  /* Labels: Inter with tighter tracking (professional, not casual) */
-  --type-label-font: var(--font-sans);
-  --type-label-tracking: var(--raw-tracking-tight);
-
-  /* Total color overrides: 24. Typography: 2. Component: 2.
-     Grand total: ~28 tokens. Spacing/grid/motion/a11y unchanged. */
+  /* Total color overrides: 24. Elevation: 2. Focus alias: 1.
+     Grand total: ~27 tokens. Typography/motion/spacing/grid unchanged. */
 }
 
 /* Desktop density: compact button heights for toolbar/sidebar layouts.

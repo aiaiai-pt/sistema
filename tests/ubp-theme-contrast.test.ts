@@ -246,11 +246,11 @@ describe("[DS-H0 #66] UBP theme — no Google Fonts runtime dependency", () => {
     expect(ubpCss).not.toContain("fonts.gstatic.com");
   });
 
-  it("--font-sans declares a fallback chain after 'Inter'", () => {
-    const raw = ubpTokens.get("--font-sans") ?? "";
-    expect(raw).toContain("Inter");
-    // Must have at least one generic fallback
-    expect(raw).toMatch(/system-ui|sans-serif|-apple-system/);
+  it("UBP theme does NOT override --font-sans (inherits DS pairing)", () => {
+    // Decision: UBP inherits Instrument Sans + JetBrains Mono unchanged.
+    // No --font-sans entry in ubpTokens means the theme-level block sets none;
+    // semantic.css resolves it to Instrument Sans via --raw-font-sans.
+    expect(ubpTokens.has("--font-sans")).toBe(false);
   });
 });
 

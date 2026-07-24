@@ -1,108 +1,108 @@
-# UBP Theme — Inter Variable Font Self-Hosting Guide
+# UBP Theme — Font Pairing Decision Record
 
-DS-H0 #66 | Updated: 2026-07-23
-
----
-
-## Chosen typeface: Inter Variable
-
-| Property | Value |
-|----------|-------|
-| Family | Inter Variable |
-| Weights | 400 (regular) · 500 (medium) · 600 (semibold) |
-| License | SIL Open Font License 1.1 — self-hosting permitted, no attribution required in UI |
-| Fallback chain | `system-ui, -apple-system, BlinkMacSystemFont, sans-serif` |
-| Source | <https://rsms.me/inter/> · GitHub: `rsms/inter` |
-| npm | `@fontsource-variable/inter` |
-
-Inter Variable is the typeface for the UBP theme. It is optimised for screen
-readability at small sizes — critical for map labels, data tables, and
-chart annotations. The full variable axis (wght 100–900) is available in a
-single woff2 file (`InterVariable.woff2`), eliminating multiple weight requests.
-
-**No Google Fonts runtime dependency is permitted.** The theme file
-(`tokens/themes/ubp.css`) only sets `--font-sans: "Inter", system-ui, ...`.
-Font-face declarations belong in the consumer host, not the design system.
+**Issue:** DS-H0 #66 — UBP theme implementation
+**Decision gate:** DS-H0 #68 (font pair, weights, license, fallback, self-hosting contract)
+**Recorded:** 2026-07-24
+**Status:** DECIDED — option (a) inherit DS pairing
 
 ---
 
-## Why self-hosting
+## Decision
 
-The workspace operates in environments that may have no external network access
-(air-gapped tenants, controlled government networks). A runtime `fonts.googleapis.com`
-dependency would silently fail in those environments and cause user-visible layout
-shift. Self-hosting via the npm package avoids this.
+The UBP theme **inherits Sistema's own type pairing unchanged.**
+No `--font-sans` or `--font-mono` override appears in `tokens/themes/ubp.css`.
+Font role-tokens (`--type-label-font`, `--type-data-font`, `--button-font`, …)
+resolve through `semantic.css` inheritance to the DS defaults.
+
+The `tokens/themes/ubp.css` theme block sets zero font tokens.
+The contrast test (`tests/ubp-theme-contrast.test.ts`) asserts
+`ubpTokens.has("--font-sans") === false` to lock this decision in.
 
 ---
 
-## Self-hosting options
+## Sans role — Instrument Sans
 
-### Option A: npm package (recommended)
+| Field | Value |
+|-------|-------|
+| Family | Instrument Sans |
+| Source | `@fontsource/instrument-sans` (npm, no CDN required) |
+| Weights shipped by DS site | 400 · 500 · 600 |
+| License | **SIL Open Font License 1.1** — permissive, free to self-host, redistribute, embed |
+| Fallback chain | `"Instrument Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` (declared in `base.css --raw-font-sans`) |
+| Self-hosting pattern | Import weight files from `@fontsource/instrument-sans` before the DS token layers; no `@font-face` in the theme CSS (host responsibility) |
+| CLS prevention | `font-display: swap` (fontsource default); declare before first paint via `<link rel="preload">` or SvelteKit `load` |
 
-```bash
-npm install @fontsource-variable/inter
-# or
-pnpm add @fontsource-variable/inter
-```
+**Roles using sans:** display, heading, body, caption, overline, label, button labels.
+
+---
+
+## Mono role — JetBrains Mono (shipped) / Berkeley Mono (licensed separately)
+
+| Field | Value |
+|-------|-------|
+| Token stack | `"Berkeley Mono", "JetBrains Mono", ui-monospace, monospace` (from `base.css --raw-font-mono`) |
+| **Shipped face** | **JetBrains Mono** — the only face installed via npm (`@fontsource/jetbrains-mono`) |
+| Berkeley Mono status | Named first in the token stack as the preferred premium face; **no `@font-face` ships in this repo** — commercial license required, no npm package available. The DS site itself renders JetBrains Mono. See sistema #82 for the DS-level Berkeley decision. |
+| JetBrains Mono license | **SIL Open Font License 1.1** — free to self-host and embed |
+| Weights shipped by DS site | 400 |
+| Fallback chain | `"Berkeley Mono", "JetBrains Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace` |
+| Self-hosting pattern | Import from `@fontsource/jetbrains-mono` before DS token layers |
+
+**Roles using mono:** `--type-data-font` (numbers, metrics, times, code),
+`--type-overline-font`. All DataTable values, StatCard values, Input values,
+breadcrumb references, and timestamps in the specimen page render in this face.
+
+---
+
+## Fallback behaviour on the DS docs site
+
+The site imports both faces via fontsource in `site/src/app.css`:
 
 ```css
-/* In your host's global stylesheet, BEFORE importing the DS token files */
-@import "@fontsource-variable/inter";
+@import "@fontsource/instrument-sans/400.css";
+@import "@fontsource/instrument-sans/500.css";
+@import "@fontsource/instrument-sans/600.css";
+@import "@fontsource/jetbrains-mono/400.css";
+```
 
-/* Then import DS tokens */
+Berkeley Mono is not imported. Consumers who hold a Berkeley Mono license may
+add it ahead of JetBrains Mono in their own `@font-face` declarations; the token
+stack will prefer it automatically.
+
+---
+
+## Self-hosting pattern for consumers
+
+No font-face declarations belong in the theme CSS. The host imports the npm
+packages and optionally adds Berkeley Mono if licensed:
+
+```css
+/* Host global stylesheet — before DS token imports */
+@import "@fontsource/instrument-sans/400.css";
+@import "@fontsource/instrument-sans/500.css";
+@import "@fontsource/instrument-sans/600.css";
+@import "@fontsource/jetbrains-mono/400.css";
+/* Optional: if you hold a Berkeley Mono license: */
+/* @font-face { font-family: "Berkeley Mono"; src: url("/fonts/BerkeleyMono.woff2") format("woff2"); font-weight: 400; font-display: swap; } */
+
 @import "@aiaiai-pt/design-system/tokens/base.css";
 @import "@aiaiai-pt/design-system/tokens/semantic.css";
 @import "@aiaiai-pt/design-system/tokens/components.css";
 @import "@aiaiai-pt/design-system/tokens/themes/ubp.css";
 ```
 
-The `@fontsource-variable/inter` package provides a `woff2` file colocated with
-the CSS import — no CDN request, no external dependency.
-
-### Option B: manually downloaded woff2
-
-Download `InterVariable.woff2` from <https://github.com/rsms/inter/releases>.
-Place it in your `public/fonts/` directory and declare:
-
-```css
-@font-face {
-  font-family: "Inter";
-  src: url("/fonts/InterVariable.woff2") format("woff2");
-  font-weight: 100 900; /* full axis */
-  font-style: normal;
-  font-display: swap;   /* show fallback immediately, swap when ready */
-}
-```
-
 ---
 
-## Preventing layout shift (CLS)
+## SvelteKit pre-paint (no FOUC)
 
-The declared fallback chain (`system-ui, -apple-system, BlinkMacSystemFont,
-sans-serif`) resolves to San Francisco (macOS/iOS), Segoe UI (Windows), and
-Roboto (Android) — all near-metric-compatible with Inter.
-
-To eliminate residual shift on initial load, add `size-adjust` in the
-`@font-face` fallback. Measure the offset with <https://screenspan.net/fallback>
-or the `Font Style Matcher` tool. A typical Inter→system-ui adjustment is
-`size-adjust: 100%` (no change) because the metrics are already close.
-
-Use `font-display: swap` (or `optional` for non-critical text) so layout is
-never blocked waiting for the web font.
-
----
-
-## SvelteKit server-side resolution (no FOUC)
-
-Apply the theme and scheme before first paint using `hooks.server.ts`:
+Stamp both `data-theme` and `data-scheme` before first paint in `hooks.server.ts`:
 
 ```typescript
-// src/hooks.server.ts
 import type { Handle } from "@sveltejs/kit";
 
 export const handle: Handle = async ({ event, resolve }) => {
   const theme = event.cookies.get("theme") ?? "ubp";
-  const scheme = event.cookies.get("scheme") ?? "dark"; // UBP default
+  const scheme = event.cookies.get("scheme") ?? "dark"; // UBP workspace default
 
   return resolve(event, {
     transformPageChunk: ({ html }) =>
@@ -114,20 +114,24 @@ export const handle: Handle = async ({ event, resolve }) => {
 };
 ```
 
-This eliminates the flash of unstyled content (FOUC) on initial navigation.
 Never write `data-scheme="auto"` — resolve `prefers-color-scheme` on the server
-and stamp the result (`"light"` or `"dark"`).
+and stamp the explicit result (`"light"` or `"dark"`).
 
 ---
 
-## Verification checklist
+## What was ruled out
 
-Before shipping a UBP-themed host:
+| Option | Reason ruled out |
+|--------|-----------------|
+| Inter Variable (previous direction) | Operator decision 2026-07-24: UBP inherits DS pairing. Inter would diverge from the DS font system and require a separate license/self-hosting setup in every consumer host. |
+| Custom mono for UBP | Not needed — JetBrains Mono reads as an instrument face; distinguishing UBP from aiaiai studio is the colour/surface story, not the typeface. |
+| Google Fonts runtime CDN | Prohibited by DS convention; no `fonts.googleapis.com` reference anywhere in the token layer. |
 
-- [ ] `ubp.css` is imported after the DS token stack (base → semantic → components → ubp)
-- [ ] `@font-face` for Inter is declared before `ubp.css` (or loaded via the npm package)
-- [ ] No `fonts.googleapis.com` or `fonts.gstatic.com` URL in the host's CSS
-- [ ] `font-display: swap` (or `optional`) is set in `@font-face`
-- [ ] The server hook stamps both `data-theme` and `data-scheme` before paint
-- [ ] Contrast verified: `--color-text-secondary` on `--color-surface` ≥4.5:1 in all combinations
-- [ ] `@aiaiai-pt/design-system` version pinned to the DS-H0 release
+---
+
+## Scaffold-face rule (resolved)
+
+The DS-H0 brief required the "scaffold face" decision to be explicit rather than
+silently final. This record satisfies that requirement: the scaffold face
+(Instrument Sans) is deliberately kept as the UBP display/body face via
+inheritance, not by omission.
