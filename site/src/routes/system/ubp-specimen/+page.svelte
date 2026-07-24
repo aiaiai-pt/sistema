@@ -29,7 +29,20 @@
 
 	// ─── Nav state ──────────────────────────────────────────────────────────
 	let sidebarCollapsed = $state(false);
+	let drawerOpen = $state(false);
 	let activeNav = $state('ocorrencias');
+
+	function toggleNav() {
+		if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+			drawerOpen = !drawerOpen;
+		} else {
+			sidebarCollapsed = !sidebarCollapsed;
+		}
+	}
+
+	function closeDrawer() {
+		drawerOpen = false;
+	}
 
 	// ─── Table state ────────────────────────────────────────────────────────
 	let sortKey = $state('reportado_em');
@@ -91,13 +104,13 @@
 	};
 
 	const columns = [
-		{ key: 'referencia',   label: 'REFERÊNCIA',   width: '120px' },
-		{ key: 'tipo',         label: 'TIPO',         sortable: true },
-		{ key: 'localizacao',  label: 'LOCALIZAÇÃO',  sortable: true },
-		{ key: 'estado',       label: 'ESTADO',       width: '120px' },
-		{ key: 'prioridade',   label: 'PRIORIDADE',   width: '104px' },
-		{ key: 'reportado_em', label: 'REPORTADO EM', sortable: true, width: '140px' },
-		{ key: 'responsavel',  label: 'RESPONSÁVEL' },
+		{ key: 'referencia',   label: 'Referência',   width: '120px' },
+		{ key: 'tipo',         label: 'Tipo',         sortable: true },
+		{ key: 'localizacao',  label: 'Localização',  sortable: true },
+		{ key: 'estado',       label: 'Estado',       width: '120px' },
+		{ key: 'prioridade',   label: 'Prioridade',   width: '104px' },
+		{ key: 'reportado_em', label: 'Reportado em', sortable: true, width: '140px' },
+		{ key: 'responsavel',  label: 'Responsável' },
 	];
 
 	const rows = [
@@ -139,83 +152,90 @@
 <!-- Full-bleed instrument shell — breaks out of PageContainer's centered max-width -->
 <div class="specimen-shell" style="margin: calc(-1 * var(--space-2xl)) calc(-1 * var(--space-2xl));">
 
-	<!-- ─── Inner rail navigation ──────────────────────────────────────────── -->
-	<Sidebar bind:collapsed={sidebarCollapsed} class="instrument-rail">
-		{#snippet header()}
-			{#if !sidebarCollapsed}
-				<div style="display:flex; flex-direction:column; gap:var(--space-2xs);">
-					<span class="type-label" style="color:var(--color-text);">UBP</span>
-					<span class="type-caption" style="color:var(--color-text-muted);">Gestão Urbana</span>
+	<!-- Mobile overlay — closes drawer when tapped outside -->
+	{#if drawerOpen}
+		<div class="mobile-overlay" onclick={closeDrawer} aria-hidden="true"></div>
+	{/if}
+
+	<!-- ─── Inner rail navigation (desktop: sticky rail; mobile: drawer) ────── -->
+	<div class="rail-wrapper" class:drawer-open={drawerOpen}>
+		<Sidebar bind:collapsed={sidebarCollapsed} class="instrument-rail">
+			{#snippet header()}
+				{#if !sidebarCollapsed}
+					<div style="display:flex; flex-direction:column; gap:var(--space-2xs);">
+						<span class="type-label" style="color:var(--color-text);">UBP</span>
+						<span class="type-caption" style="color:var(--color-text-muted);">Gestão Urbana</span>
+					</div>
+				{:else}
+					<span class="type-label" style="color:var(--color-accent);">U</span>
+				{/if}
+			{/snippet}
+
+			<SidebarSection title="OPERAÇÕES" />
+			<SidebarItem active={activeNav === 'ocorrencias'} onclick={() => { activeNav = 'ocorrencias'; closeDrawer(); }}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+						<path d="M8 2L14 13H2L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+					</svg>
+				{/snippet}
+				Ocorrências
+			</SidebarItem>
+			<SidebarItem active={activeNav === 'licencas'} badge={12} onclick={() => { activeNav = 'licencas'; closeDrawer(); }}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+						<rect x="2.5" y="1.5" width="11" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
+						<path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+				Licenças
+			</SidebarItem>
+			<SidebarItem active={activeNav === 'mapa'} onclick={() => { activeNav = 'mapa'; closeDrawer(); }}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+						<circle cx="8" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+						<path d="M8 13.5C8 13.5 3 10.5 3 7a5 5 0 0110 0c0 3.5-5 6.5-5 6.5Z" stroke="currentColor" stroke-width="1.5"/>
+					</svg>
+				{/snippet}
+				Mapa
+			</SidebarItem>
+			<SidebarItem active={activeNav === 'previsoes'} onclick={() => { activeNav = 'previsoes'; closeDrawer(); }}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+						<polyline points="2,12 6,7 9,10 14,4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				{/snippet}
+				Previsões
+			</SidebarItem>
+
+			<SidebarSection title="GESTÃO" />
+			<SidebarItem active={activeNav === 'equipas'} onclick={() => { activeNav = 'equipas'; closeDrawer(); }}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+						<circle cx="6" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/>
+						<circle cx="11" cy="5" r="2" stroke="currentColor" stroke-width="1.2"/>
+						<path d="M1 13.5a5 5 0 0110 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+						<path d="M11 10a4 4 0 013.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+				Equipas
+			</SidebarItem>
+			<SidebarItem active={activeNav === 'configuracoes'} onclick={() => { activeNav = 'configuracoes'; closeDrawer(); }}>
+				{#snippet icon()}
+					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+						<circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+						<path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.4 3.4l.85.85M11.75 11.75l.85.85M11.75 4.25l-.85.85M4.25 11.75l-.85.85" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+					</svg>
+				{/snippet}
+				Configurações
+			</SidebarItem>
+
+			{#snippet footer()}
+				<div style="padding:var(--space-xs) var(--space-sm);">
+					<Status variant="success">Sistema operacional</Status>
 				</div>
-			{:else}
-				<span class="type-label" style="color:var(--color-accent);">U</span>
-			{/if}
-		{/snippet}
-
-		<SidebarSection title="OPERAÇÕES" />
-		<SidebarItem active={activeNav === 'ocorrencias'} onclick={() => activeNav = 'ocorrencias'}>
-			{#snippet icon()}
-				<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-					<path d="M8 2L14 13H2L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-				</svg>
 			{/snippet}
-			OCORRÊNCIAS
-		</SidebarItem>
-		<SidebarItem active={activeNav === 'licencas'} badge={12} onclick={() => activeNav = 'licencas'}>
-			{#snippet icon()}
-				<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-					<rect x="2.5" y="1.5" width="11" height="13" rx="1" stroke="currentColor" stroke-width="1.5"/>
-					<path d="M5 5.5h6M5 8h6M5 10.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-				</svg>
-			{/snippet}
-			LICENÇAS
-		</SidebarItem>
-		<SidebarItem active={activeNav === 'mapa'} onclick={() => activeNav = 'mapa'}>
-			{#snippet icon()}
-				<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-					<circle cx="8" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/>
-					<path d="M8 13.5C8 13.5 3 10.5 3 7a5 5 0 0110 0c0 3.5-5 6.5-5 6.5Z" stroke="currentColor" stroke-width="1.5"/>
-				</svg>
-			{/snippet}
-			MAPA
-		</SidebarItem>
-		<SidebarItem active={activeNav === 'previsoes'} onclick={() => activeNav = 'previsoes'}>
-			{#snippet icon()}
-				<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-					<polyline points="2,12 6,7 9,10 14,4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-				</svg>
-			{/snippet}
-			PREVISÕES
-		</SidebarItem>
-
-		<SidebarSection title="GESTÃO" />
-		<SidebarItem active={activeNav === 'equipas'} onclick={() => activeNav = 'equipas'}>
-			{#snippet icon()}
-				<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-					<circle cx="6" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/>
-					<circle cx="11" cy="5" r="2" stroke="currentColor" stroke-width="1.2"/>
-					<path d="M1 13.5a5 5 0 0110 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-					<path d="M11 10a4 4 0 013.5 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-				</svg>
-			{/snippet}
-			EQUIPAS
-		</SidebarItem>
-		<SidebarItem active={activeNav === 'configuracoes'} onclick={() => activeNav = 'configuracoes'}>
-			{#snippet icon()}
-				<svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-					<circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-					<path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.4 3.4l.85.85M11.75 11.75l.85.85M11.75 4.25l-.85.85M4.25 11.75l-.85.85" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-				</svg>
-			{/snippet}
-			CONFIGURAÇÕES
-		</SidebarItem>
-
-		{#snippet footer()}
-			<div style="padding:var(--space-xs) var(--space-sm);">
-				<Status variant="success">SISTEMA OPERACIONAL</Status>
-			</div>
-		{/snippet}
-	</Sidebar>
+		</Sidebar>
+	</div>
 
 	<!-- ─── Main instrument canvas ──────────────────────────────────────────── -->
 	<div class="instrument-canvas">
@@ -228,7 +248,7 @@
 				{ label: 'Lista Ativa' },
 			]} />
 			<div style="display:flex; align-items:center; gap:var(--space-sm);">
-				<Button size="sm" variant="ghost" onclick={() => sidebarCollapsed = !sidebarCollapsed}
+				<Button size="sm" variant="ghost" onclick={toggleNav}
 					aria-label={sidebarCollapsed ? 'Expandir painel' : 'Colapsar painel'}>
 					<svg viewBox="0 0 16 16" fill="none" width="14" height="14" aria-hidden="true">
 						<rect x="2" y="3.5" width="12" height="1.2" rx=".6" fill="currentColor"/>
@@ -236,8 +256,8 @@
 						<rect x="2" y="11.3" width="12" height="1.2" rx=".6" fill="currentColor"/>
 					</svg>
 				</Button>
-				<Button size="sm" variant="secondary">EXPORTAR</Button>
-				<Button size="sm">NOVA OCORRÊNCIA</Button>
+				<Button size="sm" variant="secondary">Exportar</Button>
+				<Button size="sm">Nova ocorrência</Button>
 			</div>
 		</header>
 
@@ -261,7 +281,7 @@
 				<!-- Map canvas placeholder -->
 				<div class="map-panel" role="region" aria-label="Mapa de ocorrências">
 					<div class="map-header">
-						<span class="type-label">MAPA DE OCORRÊNCIAS — LISBOA</span>
+						<span class="type-overline">Mapa de ocorrências — Lisboa</span>
 						<div style="display:flex; gap:var(--space-xs);">
 							<Badge variant="info" dot>CLUSTERS ACTIVOS</Badge>
 							<Badge variant="neutral">12 PONTOS</Badge>
@@ -280,16 +300,16 @@
 				<!-- Filter form -->
 				<aside class="filter-panel" aria-label="Filtros de pesquisa">
 					<div class="filter-header">
-						<span class="type-label">FILTROS</span>
-						<Button size="sm" variant="ghost">LIMPAR</Button>
+						<span class="type-overline">Filtros</span>
+						<Button size="sm" variant="ghost">Limpar</Button>
 					</div>
 
 					<div class="filter-body">
-						<Select label="TIPO" bind:value={filterTipo} options={tipoOptions} />
-						<Select label="ESTADO" bind:value={filterEstado} options={estadoOptions} />
-						<Select label="FREGUESIA" bind:value={filterFreguesia} options={freguesiaOptions} />
-						<Input label="REFERÊNCIA" placeholder="OC-2026-…" />
-						<Input label="REPORTADO POR" placeholder="Nome ou contacto" />
+						<Select label="Tipo" bind:value={filterTipo} options={tipoOptions} />
+						<Select label="Estado" bind:value={filterEstado} options={estadoOptions} />
+						<Select label="Freguesia" bind:value={filterFreguesia} options={freguesiaOptions} />
+						<Input label="Referência" placeholder="OC-2026-…" />
+						<Input label="Reportado por" placeholder="Nome ou contacto" />
 
 						<Separator />
 
@@ -298,11 +318,11 @@
 							Incluir arquivadas
 						</Label>
 						<div style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-sm);">
-							<span class="type-label" style="color:var(--color-text-secondary);">ALERTAS ACTIVOS</span>
+							<span class="type-label" style="color:var(--color-text-secondary);">Alertas activos</span>
 							<Toggle bind:checked={alertasAtivos} />
 						</div>
 
-						<Button style="width:100%;">APLICAR FILTROS</Button>
+						<Button style="width:100%;">Aplicar filtros</Button>
 					</div>
 				</aside>
 			</section>
@@ -315,22 +335,22 @@
 					<Tabs bind:value={tableTab}>
 						<TabList>
 							<Tab value="ativas">
-								ATIVAS <Badge variant="warning">847</Badge>
+								Ativas <Badge variant="warning">847</Badge>
 							</Tab>
 							<Tab value="resolvidas">
-								RESOLVIDAS
+								Resolvidas
 							</Tab>
 							<Tab value="rejeitadas">
-								REJEITADAS
+								Rejeitadas
 							</Tab>
 						</TabList>
 					</Tabs>
 					{#if selectedRows.size > 0}
 						<div style="display:flex; align-items:center; gap:var(--space-sm); margin-left:auto;">
-							<span class="type-label">{selectedRows.size} SELECIONADAS</span>
-							<Button size="sm" variant="ghost" onclick={() => selectedRows = new Set()}>LIMPAR</Button>
-							<Button size="sm" variant="secondary">ATRIBUIR</Button>
-							<Button size="sm" variant="destructive">REJEITAR</Button>
+							<span class="type-label">{selectedRows.size} selecionadas</span>
+							<Button size="sm" variant="ghost" onclick={() => selectedRows = new Set()}>Limpar</Button>
+							<Button size="sm" variant="secondary">Atribuir</Button>
+							<Button size="sm" variant="destructive">Rejeitar</Button>
 						</div>
 					{/if}
 				</div>
@@ -368,7 +388,7 @@
 
 				<div class="badge-grid">
 					<div class="badge-row">
-						<span class="type-label" style="color:var(--color-text-muted); width:100px;">BADGE</span>
+						<span class="type-label" style="color:var(--color-text-muted); width:var(--specimen-badge-label-width);">Badge</span>
 						<Badge variant="neutral">NEUTRO</Badge>
 						<Badge variant="info">INFORMAÇÃO</Badge>
 						<Badge variant="success">SUCESSO</Badge>
@@ -377,7 +397,7 @@
 						<Badge variant="info" dot>COM PONTO</Badge>
 					</div>
 					<div class="badge-row">
-						<span class="type-label" style="color:var(--color-text-muted); width:100px;">STATUS</span>
+						<span class="type-label" style="color:var(--color-text-muted); width:var(--specimen-badge-label-width);">Status</span>
 						<Status variant="success">OPERACIONAL</Status>
 						<Status variant="warning" pulse>EM ACTUALIZAÇÃO</Status>
 						<Status variant="error">FALHA</Status>
@@ -414,13 +434,13 @@
 				<div class="states-grid">
 					<!-- Loading -->
 					<div class="state-card">
-						<span class="type-label" style="margin-bottom:var(--space-sm); display:block; color:var(--color-text-muted);">CARREGAMENTO</span>
+						<span class="type-label" style="margin-bottom:var(--space-sm); display:block; color:var(--color-text-muted);">Carregamento</span>
 						<DataTable {columns} rows={[]} loading />
 					</div>
 
 					<!-- Empty -->
 					<div class="state-card">
-						<span class="type-label" style="margin-bottom:var(--space-sm); display:block; color:var(--color-text-muted);">SEM RESULTADOS</span>
+						<span class="type-label" style="margin-bottom:var(--space-sm); display:block; color:var(--color-text-muted);">Sem resultados</span>
 						<DataTable
 							{columns}
 							rows={[]}
@@ -431,7 +451,7 @@
 
 					<!-- Skeleton rows (loading inference) -->
 					<div class="state-card">
-						<span class="type-label" style="margin-bottom:var(--space-sm); display:block; color:var(--color-text-muted);">ESQUELETO DE CARREGAMENTO</span>
+						<span class="type-label" style="margin-bottom:var(--space-sm); display:block; color:var(--color-text-muted);">Esqueleto de carregamento</span>
 						<div style="display:flex; flex-direction:column; gap:var(--space-sm); padding:var(--space-md); background:var(--color-surface); border:var(--elevation-border); border-radius:var(--radius-md);">
 							{#each [1,2,3,4] as _}
 								<div style="display:flex; gap:var(--space-md); align-items:center;">
@@ -446,14 +466,14 @@
 
 					<!-- Error state -->
 					<div class="state-card">
-						<span class="type-label" style="margin-bottom:var(--space-sm); display:block; color:var(--color-text-muted);">ERRO DE CARREGAMENTO</span>
+						<span class="type-label" style="margin-bottom:var(--space-sm); display:block; color:var(--color-text-muted);">Erro de carregamento</span>
 						<div style="border:var(--elevation-border); border-radius:var(--radius-md); overflow:hidden;">
 							<EmptyState
 								heading="Não foi possível carregar as ocorrências"
 								body="Ocorreu um erro ao comunicar com o servidor. Tente novamente ou contacte o suporte técnico se o problema persistir."
 							>
 								{#snippet actions()}
-									<Button size="sm" variant="secondary">TENTAR NOVAMENTE</Button>
+									<Button size="sm" variant="secondary">Tentar novamente</Button>
 								{/snippet}
 							</EmptyState>
 						</div>
@@ -468,12 +488,30 @@
 <style>
 	/* ─── Specimen shell — breaks out of PageContainer centering ────────────── */
 	.specimen-shell {
+		/* Named custom properties for hardcoded dimensions (items → tokens) */
+		--specimen-filter-width: 280px;
+		--specimen-map-height: 280px;
+		--specimen-badge-label-width: 6.25rem; /* 100px at 16px base */
+
 		display: flex;
 		min-height: calc(100dvh - var(--space-2xl));
 		background: var(--color-surface);
 		border: var(--elevation-border);
 		border-radius: var(--radius-md);
 		overflow: hidden;
+	}
+
+	/* ─── Rail wrapper — transparent on desktop; becomes fixed drawer on mobile ── */
+	.rail-wrapper {
+		display: contents; /* transparent: Sidebar is a direct flex child on desktop */
+	}
+
+	/* ─── Mobile overlay backdrop ───────────────────────────────────────────── */
+	.mobile-overlay {
+		position: fixed;
+		inset: 0;
+		background: var(--color-overlay);
+		z-index: 99;
 	}
 
 	/* ─── Inner instrument rail ─────────────────────────────────────────────── */
@@ -522,7 +560,7 @@
 	/* ─── Map + filter row ──────────────────────────────────────────────────── */
 	.canvas-map-row {
 		display: grid;
-		grid-template-columns: 1fr 280px;
+		grid-template-columns: 1fr var(--specimen-filter-width);
 		gap: var(--space-lg);
 		align-items: start;
 	}
@@ -548,13 +586,13 @@
 	}
 
 	.map-viewport {
-		height: 280px;
+		height: var(--specimen-map-height);
 		position: relative;
 		background: var(--color-surface-tertiary);
 	}
 
 	:global(.map-viewport .ol-viewport) {
-		height: 280px;
+		height: var(--specimen-map-height);
 	}
 
 	/* ─── Filter panel ──────────────────────────────────────────────────────── */
@@ -615,11 +653,62 @@
 		flex-direction: column;
 	}
 
+	/* ─── Responsive: below 1024px — two-up KPI grid ────────────────────────── */
+	@media (max-width: 1023px) {
+		/* StatGrid uses card-grid-4 (4 columns at ≥768px per CardGrid component).
+		   Specimen overrides to 2-up at tablet to avoid overflow in the narrow canvas. */
+		:global(.instrument-canvas .card-grid-4) {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	/* ─── Responsive: mobile (<768px) ──────────────────────────────────────── */
+	@media (max-width: 767px) {
+		.specimen-shell {
+			flex-direction: column;
+		}
+
+		/* Rail becomes a fixed drawer — slides in from the left */
+		.rail-wrapper {
+			display: block;
+			position: fixed;
+			top: 0;
+			left: 0;
+			height: 100dvh;
+			z-index: 100;
+			transform: translateX(-100%);
+			transition: transform 200ms ease;
+		}
+
+		.rail-wrapper.drawer-open {
+			transform: translateX(0);
+			box-shadow: var(--elevation-overlay);
+		}
+
+		/* Rail inside drawer: static positioning (wrapper is already fixed) */
+		:global(.instrument-rail) {
+			position: static;
+			height: 100dvh;
+		}
+
+		/* Stacked single-column layouts */
+		.canvas-map-row {
+			grid-template-columns: 1fr;
+		}
+
+		.states-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
 	/* ─── Reduced motion ────────────────────────────────────────────────────── */
 	@media (prefers-reduced-motion: reduce) {
 		.specimen-shell * {
 			animation-duration: 0.01ms !important;
 			transition-duration: 0.01ms !important;
+		}
+		.rail-wrapper {
+			transition: none;
 		}
 	}
 </style>
