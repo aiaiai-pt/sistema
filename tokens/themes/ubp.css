@@ -136,16 +136,18 @@
  * Dark-scheme brand override.
  *
  * The generic dark layer (`:root[data-scheme="dark"]` in semantic.css, specificity
- * 0,1,1) inverts neutral-derived roles to the warm neutral-950 ramp. This block
- * overrides only the brand values that require a cool-slate dark base:
+ * 0,2,0 — pseudo-class + attribute) inverts neutral-derived roles to the warm
+ * neutral-950 ramp. This block overrides only the brand values that require a
+ * cool-slate dark base:
  *   - Surfaces / borders / text / overlay → cool slate (not warm neutral)
  *   - Accent → lighter blue (link contrast: 4.6:1 on slate-900 [AA ≥4.5:1])
  *   - text-on-accent → dark text on the lighter blue fill (8.6:1 [AAA])
  *   - Subtle washes re-derived against the cool base via color-mix
  *
- * Selector specificity: (0,2,0) — beats the generic dark layer (0,1,1) when both
- * `data-theme="ubp"` and `data-scheme="dark"` are present. The `auto` scheme is
- * resolved before paint; "dark" here always matches an explicit decision.
+ * Selector specificity: (0,2,0) — ties the generic dark layer (also 0,2,0) when
+ * both `data-theme="ubp"` and `data-scheme="dark"` are present; wins by source
+ * order because ubp.css loads after semantic.css. The `auto` scheme is resolved
+ * before paint; "dark" here always matches an explicit decision.
  *
  * Subtitle regression control:
  *   text (#f8fafc) on surface (#0f172a): 15.6:1 [AAA]

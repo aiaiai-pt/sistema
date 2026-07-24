@@ -12,6 +12,17 @@
  * Key regression: the historical 3.0:1 subtitle defect (--color-text-muted
  * used in subtitle roles). This suite FAILS if --color-text-secondary falls
  * below 4.5:1 on ANY declared surface in the UBP theme.
+ *
+ * ─── Coverage gap: color-mix() values ────────────────────────────────────
+ * parseColor() handles hex and rgba() only. Tokens whose resolved value uses
+ * color-mix() are NOT verified by this suite:
+ *   - --color-accent-subtle (dark override in ubp.css)
+ *   - --color-destructive-subtle (dark override in ubp.css)
+ *   - --color-success-subtle (dark override in ubp.css)
+ *   - --color-warning-subtle (dark override in ubp.css)
+ *   - --color-info-subtle (dark override in ubp.css)
+ * These are background-tint tokens used behind text, not as text colors.
+ * Visual QA for these subtle washes is tracked in sistema#78.
  */
 
 import { describe, it, expect } from "vitest";
@@ -173,11 +184,18 @@ const ubpTokens = extractTokens(ubpCss, `[data-theme="ubp"]`);
 // Layer 5: UBP dark override ([data-theme="ubp"][data-scheme="dark"])
 const ubpDarkTokens = extractTokens(ubpCss, `[data-theme="ubp"][data-scheme="dark"]`);
 
-// Resolved contexts — merge order matches CSS specificity cascade:
-//   :root                     (0,0,0) → base + semantic defaults
-//   [data-theme="ubp"]        (0,1,0) → UBP brand overrides
-//   :root[data-scheme="dark"] (0,1,1) → generic dark (beats theme)
-//   [data-theme="ubp"][data-scheme="dark"] (0,2,0) → UBP dark brand
+// Resolved contexts — merge order matches CSS specificity cascade.
+//
+// Correct specificities (a=IDs, b=classes/attrs/pseudo-classes, c=types):
+//   :root                              (0,1,0) — pseudo-class
+//   [data-theme="ubp"]                 (0,1,0) — attribute selector
+//   :root[data-scheme="dark"]          (0,2,0) — pseudo-class + attribute
+//   [data-theme="ubp"][data-scheme="dark"] (0,2,0) — two attribute selectors
+//
+// :root[data-scheme="dark"] (0,2,0) beats [data-theme="ubp"] (0,1,0) → dark
+// generic layer wins for tokens it declares. When the same (0,2,0) specificity
+// ties between the generic dark and the UBP dark block, source order resolves
+// it: ubp.css loads after semantic.css, so ubpDarkTokens wins the tie.
 //
 // Light: base + semantic + ubp (no dark layers)
 const lightTokens: TokenMap = merge(baseTokens, semanticTokens, ubpTokens);
