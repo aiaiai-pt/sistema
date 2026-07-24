@@ -19,6 +19,10 @@ const config = {
     }),
     alias: {
       $ui: path.resolve(__dirname, "../components"),
+      // See vite.config.ts: alias the DS components subpath the widget-system
+      // package imports as a peer to the repo-root components/ dir (in-repo the
+      // DS root package is not symlinked by name).
+      "@aiaiai-pt/design-system/components": path.resolve(__dirname, "../components"),
     },
     prerender: {
       // Component demo pages render nav/link components with REALISTIC hrefs

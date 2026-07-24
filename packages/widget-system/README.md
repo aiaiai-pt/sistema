@@ -124,6 +124,25 @@ The package ships no translatable copy. Every user-visible label is caller-
 supplied via `messages`; a status with no supplied message still carries its
 ARIA role and `data-widget-state` token for assistive tech and tests.
 
+## Generic widgets (`/widgets`)
+
+`registerBaseWidgets(registry)` populates a registry with the two transport-
+neutral widgets (S1.4). They register under **distinct kinds** with distinct
+testers — there is no shared tester and **no heuristic fallback** between them:
+
+| Key | Kind | Contract |
+|-----|------|----------|
+| `native-chart` | `chart` | Renders an **already-resolved** `{ category, series }` chart model over the Sistema `EChart` primitive, with its accessible data table. It reads no rows, view, BFF path, ontology schema, or tenant — the host resolves; the widget renders. |
+| `embedded-analysis` | `embed` | Renders an `<iframe>` from an **already-authorized, sanitised, short-lived URL** the caller supplies as `props.src`. It knows no signer, grant, resource id, or tenant. `safeEmbedSrc` admits only http(s)/root-relative URLs as defence in depth; an absent or unsafe `src` renders the empty state, never a broken frame. |
+
+The Atelier renderer's coupled `MetabaseEmbedWidget` is **not** moved or replaced
+by `embedded-analysis` — it stays until the BFF-resolved trusted-embed seam
+exists (BD-META-01, Atelier-owned).
+
+Overflow is a host budget decision surfaced via `WidgetState.overflow`, not
+inferred by the widgets: `native-chart` always renders every resolved
+category/series into its accessible table (no silent truncation).
+
 ## TH-08: key provenance
 
 The `type` field in `WidgetMatchContext` is **untrusted** (operator-authored).
