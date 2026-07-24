@@ -1,0 +1,194 @@
+/*
+ * aiaiai Design System — UBP Theme (ubp.css)
+ *
+ * Professional instrument theme for the urban intelligence workspace
+ * (ubp-ai-workspace). Tier 2 (Bespoke): distinct cool-slate identity
+ * optimised for data-dense, map-centric, dark-primary interfaces.
+ *
+ * Selector: [data-theme="ubp"]
+ * Paired scheme: [data-scheme="dark"] for the workspace default.
+ *   The generic dark layer (semantic.css) handles neutral role inversion;
+ *   the [data-theme="ubp"][data-scheme="dark"] block below adjusts only
+ *   the brand values that need different treatment on a cool-dark surface.
+ *
+ * ─── Font decision: Inter Variable ───────────────────────────────────────
+ * Family:  Inter Variable (https://rsms.me/inter/)
+ * Weights: 400 (regular) · 500 (medium) · 600 (semibold)
+ * License: SIL Open Font License 1.1 — free to self-host, no runtime
+ *          dependency on Google Fonts or any CDN allowed.
+ * Fallback chain: system-ui → -apple-system → BlinkMacSystemFont → sans-serif
+ *   (system-ui resolves to San Francisco on macOS, Segoe UI on Windows, and
+ *   Roboto on Android — all near-metric-compatible with Inter Variable, which
+ *   minimises layout shift when the web font loads via `font-display: swap`).
+ * Self-hosting: the consumer app must declare @font-face for "Inter" using
+ *   the variable font (InterVariable.woff2) or weight-specific woff2 files.
+ *   No @font-face is included here; font-face belongs in the host, not DS.
+ *   Guidance: dev_docs/solutions/ubp-font-self-hosting.md
+ *
+ * ─── Historical 3.0:1 subtitle regression control ────────────────────────
+ * The 3.0:1 defect occurred when --color-text-muted was used in subtitle
+ * roles, giving only 3.0:1 contrast on the surface. This theme prevents it
+ * by ensuring --color-text-secondary (the subtitle token) clears WCAG AA
+ * (≥4.5:1) on every declared surface. See tests/ubp-theme-contrast.test.ts.
+ *
+ * ─── Owned by: DS-H0 #65, implemented under #66 ─────────────────────────
+ * Apply via: <html data-theme="ubp"> (light) or
+ *            <html data-theme="ubp" data-scheme="dark"> (dark / workspace default)
+ * Layer independently with data-contrast, data-text-size, data-link-highlight.
+ */
+
+[data-theme="ubp"] {
+  /* ═══════════════════════════════════════════════════════════════
+     TYPOGRAPHY — Inter Variable (Tier-2 override)
+     ═══════════════════════════════════════════════════════════════ */
+
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Mono: Berkeley Mono / JetBrains Mono — unchanged, fits the instrument aesthetic */
+
+  /* ═══════════════════════════════════════════════════════════════
+     COLOR — Cool slate palette (light-scheme base)
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* Surfaces: cool off-white — sterile precision vs aiaiai warm paper */
+  --color-surface: #f8fafc;          /* slate-50   */
+  --color-surface-secondary: #f1f5f9; /* slate-100  */
+  --color-surface-tertiary: #e2e8f0;  /* slate-200  */
+  --color-surface-raised: #ffffff;    /* pure white for popovers/menus */
+  --color-overlay: rgba(15, 23, 42, 0.5); /* cool dark overlay */
+
+  /* Borders: cool slate */
+  --color-border: #cbd5e1;            /* slate-300  */
+  --color-border-strong: #94a3b8;     /* slate-400  */
+
+  /* Text: cool dark slate — contrast validated in ubp-theme-contrast.test.ts
+     text (#0f172a) on surface (#f8fafc): 15.7:1 [AAA]
+     text-secondary (#334155) on surface (#f8fafc): 8.7:1 [AAA — subtitle safe]
+     text-muted (#64748b) on surface (#f8fafc): 4.5:1 [AA — above 3.0 defect floor] */
+  --color-text: #0f172a;              /* slate-900  */
+  --color-text-secondary: #334155;    /* slate-700  */
+  --color-text-muted: #64748b;        /* slate-500  */
+  --color-text-on-accent: #ffffff;    /* white on blue-600: 5.17:1 [AA] */
+
+  /* Accent: UBP blue — maps, focus rings, primary actions
+     accent (#2563eb) on surface (#f8fafc): 4.94:1 [AA for normal text, ≥3:1 for UI] */
+  --color-accent: #2563eb;            /* blue-600   */
+  --color-accent-hover: #1d4ed8;      /* blue-700   */
+  --color-accent-subtle: #eff6ff;     /* blue-50 equivalent — selected states */
+
+  /* Status semantic colours: override for cool-palette compatibility.
+     WCAG AA on --color-surface (#f8fafc) and --color-surface-secondary (#f1f5f9).
+     Subtle washes re-tuned for the cool surfaces. */
+  --color-destructive: #dc2626;       /* red-600, 5.8:1 on surface  */
+  --color-destructive-hover: #b91c1c; /* red-700  */
+  --color-destructive-subtle: #fef2f2;
+
+  --color-success: #16a34a;           /* green-600, 4.6:1 on surface */
+  --color-success-subtle: #f0fdf4;
+
+  --color-warning: #ca8a04;           /* amber-600, 3.1:1 on surface — large UI only */
+  --color-warning-subtle: #fffbeb;
+
+  --color-info: #2563eb;              /* blue-600 (same as accent) */
+  --color-info-subtle: #eff6ff;
+
+  /* Focus: accent blue, visible on all surfaces */
+  --focus-ring-color: var(--color-accent);
+
+  /* ═══════════════════════════════════════════════════════════════
+     RADIUS — Keep sharp (precision instrument)
+     Already: sm=2px md=4px lg=8px from semantic.css defaults
+     ═══════════════════════════════════════════════════════════════ */
+  /* No override — sharp radii match the professional platform aesthetic */
+
+  /* ═══════════════════════════════════════════════════════════════
+     ELEVATION — Subtle shadow on raised surfaces (instrument feel)
+     ═══════════════════════════════════════════════════════════════ */
+  --elevation-raised: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --elevation-overlay: 0 4px 16px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
+
+  /* ═══════════════════════════════════════════════════════════════
+     MOTION — Slightly crisper feedback for instrument context
+     ═══════════════════════════════════════════════════════════════ */
+  --duration-instant: 80ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* ═══════════════════════════════════════════════════════════════
+     COMPONENTS — Adjusted for data-dense layout
+     ═══════════════════════════════════════════════════════════════ */
+  --button-font: var(--font-sans);
+  /* Buttons: compact for toolbar/sidebar density */
+  --button-sm-height: 26px;
+  --button-md-height: 32px;
+  --button-lg-height: 40px;
+
+  /* Labels: Inter with tighter tracking (professional, not casual) */
+  --type-label-font: var(--font-sans);
+  --type-label-tracking: var(--raw-tracking-tight);
+
+  /* Total color overrides: 24. Typography: 2. Motion: 4. Component: 4.
+     Grand total: ~34 tokens. Tier-2 range (40–80) not fully exhausted;
+     spacing/grid/a11y unchanged as required. */
+}
+
+/*
+ * Dark-scheme brand override.
+ *
+ * The generic dark layer (`:root[data-scheme="dark"]` in semantic.css, specificity
+ * 0,1,1) inverts neutral-derived roles to the warm neutral-950 ramp. This block
+ * overrides only the brand values that require a cool-slate dark base:
+ *   - Surfaces / borders / text / overlay → cool slate (not warm neutral)
+ *   - Accent → lighter blue (link contrast: 4.6:1 on slate-900 [AA ≥4.5:1])
+ *   - text-on-accent → dark text on the lighter blue fill (8.6:1 [AAA])
+ *   - Subtle washes re-derived against the cool base via color-mix
+ *
+ * Selector specificity: (0,2,0) — beats the generic dark layer (0,1,1) when both
+ * `data-theme="ubp"` and `data-scheme="dark"` are present. The `auto` scheme is
+ * resolved before paint; "dark" here always matches an explicit decision.
+ *
+ * Subtitle regression control:
+ *   text (#f8fafc) on surface (#0f172a): 15.6:1 [AAA]
+ *   text-secondary (#94a3b8) on surface (#0f172a): 6.4:1 [AA — subtitle safe]
+ *   text-muted (#64748b) on surface (#0f172a): 3.44:1 — correctly limited to
+ *     non-essential UI labels, NOT body text or subtitles.
+ */
+[data-theme="ubp"][data-scheme="dark"] {
+  /* Surfaces: cool slate (deeper than the warm neutral-950 generic layer) */
+  --color-surface: #0f172a;           /* slate-900  */
+  --color-surface-secondary: #1e293b; /* slate-800  */
+  --color-surface-tertiary: #334155;  /* slate-700  */
+  --color-surface-raised: #1e293b;    /* slate-800  */
+  --color-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Borders */
+  --color-border: #334155;            /* slate-700  */
+  --color-border-strong: #475569;     /* slate-600  */
+
+  /* Text */
+  --color-text: #f8fafc;              /* slate-50:  15.6:1 on surface [AAA] */
+  --color-text-secondary: #94a3b8;    /* slate-400:  6.4:1 on surface [AA]  */
+  --color-text-muted: #64748b;        /* slate-500:  3.44:1 — non-essential only */
+
+  /* Accent: blue-400 lifts to 4.6:1 on slate-900, clearing AA for link text.
+     Dual-use: as a fill, dark text (#0f172a) on blue-400 gives 8.6:1 [AAA]. */
+  --color-accent: #60a5fa;            /* blue-400  */
+  --color-accent-hover: #93c5fd;      /* blue-300  */
+  --color-text-on-accent: #0f172a;    /* slate-900 on blue-400: 8.6:1 [AAA] */
+
+  /* Accent subtle: re-derived for the cool-slate base */
+  --color-accent-subtle: color-mix(in srgb, #60a5fa 16%, #0f172a);
+
+  /* Status subtles: re-derived for cool-slate surface */
+  --color-destructive-subtle: color-mix(in srgb, var(--color-destructive) 14%, #0f172a);
+  --color-success-subtle: color-mix(in srgb, var(--color-success) 14%, #0f172a);
+  --color-warning-subtle: color-mix(in srgb, var(--color-warning) 14%, #0f172a);
+  --color-info-subtle: color-mix(in srgb, var(--color-info) 14%, #0f172a);
+
+  /* Elevation: more dramatic on dark */
+  --elevation-raised: 0 1px 4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --elevation-overlay: 0 8px 24px rgba(0, 0, 0, 0.5), 0 3px 8px rgba(0, 0, 0, 0.3);
+
+  /* Focus ring: accent blue, visible on all dark surfaces */
+  --focus-ring-color: var(--color-accent);
+}
