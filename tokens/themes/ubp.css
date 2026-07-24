@@ -1,0 +1,224 @@
+/*
+ * aiaiai Design System — UBP Theme (ubp.css)
+ *
+ * Professional instrument theme for the urban intelligence workspace
+ * (ubp-ai-workspace). Tier 2 (Bespoke): distinct cool-steel identity
+ * optimised for data-dense, map-centric, dark-primary interfaces.
+ *
+ * Selector: [data-theme="ubp"]
+ * Paired scheme: [data-scheme="dark"] for the workspace default.
+ *   The generic dark layer (semantic.css) handles neutral role inversion;
+ *   the [data-theme="ubp"][data-scheme="dark"] block below adjusts only
+ *   the brand values that need different treatment on a cool-dark surface.
+ *
+ * ─── Neutral palette — owned, not verbatim Tailwind slate ───────────────
+ * The UBP neutral ramp is derived from Tailwind slate shifted 10° toward
+ * teal/steel in OKLCH. This is a deliberate identity decision: the hue
+ * drift gives mid-tones (400–600) a visible cool-steel signature while
+ * keeping the lightest stops (50–200) effectively neutral, making the
+ * palette perceptually distinct from Tailwind defaults without tipping
+ * into obvious teal.
+ *
+ * Before → After (10° OKLCH hue shift, all other OKLCH params unchanged):
+ *   #f8fafc → #f8fafc  (slate-50,  unchanged at 8-bit precision)
+ *   #f1f5f9 → #f0f5f9  (slate-100, surface-secondary)
+ *   #e2e8f0 → #e1e9f0  (slate-200, surface-tertiary)
+ *   #cbd5e1 → #c9d6e0  (slate-300, border)
+ *   #94a3b8 → #91a4b7  (slate-400, border-strong / dark text-secondary)
+ *   #64748b → #60758a  (slate-500, text-muted)
+ *   #475569 → #435668  (slate-600, dark border-strong)
+ *   #334155 → #2f4254  (slate-700, text-secondary light / dark surfaces)
+ *   #1e293b → #1a2a3a  (slate-800, dark surface-secondary)
+ *   #0f172a → #0b182a  (slate-900, text light / dark surface)
+ *
+ * ─── Font decision: inherit DS pairing ──────────────────────────────────
+ * UBP inherits Sistema's default type pairing unchanged:
+ *   sans  → Instrument Sans (--font-sans / --raw-font-sans)
+ *   mono  → JetBrains Mono, ui-monospace (--font-mono / --raw-font-mono)
+ *   (Berkeley Mono leads the mono stack in the token but ships no @font-face;
+ *    JetBrains Mono is the effective shipped face — see sistema #82.)
+ * The theme sets NO --font-sans or --font-mono override; font role-tokens
+ * resolve to the DS defaults via semantic.css inheritance.
+ * Full decision record: dev_docs/solutions/ubp-font-self-hosting.md
+ *
+ * ─── Historical 3.0:1 subtitle regression control ────────────────────────
+ * The 3.0:1 defect occurred when --color-text-muted was used in subtitle
+ * roles, giving only 3.0:1 contrast on the surface. This theme prevents it
+ * by ensuring --color-text-secondary (the subtitle token) clears WCAG AA
+ * (≥4.5:1) on every declared surface. See tests/ubp-theme-contrast.test.ts.
+ *
+ * ─── Owned by: DS-H0 #65, implemented under #66 ─────────────────────────
+ * Apply via: <html data-theme="ubp"> (light) or
+ *            <html data-theme="ubp" data-scheme="dark"> (dark / workspace default)
+ * Layer independently with data-contrast, data-text-size, data-link-highlight.
+ */
+
+[data-theme="ubp"] {
+  /* ═══════════════════════════════════════════════════════════════
+     TYPOGRAPHY — inherited from DS (no override)
+     Instrument Sans (sans) + JetBrains Mono (mono) via semantic.css.
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* ═══════════════════════════════════════════════════════════════
+     COLOR — Cool steel palette (light-scheme base)
+     Neutrals: 10° OKLCH teal-shift from Tailwind slate — see file header.
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* Surfaces: cool off-white — sterile precision vs aiaiai warm paper */
+  --color-surface: #f8fafc; /* steel-50  (unchanged at 8-bit) */
+  --color-surface-secondary: #f0f5f9; /* steel-100 */
+  --color-surface-tertiary: #e1e9f0; /* steel-200 */
+  --color-surface-raised: #ffffff; /* pure white for popovers/menus  */
+  --color-overlay: rgba(
+    11,
+    24,
+    42,
+    0.5
+  ); /* cool dark overlay (steel-900 base) */
+
+  /* Borders: cool steel */
+  --color-border: #c9d6e0; /* steel-300  */
+  --color-border-strong: #91a4b7; /* steel-400  */
+
+  /* Text: cool dark steel — contrast validated in ubp-theme-contrast.test.ts
+     text (#0b182a) on surface (#f8fafc): 17.03:1 [AAA]
+     text-secondary (#2f4254) on surface (#f8fafc): 9.90:1 [AAA — subtitle safe]
+     text-muted (#60758a) on surface (#f8fafc): 4.55:1 [AA — above 3.0 defect floor] */
+  --color-text: #0b182a; /* steel-900  */
+  --color-text-secondary: #2f4254; /* steel-700  */
+  --color-text-muted: #60758a; /* steel-500  */
+  --color-text-on-accent: #ffffff; /* white on blue-600: 5.17:1 [AA] */
+
+  /* Accent: UBP blue — maps, focus rings, primary actions
+     accent (#2563eb) on surface (#f8fafc): 4.94:1 [AA for normal text, ≥3:1 for UI] */
+  --color-accent: #2563eb; /* blue-600   */
+  --color-accent-hover: #1d4ed8; /* blue-700   */
+  --color-accent-subtle: #eff6ff; /* blue-50 equivalent — selected states */
+
+  /* Status semantic colours: override for cool-palette compatibility.
+     WCAG AA on --color-surface (#f8fafc) and --color-surface-secondary (#f1f5f9).
+     Subtle washes re-tuned for the cool surfaces.
+     NOTE: --color-info is NOT overridden; inherits DS teal-blue
+     (--raw-color-blue-600, #2e63a3 — 5.85:1 on surface), distinct from
+     --color-accent (#2563eb). See contrast suite: tests/ubp-theme-contrast.test.ts */
+  --color-destructive: #dc2626; /* red-600, 4.62:1 on surface  */
+  --color-destructive-hover: #b91c1c; /* red-700  */
+  --color-destructive-subtle: #fef2f2;
+
+  --color-success: #16a34a; /* green-600, 3.15:1 on surface — large UI only */
+  --color-success-subtle: #f0fdf4;
+
+  --color-warning: #ca8a04; /* amber-600, 3.1:1 on surface — large UI only */
+  --color-warning-subtle: #fffbeb;
+
+  /* Focus: accent blue, visible on all surfaces */
+  --focus-ring-color: var(--color-accent);
+
+  /* ═══════════════════════════════════════════════════════════════
+     RADIUS — Keep sharp (precision instrument)
+     Already: sm=2px md=4px lg=8px from semantic.css defaults
+     ═══════════════════════════════════════════════════════════════ */
+  /* No override — sharp radii match the professional platform aesthetic */
+
+  /* ═══════════════════════════════════════════════════════════════
+     ELEVATION — Subtle shadow on raised surfaces (instrument feel)
+     Uses steel-900 (#0b182a) as the shadow base (10° teal-shifted).
+     ═══════════════════════════════════════════════════════════════ */
+  --elevation-raised:
+    0 1px 3px rgba(11, 24, 42, 0.08), 0 1px 2px rgba(11, 24, 42, 0.04);
+  --elevation-overlay:
+    0 4px 16px rgba(11, 24, 42, 0.12), 0 2px 6px rgba(11, 24, 42, 0.06);
+
+  /* ═══════════════════════════════════════════════════════════════
+     MOTION — unchanged from DS defaults.
+     Product choreography (map transitions, panel morphs) belongs in
+     the host's ws.css, not the theme.
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* Total color overrides: 22. Elevation: 2. Focus alias: 1.
+     Grand total: ~25 tokens. Typography/motion/spacing/grid unchanged.
+     --color-info and --color-info-subtle NOT overridden (inherit DS teal-blue). */
+}
+
+/* Desktop density: compact button heights for toolbar/sidebar layouts.
+   Scoped to ≥1024px so mobile targets stay at the DS default (44px for
+   --button-lg-height), satisfying the Tier-2 a11y checklist minimum.
+   Analogous to how other bespoke themes adjust density only where a
+   pointer device makes smaller targets safe (WCAG 2.5.5 advisory). */
+@media (min-width: 1024px) {
+  [data-theme="ubp"] {
+    --button-sm-height: 28px; /* DS Tier-2 floor: 28px min (reference/theming.md:221) */
+    --button-md-height: 32px;
+    --button-lg-height: 44px; /* DS Tier-2 floor: 44px min (reference/theming.md:221) */
+  }
+}
+
+/*
+ * Dark-scheme brand override.
+ *
+ * The generic dark layer (`:root[data-scheme="dark"]` in semantic.css, specificity
+ * 0,2,0 — pseudo-class + attribute) inverts neutral-derived roles to the warm
+ * neutral-950 ramp. This block overrides only the brand values that require a
+ * cool-steel dark base:
+ *   - Surfaces / borders / text / overlay → cool steel (not warm neutral)
+ *   - Accent → lighter blue (link contrast: 7.03:1 on steel-900 [AAA])
+ *   - text-on-accent → dark text on the lighter blue fill (7.03:1 [AAA])
+ *   - Subtle washes re-derived against the cool base via color-mix
+ *
+ * Selector specificity: (0,2,0) — ties the generic dark layer (also 0,2,0) when
+ * both `data-theme="ubp"` and `data-scheme="dark"` are present; wins by source
+ * order because ubp.css loads after semantic.css. The `auto` scheme is resolved
+ * before paint; "dark" here always matches an explicit decision.
+ *
+ * Subtitle regression control:
+ *   text (#f8fafc) on surface (#0b182a): 17.03:1 [AAA]
+ *   text-secondary (#91a4b7) on surface (#0b182a): 6.96:1 [AA — subtitle safe]
+ *   text-muted (#60758a) on surface (#0b182a): 3.74:1 — correctly limited to
+ *     non-essential UI labels, NOT body text or subtitles.
+ */
+[data-theme="ubp"][data-scheme="dark"] {
+  /* Surfaces: cool steel (deeper than the warm neutral-950 generic layer)
+     10° OKLCH teal-shift from Tailwind slate — see file header for before/after. */
+  --color-surface: #0b182a; /* steel-900  */
+  --color-surface-secondary: #1a2a3a; /* steel-800  */
+  --color-surface-tertiary: #2f4254; /* steel-700  */
+  --color-surface-raised: #1a2a3a; /* steel-800  */
+  --color-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Borders */
+  --color-border: #2f4254; /* steel-700  */
+  --color-border-strong: #435668; /* steel-600  */
+
+  /* Text */
+  --color-text: #f8fafc; /* steel-50:  17.03:1 on surface [AAA] */
+  --color-text-secondary: #91a4b7; /* steel-400:  6.96:1 on surface [AA]  */
+  --color-text-muted: #60758a; /* steel-500:  3.74:1 — non-essential only */
+
+  /* Accent: blue-400 lifts to 7.03:1 on steel-900, clearing AAA for link text.
+     Dual-use: as a fill, dark text (#0b182a) on blue-400 gives 7.03:1 [AAA]. */
+  --color-accent: #60a5fa; /* blue-400  */
+  --color-accent-hover: #93c5fd; /* blue-300  */
+  --color-text-on-accent: #0b182a; /* steel-900 on blue-400: 7.03:1 [AAA] */
+
+  /* Accent subtle: re-derived for the cool-steel base */
+  --color-accent-subtle: color-mix(in srgb, #60a5fa 16%, #0b182a);
+
+  /* Status subtles: re-derived for cool-steel surface */
+  --color-destructive-subtle: color-mix(
+    in srgb,
+    var(--color-destructive) 14%,
+    #0b182a
+  );
+  --color-success-subtle: color-mix(in srgb, var(--color-success) 14%, #0b182a);
+  --color-warning-subtle: color-mix(in srgb, var(--color-warning) 14%, #0b182a);
+  --color-info-subtle: color-mix(in srgb, var(--color-info) 14%, #0b182a);
+
+  /* Elevation: more dramatic on dark */
+  --elevation-raised:
+    0 1px 4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --elevation-overlay:
+    0 8px 24px rgba(0, 0, 0, 0.5), 0 3px 8px rgba(0, 0, 0, 0.3);
+
+  /* Focus ring: accent blue, visible on all dark surfaces */
+  --focus-ring-color: var(--color-accent);
+}

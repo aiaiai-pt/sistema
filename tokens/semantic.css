@@ -230,11 +230,11 @@
    dark wash for free. Per-theme bespoke dark = a `[data-theme="x"]`
    block in the theme file, not here.
 
-   Selector is `:root[data-scheme="dark"]` (0,1,1): it TIES tenant theme
-   blocks (`:root[data-theme="x"]`, runtime-injected in <head>) and wins
-   on order — DS styles load after the injected theme block. Consumers
-   resolving an "auto" preference must set the RESOLVED value on <html>
-   (a pre-paint `prefers-color-scheme` read), never "auto" itself. */
+   Selector is `:root[data-scheme="dark"]` (0,2,0 — pseudo-class + attribute):
+   it TIES runtime-injected tenant theme blocks (`:root[data-theme="x"]`,
+   also 0,2,0) and wins on order — DS styles load after the injected theme
+   block. Consumers resolving an "auto" preference must set the RESOLVED value
+   on <html> (a pre-paint `prefers-color-scheme` read), never "auto" itself. */
 
 :root[data-scheme="dark"] {
   color-scheme: dark;
