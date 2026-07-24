@@ -33,8 +33,12 @@ jobs:
       # (feat/55→56→57) and integrates to main via #84. This step is DORMANT
       # until then: the guard skips cleanly when packages/widget-system is
       # absent, and activates automatically once #84 lands the package.
-      # Verify the exact test invocation against #84's package.json on
-      # integration (this assumes it registers as an npm workspace).
+      #
+      # Invocation verified against origin/feat/57-registry-dispatch-extraction
+      # (aecc89c): packages/widget-system is registered as an npm workspace
+      # (@aiaiai-pt/widget-system) with `test: vitest run`. The root suite's
+      # include (tests/**/*.test.ts) does NOT reach packages/widget-system/tests
+      # — root run = 355, package run = 21 — so this separate step is required.
       - name: Run widget-system suite (dormant until #84)
         run: |
           if [ -f packages/widget-system/package.json ]; then
