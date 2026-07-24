@@ -60,6 +60,7 @@ export const navigation: NavSection[] = [
     items: [
       { label: "Principles", href: "/system/principles" },
       { label: "Theming", href: "/system/theming" },
+      { label: "UBP Instrument Specimen", href: "/system/ubp-specimen" },
     ],
   },
 ];

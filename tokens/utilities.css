@@ -1056,6 +1056,15 @@
   letter-spacing: var(--type-caption-tracking);
 }
 
+.type-overline {
+  font-family: var(--type-overline-font);
+  font-size: var(--type-overline-size);
+  font-weight: var(--type-overline-weight);
+  line-height: var(--type-overline-leading);
+  letter-spacing: var(--type-overline-tracking);
+  text-transform: uppercase;
+}
+
 /* ═══════════════════════════════════════════════
    TYPOGRAPHY UTILITIES
    ═══════════════════════════════════════════════ */
