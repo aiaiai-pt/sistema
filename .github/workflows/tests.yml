@@ -24,7 +24,22 @@ jobs:
       # (action-form-renderer-widgets, action-form-renderer-widget-dispatch)
       # and the jsdom EChart render smoke (renderer-chart-components), which
       # is the render-level check that catches echarts dependency-major drift
-      # (see #81). All suites live under tests/**/*.test.ts today; when the
-      # widget-system package is extracted (#49) add its suite as a step here.
-      - name: Run tests
+      # (see #81). This is the enforceable check on main today.
+      - name: Run root tests
         run: npm test
+
+      # Widget-system package suite. The package is NOT on main yet — the
+      # widget-system stack (S0.2–S1.2) lives on stacked feature branches
+      # (feat/55→56→57) and integrates to main via #84. This step is DORMANT
+      # until then: the guard skips cleanly when packages/widget-system is
+      # absent, and activates automatically once #84 lands the package.
+      # Verify the exact test invocation against #84's package.json on
+      # integration (this assumes it registers as an npm workspace).
+      - name: Run widget-system suite (dormant until #84)
+        run: |
+          if [ -f packages/widget-system/package.json ]; then
+            echo "widget-system package present — running its suite"
+            npm test --workspace=packages/widget-system --if-present
+          else
+            echo "widget-system package absent on this ref — step dormant until #84 integrates the stack"
+          fi
