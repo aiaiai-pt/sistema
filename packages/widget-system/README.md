@@ -58,6 +58,72 @@ structural guard test (`tests/core/structural-guard.test.ts`). If you add a
 new file under `src/core/`, the test will fail if it contains a forbidden
 runtime import.
 
+## Svelte rendering (`/svelte`)
+
+`WidgetRenderer` is the Svelte integration (S1.3). It receives its registry,
+match context, and observable state **explicitly as props** — there is no
+module-global registry or host state, so two renderers (two hosts, two SSR
+requests, two tests) never observe each other.
+
+```svelte
+<script lang="ts">
+  import { createRegistry } from '@aiaiai-pt/widget-system/core';
+  import { registerBaseWidgets } from '@aiaiai-pt/widget-system/widgets';
+  import { WidgetRenderer, type WidgetState } from '@aiaiai-pt/widget-system/svelte';
+
+  const registry = createRegistry();
+  registerBaseWidgets(registry);
+
+  // The host resolves its own transport/policy and reports the OUTCOME as a
+  // WidgetState. The widget-system never fetches, authorises, or times anything.
+  let state: WidgetState = { status: 'ready', request: { data, props, locale } };
+</script>
+
+<WidgetRenderer
+  {registry}
+  context={{ kind: 'chart' }}
+  {state}
+  importance="structural"
+  messages={{ loading: t('loading'), empty: t('empty'), error: t('error') }}
+/>
+```
+
+### Observable states
+
+`WidgetState` is a discriminated union of every state a slot can report:
+`loading`, `ready`, `stale`, `empty`, `error`, `unauthorized`, `timeout`,
+`unsupported`, `overflow`. `ready`/`stale` carry the `WidgetRenderRequest`; the
+rest are terminal status states.
+
+The renderer's decision is **fail-closed** (pure `resolveWidgetState`, unit-
+testable without a DOM):
+
+- `ready`/`stale` + a matched widget → render the widget (`stale` is flagged).
+- `ready`/`stale` with **no** matching registration → corrected to `unsupported`
+  (the registry, not the host, is the authority on whether a widget exists).
+- `loading` is always shown (transient busy affordance).
+- every terminal status is **visible on a `structural` slot** (it must not
+  silently vanish) and **soft-empty on an `optional` slot** (it collapses to
+  nothing) — the same posture as `decideRender`.
+
+### Error isolation
+
+An optional widget that throws at runtime is caught by a Svelte error boundary:
+a `structural` slot surfaces a visible error, an `optional` slot fails soft to
+nothing, and **the failure never propagates to the rest of the surface**.
+
+### SSR
+
+`WidgetRenderer` renders deterministically on the server and touches no
+browser-only globals; the only client-only work lives inside the mounted
+widgets' own effects (e.g. `NativeChartWidget` lazy-loads echarts in an effect).
+
+### String-free (D9)
+
+The package ships no translatable copy. Every user-visible label is caller-
+supplied via `messages`; a status with no supplied message still carries its
+ARIA role and `data-widget-state` token for assistive tech and tests.
+
 ## TH-08: key provenance
 
 The `type` field in `WidgetMatchContext` is **untrusted** (operator-authored).

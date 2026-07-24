@@ -5,7 +5,12 @@
  * Zero Atelier imports. Zero BFF/tenant/auth/ontology vocabulary.
  *
  * S1.2 (#57): full implementation of registry, dispatch, and render decisions.
+ * S1.3 (#58): observable render states re-exported from ./states.ts.
  */
+
+// Observable render-state model + the fail-closed state decision (S1.3 #58).
+// ./states.ts is pure — it imports only the WidgetRenderRequest TYPE from here.
+export * from "./states.ts";
 
 // ---------------------------------------------------------------------------
 // WidgetMatchContext — the selection input (what the registry dispatches on)
