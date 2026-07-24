@@ -2,7 +2,7 @@
 	import '../app.css';
 	import { page } from '$app/stores';
 	import { navigation } from '$lib/nav';
-	import { getTheme, getThemes, getThemeLabel, setTheme, initTheme } from '$lib/theme.svelte';
+	import { getTheme, getThemes, getThemeLabel, setTheme, initTheme, getScheme, setScheme, isSchemeCapable } from '$lib/theme.svelte';
 	import PageContainer from '$ui/PageContainer.svelte';
 	import { onMount } from 'svelte';
 
@@ -70,6 +70,27 @@
 					</button>
 				{/each}
 			</div>
+			{#if isSchemeCapable(getTheme())}
+				<div class="scheme-toggle" style="margin-top: var(--space-xs);">
+					<span class="type-caption" style="text-transform: uppercase; color: var(--color-text-muted);">Scheme</span>
+					<div class="theme-buttons" style="margin-top: var(--space-2xs);">
+						<button
+							class="theme-button"
+							class:active={getScheme() === 'light'}
+							onclick={() => setScheme('light')}
+						>
+							<span class="type-caption">Light</span>
+						</button>
+						<button
+							class="theme-button"
+							class:active={getScheme() === 'dark'}
+							onclick={() => setScheme('dark')}
+						>
+							<span class="type-caption">Dark</span>
+						</button>
+					</div>
+				</div>
+			{/if}
 		</div>
 
 		<!-- Navigation -->

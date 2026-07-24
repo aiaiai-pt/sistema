@@ -3,6 +3,10 @@
 @import "@fontsource/instrument-sans/500.css";
 @import "@fontsource/instrument-sans/600.css";
 @import "@fontsource/jetbrains-mono/400.css";
+/* Inter Variable — self-hosted for the UBP theme demo.
+   Consumer pattern: declare @font-face (or import from @fontsource-variable/inter)
+   before loading tokens/themes/ubp.css. No runtime CDN dependency. */
+@import "@fontsource-variable/inter";
 
 /* Design system tokens (source of truth) */
 @import "../../tokens/base.css";
@@ -11,6 +15,7 @@
 @import "../../tokens/themes/aiaiai.css";
 @import "../../tokens/themes/branded-example.css";
 @import "../../tokens/themes/bespoke-example.css";
+@import "../../tokens/themes/ubp.css";
 
 /* ─── Minimal reset ─── */
 *,
