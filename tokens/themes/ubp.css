@@ -107,29 +107,35 @@
   --elevation-overlay: 0 4px 16px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
 
   /* ═══════════════════════════════════════════════════════════════
-     MOTION — Slightly crisper feedback for instrument context
+     MOTION — unchanged from DS defaults.
+     Product choreography (map transitions, panel morphs) belongs in
+     the host's ws.css, not the theme.
      ═══════════════════════════════════════════════════════════════ */
-  --duration-instant: 80ms;
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
-  --duration-slow: 400ms;
 
   /* ═══════════════════════════════════════════════════════════════
-     COMPONENTS — Adjusted for data-dense layout
+     COMPONENTS — base (mobile-first)
      ═══════════════════════════════════════════════════════════════ */
   --button-font: var(--font-sans);
-  /* Buttons: compact for toolbar/sidebar density */
-  --button-sm-height: 26px;
-  --button-md-height: 32px;
-  --button-lg-height: 40px;
 
   /* Labels: Inter with tighter tracking (professional, not casual) */
   --type-label-font: var(--font-sans);
   --type-label-tracking: var(--raw-tracking-tight);
 
-  /* Total color overrides: 24. Typography: 2. Motion: 4. Component: 4.
-     Grand total: ~34 tokens. Tier-2 range (40–80) not fully exhausted;
-     spacing/grid/a11y unchanged as required. */
+  /* Total color overrides: 24. Typography: 2. Component: 2.
+     Grand total: ~28 tokens. Spacing/grid/motion/a11y unchanged. */
+}
+
+/* Desktop density: compact button heights for toolbar/sidebar layouts.
+   Scoped to ≥1024px so mobile targets stay at the DS default (44px for
+   --button-lg-height), satisfying the Tier-2 a11y checklist minimum.
+   Analogous to how other bespoke themes adjust density only where a
+   pointer device makes smaller targets safe (WCAG 2.5.5 advisory). */
+@media (min-width: 1024px) {
+  [data-theme="ubp"] {
+    --button-sm-height: 26px;
+    --button-md-height: 32px;
+    --button-lg-height: 40px;
+  }
 }
 
 /*
