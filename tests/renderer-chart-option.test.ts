@@ -13,6 +13,7 @@ const TOKENS = {
   textPrimary: "#111",
   textSecondary: "#222",
   border: "#333",
+  surface: "#444",
 };
 
 const opts = (extra: Record<string, unknown> = {}) =>
@@ -138,13 +139,28 @@ describe("buildChartOption", () => {
     expect(o.legend.data).toEqual(["Open", "Resolved"]);
   });
 
+  it("themes the tooltip from tokens instead of the white default (#89)", () => {
+    const o = buildChartOption(bars, opts()) as any;
+    expect(o.tooltip.backgroundColor).toBe(TOKENS.surface);
+    expect(o.tooltip.borderColor).toBe(TOKENS.border);
+    expect(o.tooltip.textStyle.color).toBe(TOKENS.textPrimary);
+    const pie = buildChartOption(
+      { category: ["a"], series: [{ name: "s", type: "pie", data: [1] }] },
+      opts(),
+    ) as any;
+    expect(pie.tooltip.backgroundColor).toBe(TOKENS.surface);
+  });
+
   it("pins the legend to the top strip the grid reserves (#89)", () => {
     // echarts 6 lays an unpositioned legend over the bottom category labels.
     const o = buildChartOption(bars, opts({ legend: true })) as any;
     expect(o.legend.top).toBe(0);
     expect(o.grid.top).toBeGreaterThanOrEqual(24);
     const pie = buildChartOption(
-      { category: ["a", "b"], series: [{ name: "s", type: "pie", data: [1, 2] }] },
+      {
+        category: ["a", "b"],
+        series: [{ name: "s", type: "pie", data: [1, 2] }],
+      },
       opts({ legend: true }),
     ) as any;
     expect(pie.legend.top).toBe(0);
