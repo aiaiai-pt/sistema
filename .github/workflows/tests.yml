@@ -1,0 +1,49 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: vitest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Root vitest suite. It includes the widget-system contract tests
+      # (action-form-renderer-widgets, action-form-renderer-widget-dispatch)
+      # and the jsdom EChart render smoke (renderer-chart-components), which
+      # is the render-level check that catches echarts dependency-major drift
+      # (see #81). This is the enforceable check on main today.
+      - name: Run root tests
+        run: npm test
+
+      # Widget-system package suite. The package is NOT on main yet — the
+      # widget-system stack (S0.2–S1.2) lives on stacked feature branches
+      # (feat/55→56→57) and integrates to main via #84. This step is DORMANT
+      # until then: the guard skips cleanly when packages/widget-system is
+      # absent, and activates automatically once #84 lands the package.
+      #
+      # Invocation verified against origin/feat/57-registry-dispatch-extraction
+      # (aecc89c): packages/widget-system is registered as an npm workspace
+      # (@aiaiai-pt/widget-system) with `test: vitest run`. The root suite's
+      # include (tests/**/*.test.ts) does NOT reach packages/widget-system/tests
+      # — root run = 355, package run = 21 — so this separate step is required.
+      - name: Run widget-system suite (dormant until #84)
+        run: |
+          if [ -f packages/widget-system/package.json ]; then
+            echo "widget-system package present — running its suite"
+            npm test --workspace=packages/widget-system --if-present
+          else
+            echo "widget-system package absent on this ref — step dormant until #84 integrates the stack"
+          fi
