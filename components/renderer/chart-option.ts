@@ -83,7 +83,7 @@ function buildPieOption(
         `${p.name}: ${fmt(p.value)} (${p.percent}%)`,
     },
     ...(opts.legend
-      ? { legend: { show: true, textStyle: { color: tokens.textPrimary } } }
+      ? { legend: { show: true, top: 0, textStyle: { color: tokens.textPrimary } } }
       : {}),
     color: palette,
     series: [
@@ -227,6 +227,9 @@ function buildCartesianOption(
       ? {
           legend: {
             show: true,
+            // echarts 6 lays the unpositioned legend over the bottom category
+            // labels; pin it to the top strip grid.top already reserves (#89).
+            top: 0,
             data: series.map((s) => s.name),
             textStyle: { color: tokens.textPrimary },
           },

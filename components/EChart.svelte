@@ -142,7 +142,10 @@
     return buildChartOption(chartData, {
       tokens: {
         accent: token("--color-accent", "#2563eb"),
-        textPrimary: token("--color-text-primary", "#1f2937"),
+        // Semantic tokens name the primary text colour `--color-text` (see
+        // tokens/semantic.css); `--color-text-primary` never existed, so this
+        // read silently fell back to #1f2937 — invisible on dark schemes (#89).
+        textPrimary: token("--color-text", token("--color-text-primary", "#1f2937")),
         textSecondary: token("--color-text-secondary", "#6b7280"),
         border: token("--color-border", "#e5e7eb"),
       },

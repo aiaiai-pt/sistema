@@ -137,4 +137,16 @@ describe("buildChartOption", () => {
     expect(o.legend.show).toBe(true);
     expect(o.legend.data).toEqual(["Open", "Resolved"]);
   });
+
+  it("pins the legend to the top strip the grid reserves (#89)", () => {
+    // echarts 6 lays an unpositioned legend over the bottom category labels.
+    const o = buildChartOption(bars, opts({ legend: true })) as any;
+    expect(o.legend.top).toBe(0);
+    expect(o.grid.top).toBeGreaterThanOrEqual(24);
+    const pie = buildChartOption(
+      { category: ["a", "b"], series: [{ name: "s", type: "pie", data: [1, 2] }] },
+      opts({ legend: true }),
+    ) as any;
+    expect(pie.legend.top).toBe(0);
+  });
 });
