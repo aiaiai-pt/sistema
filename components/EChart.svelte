@@ -148,6 +148,7 @@
         textPrimary: token("--color-text", token("--color-text-primary", "#1f2937")),
         textSecondary: token("--color-text-secondary", "#6b7280"),
         border: token("--color-border", "#e5e7eb"),
+        surface: token("--color-surface", "#ffffff"),
       },
       locale,
       legend,

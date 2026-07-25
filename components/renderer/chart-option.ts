@@ -28,6 +28,9 @@ export interface ChartTokens {
   textPrimary: string;
   textSecondary: string;
   border: string;
+  /** Panel surface behind floating chrome (tooltip); themes the default-white
+      ECharts tooltip for dark/high-contrast schemes (#89). */
+  surface: string;
 }
 
 export interface BuildChartOptionOpts {
@@ -42,6 +45,16 @@ export interface BuildChartOptionOpts {
   ySecondary?: boolean;
   /** Pie/donut hole as a fraction of the outer radius (0 = full pie). */
   innerRadius?: number;
+}
+
+/** Token-driven tooltip chrome — ECharts defaults to a white panel that
+ * ignores the scheme entirely (#89). */
+function tooltipChrome(tokens: ChartTokens): Record<string, unknown> {
+  return {
+    backgroundColor: tokens.surface,
+    borderColor: tokens.border,
+    textStyle: { color: tokens.textPrimary },
+  };
 }
 
 /** A localised number formatter (DS-supplied — never operator code). */
@@ -78,6 +91,7 @@ function buildPieOption(
   return {
     animation: false,
     tooltip: {
+      ...tooltipChrome(tokens),
       trigger: "item",
       formatter: (p: { name: string; value: number; percent: number }) =>
         `${p.name}: ${fmt(p.value)} (${p.percent}%)`,
@@ -208,6 +222,7 @@ function buildCartesianOption(
       containLabel: true,
     },
     tooltip: {
+      ...tooltipChrome(tokens),
       trigger: "axis",
       axisPointer: { type: "shadow" },
       formatter: (
