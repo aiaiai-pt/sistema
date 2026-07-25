@@ -186,7 +186,7 @@ export function watchTheme(onchange) {
   const mo = new MutationObserver(() => onchange());
   mo.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ["data-theme", "class"],
+    attributeFilter: ["data-theme", "data-scheme", "data-contrast", "class"],
   });
 
   const mql = window.matchMedia("(prefers-color-scheme: dark)");
