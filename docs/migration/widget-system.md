@@ -24,7 +24,8 @@ window and must not be re-pointed at widget-system).
 | Renderer export | Class | Destination |
 |---|---|---|
 | `renderer/dispatch`: `selectEntry`, `decideRender`, `NOT_APPLICABLE`, `WidgetTester`, `RegistryEntry`, `Match`, `RenderDecision` | **GENERIC** | `@aiaiai-pt/widget-system/core` |
-| `renderer/registry`: `registerWidget`, `resolveWidget`, `byKind`, `byTypeOnKind`, `WidgetComponent` | **GENERIC** (registry machinery) | `@aiaiai-pt/widget-system/core` + `/widgets` |
+| `renderer/registry`: `registerWidget`, `resolveWidget`, `byKind`, `byTypeOnKind` | **GENERIC** (registry machinery) | `@aiaiai-pt/widget-system/core` + `/widgets` |
+| `renderer/registry`: `WidgetComponent` (`= Component<WidgetProps>`) | **ATELIER-COUPLED** | Atelier host. The registry *machinery* is generic, but this type alias is not: `WidgetProps` carries Atelier vocabulary (`schema`, `actionDef`, `app`, …) and is structurally incompatible with widget-system's `WidgetComponent = Component<WidgetRenderRequest>`. A migrated host uses the widget-system type for generic widgets and keeps `Component<WidgetProps>` only for Atelier-coupled widgets. |
 | `renderer/types`: `Block`, `Binding`, `OntologySchema`, `WidgetKind`, `WidgetProps`, `BlockImportance` | **ATELIER-COUPLED** | `@atelier/*` (Block/Binding/SurfaceTemplate semantics) — stays in Sistema during the window |
 | `renderer/resolve-data`, `data-provider`, `vote`, `aggregate`, `display`, `grid`, `chart-option`, `chart-spec` | **ATELIER-COUPLED** (data pipeline) | `@atelier/*` — not widget-system |
 | `renderer/StatGridWidget`, `ResultsChartWidget`, `EChartWidget`, `MetabaseEmbedWidget` (`.svelte`) | **ATELIER-COUPLED** widgets | Atelier host. `MetabaseEmbedWidget` stays until the BFF-resolved trusted-embed seam exists (BD-META-01, Atelier-owned). |
