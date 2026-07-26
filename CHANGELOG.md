@@ -11,6 +11,15 @@ feat → MINOR, breaking → MAJOR.
   `@aiaiai-pt/widget-system` (`^0.1.0`). The renderer's generic dispatch is
   delegated to it; see below.
 
+> **Publish order (blocking).** `@aiaiai-pt/design-system@0.49.0` must be
+> published **only after** `@aiaiai-pt/widget-system` ships the widened optional
+> peer on design-system (`^0.47.0` → `>=0.47.0 <1`, aiaiai-pt/sistema#94). The
+> old range is 0.47.x-only, so a consumer installing this release alongside the
+> peer-fixed widget-system otherwise hits an unsatisfiable optional peer (strict
+> npm ERESOLVE; pnpm warns). The peer fix ships in **widget-system 0.2.0**
+> (prepared under #61); these two releases are a **paired publish** — widget-system
+> 0.2.0 first, then design-system 0.49.0.
+
 ### Changed (compatibility — no behavioural change)
 - **`renderer/dispatch.ts` now delegates to `@aiaiai-pt/widget-system/core`.**
   The tester/priority ranking loop (`selectEntry`) and the fail-closed
