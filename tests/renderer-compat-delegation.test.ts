@@ -27,6 +27,11 @@ const DISPATCH_SRC = readFileSync(
   "utf-8",
 );
 
+const REGISTRY_SRC = readFileSync(
+  resolve(__dirname, "../components/renderer/registry.ts"),
+  "utf-8",
+);
+
 describe("renderer dispatch is a compat adapter over widget-system/core (#60)", () => {
   it("delegates to @aiaiai-pt/widget-system/core", () => {
     expect(DISPATCH_SRC).toMatch(
@@ -40,5 +45,21 @@ describe("renderer dispatch is a compat adapter over widget-system/core (#60)", 
     // declares `bestScore` or the `let best` accumulator.
     expect(DISPATCH_SRC).not.toMatch(/bestScore/);
     expect(DISPATCH_SRC).not.toMatch(/let\s+best\b/);
+  });
+});
+
+describe("renderer base registry holds no ranking loop, delegates dispatch (#60)", () => {
+  it("resolves through ./dispatch (selectEntry), not a local loop", () => {
+    // The base registry is Atelier-coupled compat, but it must contribute only
+    // the entry list — resolution goes through the delegated dispatcher.
+    expect(REGISTRY_SRC).toMatch(
+      /import\s*\{[^}]*\bselectEntry\b[^}]*\}\s*from\s+['"]\.\/dispatch['"]/s,
+    );
+    expect(REGISTRY_SRC).toMatch(/selectEntry\(\s*_entries/);
+  });
+
+  it("contains no ranking loop of its own", () => {
+    expect(REGISTRY_SRC).not.toMatch(/bestScore/);
+    expect(REGISTRY_SRC).not.toMatch(/let\s+best\b/);
   });
 });
