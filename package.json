@@ -75,7 +75,7 @@
     "tokens"
   ],
   "dependencies": {
-    "@aiaiai-pt/widget-system": "^0.1.0"
+    "@aiaiai-pt/widget-system": ">=0.1.0 <1"
   },
   "peerDependencies": {
     "@codemirror/commands": "^6.10.3",
