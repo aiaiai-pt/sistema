@@ -248,6 +248,21 @@
   --badge-neutral-bg: var(--color-surface-tertiary);
   --badge-neutral-text: var(--color-text-secondary);
 
+  /* Evidence Seal — DS-owned vocabulary: measured | inferred | projected
+     H1 Slice 2 — westeuropeco/atelier-urban-workspace#57.
+     Defaults resolve via semantic color tokens so they work for every theme.
+     UBP dark scheme overrides below in tokens/themes/ubp.css to maintain
+     WCAG AA on the cool-steel dark surface (#0b182a). */
+  --seal-measured-text: var(--color-success);
+  --seal-measured-bg: var(--color-success-subtle);
+  --seal-inferred-text: var(--color-info);
+  --seal-inferred-bg: var(--color-info-subtle);
+  --seal-projected-text: var(--color-warning);
+  --seal-projected-bg: var(--color-warning-subtle);
+  /* stale modifier: muted regardless of base evidence state */
+  --seal-stale-text: var(--color-text-muted);
+  --seal-stale-bg: var(--color-surface-secondary);
+
   /* Tag */
   --tag-font: var(--type-label-font);
   --tag-size: var(--type-label-size);
