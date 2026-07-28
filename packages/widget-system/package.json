@@ -1,6 +1,6 @@
 {
   "name": "@aiaiai-pt/widget-system",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Generic widget registry, dispatch, display transforms, and transport-neutral widgets for aiaiai products",
   "license": "MIT",
   "type": "module",
@@ -26,12 +26,16 @@
       "types": "./src/widgets/index.ts",
       "svelte": "./src/widgets/index.ts",
       "default": "./src/widgets/index.ts"
+    },
+    "./fixtures": {
+      "types": "./src/fixtures/index.ts",
+      "default": "./src/fixtures/index.ts"
     }
   },
   "peerDependencies": {
     "svelte": "^5.0.0",
     "echarts": "^6.1.0",
-    "@aiaiai-pt/design-system": "^0.47.0"
+    "@aiaiai-pt/design-system": ">=0.47.0 <1"
   },
   "peerDependenciesMeta": {
     "svelte": {
