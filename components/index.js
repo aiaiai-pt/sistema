@@ -15,6 +15,12 @@ export { default as Status } from "./Status.svelte";
 export { default as Skeleton } from "./Skeleton.svelte";
 export { default as KeyValue } from "./KeyValue.svelte";
 
+// Evidence seal (H1 Slice 2 — westeuropeco/atelier-urban-workspace#57)
+// DS-owned evidence vocabulary: measured | inferred | projected
+export { default as SealChip } from "./SealChip.svelte";
+export { default as KpiRegister } from "./KpiRegister.svelte";
+export { default as CaminhoStateChip } from "./CaminhoStateChip.svelte";
+
 // Form controls
 export { default as Button } from "./Button.svelte";
 export { default as Input } from "./Input.svelte";

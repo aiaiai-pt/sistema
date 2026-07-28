@@ -138,6 +138,23 @@
   /* Total color overrides: 22. Elevation: 2. Focus alias: 1.
      Grand total: ~25 tokens. Typography/motion/spacing/grid unchanged.
      --color-info and --color-info-subtle NOT overridden (inherit DS teal-blue). */
+
+  /* ═══════════════════════════════════════════════════════════════
+     EVIDENCE SEAL — light-scheme text overrides (H1 Slice 2, uw#57)
+     --color-success (#16a34a) and --color-warning (#ca8a04) are
+     "large UI only" on the steel surface (3.15:1 and 2.83:1 resp.).
+     Seal badge text tokens use darker variants to clear WCAG AA (≥4.5:1)
+     on their respective subtle backgrounds.
+
+     Contrast on subtle backgrounds (AA = 4.5:1 for small badge text):
+       measured  #256f20 (green-700) on #f0fdf4 (success-subtle): ~5.46:1 [AA]
+       projected #9e6308 (amber-700) on #fffbeb (warning-subtle): ~4.79:1 [AA]
+     --seal-inferred-text inherits --color-info (#2e63a3): 5.66:1 on
+     info-subtle (#f0f5fa) — no override needed.
+     --seal-stale-text inherits --color-text-muted (≥3.0:1 non-essential).
+     ═══════════════════════════════════════════════════════════════ */
+  --seal-measured-text: #256f20; /* green-700 → 5.46:1 on success-subtle [AA] */
+  --seal-projected-text: #9e6308; /* amber-700 → 4.79:1 on warning-subtle [AA] */
 }
 
 /* Desktop density: compact button heights for toolbar/sidebar layouts.
@@ -221,4 +238,28 @@
 
   /* Focus ring: accent blue, visible on all dark surfaces */
   --focus-ring-color: var(--color-accent);
+}
+
+[data-theme="ubp"][data-scheme="dark"] {
+  /* ═══════════════════════════════════════════════════════════════
+     EVIDENCE SEAL — dark-scheme overrides (H1 Slice 2, uw#57)
+     Text tokens lifted to 400-series for WCAG AA/AAA on steel-900
+     (#0b182a). Background tokens use color-mix() and are NOT
+     verified by the automated contrast suite (see ubp-theme-contrast
+     coverage-gap note) — visual QA is the complement.
+
+     Contrast on steel-900 (#0b182a, lum ≈ 0.0082):
+       measured  #4ade80 (green-400)  lum ≈ 0.403 → ~7.76:1 [AAA]
+       inferred  #60a5fa (blue-400)   lum ≈ 0.386 → ~7.49:1 [AAA]
+       projected #fbbf24 (amber-400)  lum ≈ 0.598 → ~11.14:1 [AAA]
+       stale     inherits --seal-stale-text: var(--color-text-muted) = #60758a (3.74:1)
+     ═══════════════════════════════════════════════════════════════ */
+  --seal-measured-text: #4ade80;
+  --seal-measured-bg: color-mix(in srgb, #4ade80 12%, #0b182a);
+  --seal-inferred-text: #60a5fa;
+  --seal-inferred-bg: color-mix(in srgb, #60a5fa 12%, #0b182a);
+  --seal-projected-text: #fbbf24;
+  --seal-projected-bg: color-mix(in srgb, #fbbf24 12%, #0b182a);
+  /* stale: inherits --seal-stale-text (--color-text-muted = #60758a, 3.74:1 non-essential)
+            and --seal-stale-bg (--color-surface-secondary = #1a2a3a) */
 }
