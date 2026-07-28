@@ -1,14 +1,23 @@
 /**
- * DS renderer widget registry — the extensible dispatcher layer (#492).
+ * DS renderer widget registry — the Atelier-coupled BASE registry (#492).
  *
- * Ships a BASE registry with the two clean DS widgets (stat-grid + results-chart)
- * and exposes a `registerWidget` hook so host apps (the portal, the admin) can
- * append their own coupled widgets at startup without modifying this module
- * (open/closed principle, JSONForms model).
+ * @deprecated This is an S2 (#60) COMPATIBILITY surface. It is NOT a generic
+ * widget-system API — do not reclassify it as one (#60 AC5). It is an
+ * Atelier-coupled base registry: a module-global entry list preloaded with the
+ * DS widgets (stat-grid, results-chart, chart, metabase-embed) whose testers
+ * name `Binding`/`Block`/`WidgetKind` from ./types.
  *
- * `dispatch.ts` (the tester/priority core) is the single dispatcher both the DS
- * base registry and host-extended registries share; the registry is generic over
- * the payload so `selectEntry` stays component-free and unit-testable.
+ * Migration destination: the generic isolated-registry machinery lives in
+ * `@aiaiai-pt/widget-system/core` (`createRegistry()` — an isolated, override-
+ * aware factory, not a module-global singleton) and its base-widget preload in
+ * `@aiaiai-pt/widget-system/widgets` (`registerBaseWidgets`). The Atelier host
+ * owns which widgets it preloads. This module is scheduled for removal in the
+ * next MAJOR of `@aiaiai-pt/design-system` (S3). See
+ * `docs/migration/widget-system.md`.
+ *
+ * NO DUPLICATE DISPATCH (#60 AC3): this module holds ZERO ranking logic. It
+ * only stores entries and delegates resolution to `./dispatch.selectEntry`,
+ * which itself delegates the ranking loop to `@aiaiai-pt/widget-system/core`.
  *
  * TH-08 preserved: `resolveWidget` returns the matched entry's known-good `key`
  * literal — the operator's raw block `type`/`binding.kind` is never the key.
@@ -34,6 +43,10 @@ export type WidgetComponent = Component<WidgetProps>;
  * `type` hint ranks it ABOVE the kind-generic widget (score 20 > 10) for the
  * same binding. `type` is UNTRUSTED — it only influences ranking; the resolved
  * key is the entry literal (TH-08).
+ *
+ * @deprecated ATELIER-COUPLED builder (its `kind` is a `WidgetKind` and its
+ * tester names `Binding`). Migrate to `byTypeOnKind` from
+ * `@aiaiai-pt/widget-system/core`, whose tester reads a ctx `WidgetMatchContext`.
  */
 export function byTypeOnKind(
   key: string,
@@ -48,7 +61,12 @@ export function byTypeOnKind(
   };
 }
 
-/** A widget whose tester is the generic "binding.kind === K" check (score 10). */
+/**
+ * A widget whose tester is the generic "binding.kind === K" check (score 10).
+ *
+ * @deprecated ATELIER-COUPLED builder. Migrate to `byKind` from
+ * `@aiaiai-pt/widget-system/core` (ctx-shaped tester).
+ */
 export function byKind(
   key: string,
   kind: WidgetKind,
@@ -92,6 +110,11 @@ const _entries: RegistryEntry<WidgetComponent>[] = [
  *
  * @param entry - A registry entry built with `byKind`, `byTypeOnKind`, or a
  *   hand-crafted `{ key, payload, tester }` for a custom tester.
+ *
+ * @deprecated ATELIER-COUPLED module-global registration. Migrate to an
+ * isolated `createRegistry()` from `@aiaiai-pt/widget-system/core` plus
+ * `registerBaseWidgets` from `@aiaiai-pt/widget-system/widgets`, and call
+ * `registry.register(...)` on the host-owned instance.
  */
 export function registerWidget(entry: RegistryEntry<WidgetComponent>): void {
   _entries.push(entry);
@@ -102,6 +125,12 @@ export function registerWidget(entry: RegistryEntry<WidgetComponent>): void {
  * the full registry (base DS entries + host-registered). Returns `null` when
  * no widget applies — the caller renders per blast radius (`decideRender`),
  * never interpolating the block's raw `type`/`kind`.
+ *
+ * Resolution delegates to `./dispatch.selectEntry` (→ widget-system/core); this
+ * module contributes only the entry list, never the ranking loop.
+ *
+ * @deprecated Migrate to `registry.resolve(ctx)` on an isolated
+ * `createRegistry()` from `@aiaiai-pt/widget-system/core`.
  */
 export function resolveWidget(
   block: Block,
