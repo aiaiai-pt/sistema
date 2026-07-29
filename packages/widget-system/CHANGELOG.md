@@ -3,6 +3,21 @@
 Separately versioned from `@aiaiai-pt/design-system`. SemVer: fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.2.1] — 2026-07-29
+
+### Added
+- **`assignSeal(value, now)` in `/core`** — the ONLY evidence-seal source: pure,
+  transport-neutral assignment of `measured|inferred|projected` (+ `stale`) from a
+  value's freshness/provenance metadata, per the PRD five-answers table. The
+  `probability` axis is typed `never` (no H1 data source; non-breaking future
+  extension). 17 unit tests over the state boundaries.
+
+### Notes
+- Pairs with `@aiaiai-pt/design-system@0.50.0` (the seal chips consume this).
+- Known type-level papercuts for strict consumers remain tracked in #96
+  (`.ts`-extension imports; `WidgetLayerContract.registerBaseWidgets` variance) —
+  scheduled for the next PATCH, workarounds documented in westeuropeco/atelier#973.
+
 ## [0.2.0] — 2026-07-26
 
 ### Added
