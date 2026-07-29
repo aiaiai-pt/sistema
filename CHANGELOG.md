@@ -4,6 +4,25 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.50.0] — 2026-07-29
+
+### Added
+- **Evidence seal primitives (H1 Slice 2, westeuropeco/atelier-urban-workspace#57).**
+  `SealChip` (value + evidence state as one phrase; sr-only text adjacent to the
+  value so the seal survives quotation), `KpiRegister` (StatCard-variant register;
+  measured out-ranks projected; unconditional throw when a projected value arrives
+  without a seal — the boundary guard for the seal rule), and `CaminhoStateChip`
+  (the four worded verification states). Rendered tests are red-first for the
+  sr-text, the boundary throw, and the worded states.
+- **Evidence semantic tokens.** `--seal-{measured,inferred,projected,stale}-{text,bg}`
+  in `tokens/components.css`, with UBP-theme overrides meeting WCAG AA in the light
+  scheme and AAA in dark (composited-alpha contrast tests included). The DS owns the
+  `measured|inferred|projected` vocabulary per the operator's Fork B ruling.
+
+### Notes
+- Pairs with `@aiaiai-pt/widget-system@0.2.1` (`assignSeal` — the only seal source).
+- No breaking changes; MINOR per feat.
+
 ## [0.49.0] — 2026-07-26
 
 ### Added
