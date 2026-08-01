@@ -5,51 +5,60 @@
   paths-strip columns, record lines, citations, saved projections, briefs.
   No surface renders a seal any other way.
 
-  TWO ORTHOGONAL AXES, never merged into one phrase:
-    evidence     measured | inferred | projected   (always present)
-    probability  probable | uncertain              (only when a source fills it)
-  Evidence alone is valid; probability alone is not.
+  THIS COMPONENT KNOWS NO SEAL WORDS. The design system owns the LAWS and a
+  presentation tone scale; it does not own the vocabulary. Terms arrive as
+  declared data — `{ value, label, tone }` resolved from ontology vocabulary
+  rows at read time — so widening an axis or re-wording a term is a declaration
+  change with zero code change and no package release.
 
-  The seal is a property of the datum, not chart styling — so it is adjacent
-  DOM text: sweepable, copy-paste-able, and surviving quotation. Value and seal
-  read to a screen reader as ONE stitched phrase:
+  The laws it does enforce, all of which hold under every enumeration in the
+  corpus:
+    · two orthogonal axes, rendered as two adjacent chips, never one phrase
+    · never label-alone — a seal never appears without its evidence chip
+    · evidence alone is valid; probability alone is not
+    · the seal rides the DATUM, not the styling — it is adjacent DOM text, so
+      it survives re-render, copy, quotation and screen readers
+    · a «why» is always one tap away, keyboard-reachable
+
+  Value and seal read to a screen reader as ONE stitched phrase:
   «{value} — {evidence}[, {probability}][, stale]».
 
-  A «why» is always one click away: the chip becomes a real button with
-  aria-expanded that opens the provenance one-liner.
+  `stale` is a separate orthogonal state, never a member of either vocabulary.
 
   H1 Slice 2 — westeuropeco/atelier-urban-workspace#57.
-  Build contract: workspace-design/03-evidence.md §1.1, §2.
 
-  @example Measured reading
-  <SealChip value="+14 cm/h" evidence="measured" />
+  @example A reading, using whatever terms the deployment declares
+  <SealChip value="+14 cm/h" evidence={{ value: 'measured', label: 'medido', tone: 'positive' }} />
 
-  @example Projected, with the why one click away
+  @example Both axes, horizon passed, why one tap away
   <SealChip
-    value="−18 cm"
-    evidence="projected"
-    why="derived from the 14:00–16:00 tide model run"
+    value="2,1 m"
+    evidence={{ value: 'inferred', label: 'inferido', tone: 'info' }}
+    probability={{ value: 'uncertain', label: 'incerto' }}
+    stale
+    why="the 16:00 window has already passed"
   />
-
-  @example Both axes populated, horizon passed
-  <SealChip value="2,1 m" evidence="inferred" probability="uncertain" stale />
 -->
 <script>
   /**
-   * @typedef {'measured' | 'inferred' | 'projected'} EvidenceState
-   * @typedef {'probable' | 'uncertain'} Probability
+   * @typedef {'positive' | 'info' | 'caution' | 'neutral'} SealTone
+   * @typedef {{ value: string, label: string, tone?: SealTone }} SealTerm
    */
 
   let {
     /** @type {string} — the formatted display value */
     value,
-    /** @type {EvidenceState} — evidence state (from assignSeal) */
+    /**
+     * @type {SealTerm}
+     * The declared evidence term. Required: a seal never appears without its
+     * evidence chip. Resolve it with `resolveSeal` from
+     * `@aiaiai-pt/widget-system/core` — never construct one from a literal.
+     */
     evidence,
     /**
-     * @type {Probability | undefined}
-     * The second axis. Orthogonal to evidence and rendered as its own adjacent
-     * chip — the two never merge into one phrase. No H1 data source populates
-     * it; the slot exists so that a source can, without an API change.
+     * @type {SealTerm | undefined}
+     * The declared probability term. Orthogonal to evidence and rendered as its
+     * own adjacent chip. Optional because evidence alone is a valid seal.
      */
     probability = undefined,
     /** @type {boolean} — true when the validity window has passed */
@@ -57,68 +66,76 @@
     /**
      * @type {string | undefined}
      * The provenance one-liner behind the seal. When supplied, the chip is a
-     * real button that discloses this text — the «why», one click away.
+     * real button that discloses it — the «why», one tap away.
      */
     why = undefined,
+    /**
+     * @type {string}
+     * Accessible name for the why trigger. Localized by the caller, since this
+     * package owns no product copy. `{term}` is replaced by the evidence label.
+     */
+    whyLabel = 'why — {term}',
+    /** @type {string} — accessible name for the disclosure's close affordance */
+    closeLabel = 'Close',
+    /** @type {string} — screen-reader word for the stale state; localized by the caller */
+    staleLabel = 'stale',
     /** @type {string} */
     class: className = '',
     ...rest
   } = $props();
 
-  const EVIDENCE_LABELS = /** @type {Record<EvidenceState, string>} */ ({
-    measured: 'measured',
-    inferred: 'inferred',
-    projected: 'projected',
-  });
-
-  const PROBABILITY_LABELS = /** @type {Record<Probability, string>} */ ({
-    probable: 'probable',
-    uncertain: 'uncertain',
-  });
-
-  /** The closed vocabularies. Nothing outside them may render as a seal. */
-  const EVIDENCE_STATES = Object.keys(EVIDENCE_LABELS);
-  const PROBABILITY_STATES = Object.keys(PROBABILITY_LABELS);
+  const TONES = ['positive', 'info', 'caution', 'neutral'];
 
   /**
-   * BOUNDARY GUARD — "a seal never appears without evidence chips."
+   * BOUNDARY GUARD — "never label-alone; a seal never appears without evidence
+   * chips", and "evidence alone is valid, probability alone is not".
    *
-   * Without this, an absent `evidence` renders an empty badge and an empty
-   * sr-text: a value dressed as a sealed datum that carries no evidence and
-   * announces nothing to a screen reader. An out-of-vocabulary word would
-   * render verbatim as the seal label. Both are silent failures of the law,
-   * so the chip refuses to mount instead — the same policy KpiRegister
-   * applies to an unsealed projection.
+   * Without this, an absent term renders an empty badge and an empty sr-text:
+   * a value dressed as a sealed datum, carrying no evidence and announcing
+   * nothing to a screen reader. That failure is silent, which is exactly why
+   * it is a throw and not a fallback.
+   *
+   * The guard checks SHAPE, never membership — this component has no opinion
+   * about which words are legal, only that a term is present and renderable.
    */
-  const assertSeal = (
-    /** @type {unknown} */ state,
-    /** @type {unknown} */ likelihood,
+  const assertTerm = (
+    /** @type {unknown} */ term,
+    /** @type {string} */ axis,
   ) => {
-    if (typeof state !== 'string' || !EVIDENCE_STATES.includes(state)) {
+    const ok =
+      typeof term === 'object' &&
+      term !== null &&
+      typeof (/** @type {SealTerm} */ (term).label) === 'string' &&
+      /** @type {SealTerm} */ (term).label.trim() !== '';
+    if (!ok) {
       throw new Error(
-        '[SealChip] A sealed value must carry an evidence state — one of ' +
-          `${EVIDENCE_STATES.join(' | ')}. Received ${JSON.stringify(state)}. ` +
-          'A seal never appears without its evidence chip; take the state from assignSeal().',
+        `[SealChip] The ${axis} axis needs a declared term ` +
+          '{ value, label, tone? } with a non-empty label. Received ' +
+          `${JSON.stringify(term)}. Resolve it from the declared vocabulary ` +
+          'with resolveSeal(); this component enumerates no seal words.',
       );
     }
-    if (
-      likelihood !== undefined &&
-      (typeof likelihood !== 'string' || !PROBABILITY_STATES.includes(likelihood))
-    ) {
+    const tone = /** @type {SealTerm} */ (term).tone;
+    if (tone !== undefined && !TONES.includes(tone)) {
       throw new Error(
-        '[SealChip] The probability axis is a closed vocabulary — one of ' +
-          `${PROBABILITY_STATES.join(' | ')}. Received ${JSON.stringify(likelihood)}.`,
+        `[SealChip] Unknown tone ${JSON.stringify(tone)} on the ${axis} axis. ` +
+          `The design system's tone scale is ${TONES.join(' | ')}.`,
       );
     }
+  };
+
+  const assertSeal = (/** @type {unknown} */ ev, /** @type {unknown} */ prob) => {
+    // Evidence first: probability-alone must fail as a MISSING EVIDENCE error,
+    // because that is the law it breaks.
+    assertTerm(ev, 'evidence');
+    if (prob !== undefined) assertTerm(prob, 'probability');
   };
 
   assertSeal(evidence, probability);
   $effect(() => assertSeal(evidence, probability));
 
-  const evidenceLabel = $derived(EVIDENCE_LABELS[evidence] ?? evidence);
-  const probabilityLabel = $derived(
-    probability === undefined ? undefined : PROBABILITY_LABELS[probability],
-  );
+  const evidenceTone = $derived(evidence?.tone ?? 'neutral');
+  const probabilityTone = $derived(probability?.tone ?? 'neutral');
 
   /**
    * The stitched phrase AT reads and a citation carries:
@@ -126,13 +143,15 @@
    */
   const srPhrase = $derived(
     [
-      `${value} — ${evidenceLabel}`,
-      probabilityLabel,
-      stale ? 'stale' : undefined,
+      `${value} — ${evidence.label}`,
+      probability?.label,
+      stale ? staleLabel : undefined,
     ]
       .filter(Boolean)
       .join(', '),
   );
+
+  const whyTriggerLabel = $derived(whyLabel.replace('{term}', evidence.label));
 
   /** Disclosure state lives here, never in a DOM attribute. */
   let open = $state(false);
@@ -155,10 +174,11 @@
 <svelte:document onkeydown={onDocumentKeydown} />
 
 {#snippet chips()}
-  <span class="seal-chip-badge" aria-hidden="true"
-    >{evidenceLabel}{stale ? ' (stale)' : ''}</span
-  >{#if probabilityLabel}<span class="seal-chip-probability" aria-hidden="true"
-      >{probabilityLabel}</span
+  <span class="seal-chip-badge seal-tone-{evidenceTone}" aria-hidden="true"
+    >{evidence.label}{stale ? ` (${staleLabel})` : ''}</span
+  >{#if probability}<span
+      class="seal-chip-probability seal-tone-{probabilityTone}"
+      aria-hidden="true">{probability.label}</span
     >{/if}
 {/snippet}
 
@@ -169,9 +189,8 @@
   «value seal» in that order.
 -->
 <span
-  class="seal-chip seal-chip-{evidence} {stale
-    ? 'seal-chip-stale'
-    : ''} {className}"
+  class="seal-chip {stale ? 'seal-chip-stale' : ''} {className}"
+  data-evidence={evidence.value}
   {...rest}
 >
   <span class="seal-chip-value" aria-hidden="true">{value}</span><!--
@@ -180,7 +199,7 @@
       class="seal-chip-why-trigger"
       aria-expanded={open}
       aria-controls={panelId}
-      aria-label="why — {evidenceLabel}"
+      aria-label={whyTriggerLabel}
       bind:this={trigger}
       onclick={() => (open = !open)}>{@render chips()}</button
     >{:else}{@render chips()}{/if}<!--
@@ -192,7 +211,7 @@
       <button
         type="button"
         class="seal-chip-why-close"
-        aria-label="Close why"
+        aria-label={closeLabel}
         onclick={closeWhy}>×</button
       >
     </span>
@@ -209,28 +228,8 @@
 
   /* Value text carries no override — it reads as its surrounding type. */
 
-  /* Visual evidence badge — seen by sighted users; hidden from AT */
-  .seal-chip-badge {
-    display: inline-flex;
-    align-items: center;
-    font-family: var(--badge-font);
-    font-size: var(--badge-size);
-    letter-spacing: var(--badge-tracking);
-    border-radius: var(--badge-radius);
-    padding: var(--badge-padding-y) var(--badge-padding-x);
-    white-space: nowrap;
-    line-height: 1;
-  }
-
-  /*
-   * Probability chip — the second axis, always its own element beside the
-   * evidence chip so the two never merge into one phrase.
-   *
-   * Deliberately NEUTRAL badge tokens rather than per-word --seal-probable-*
-   * / --seal-uncertain-* semantic tokens: minting those would deepen the
-   * DS-owns-the-vocabulary commitment while Fork B is still the operator's
-   * open call. Neutral tokens keep both outcomes of that fork cheap.
-   */
+  /* Both axes share one chip shape; only the tone differs. */
+  .seal-chip-badge,
   .seal-chip-probability {
     display: inline-flex;
     align-items: center;
@@ -239,30 +238,44 @@
     letter-spacing: var(--badge-tracking);
     border-radius: var(--badge-radius);
     padding: var(--badge-padding-y) var(--badge-padding-x);
-    margin-left: var(--space-2xs);
     white-space: nowrap;
     line-height: 1;
-    background: var(--badge-neutral-bg);
+  }
+
+  /* The second axis is always its own element beside the first, so the two
+     never merge into one phrase. */
+  .seal-chip-probability {
+    margin-left: var(--space-2xs);
+  }
+
+  /*
+   * TONES — the presentation scale the design system owns. Which declared term
+   * wears which tone is data, declared beside the word and never inferred from
+   * it, so these rules carry no vocabulary.
+   */
+  .seal-tone-positive {
+    color: var(--seal-positive-text);
+    background: var(--seal-positive-bg);
+  }
+
+  .seal-tone-info {
+    color: var(--seal-info-text);
+    background: var(--seal-info-bg);
+  }
+
+  .seal-tone-caution {
+    color: var(--seal-caution-text);
+    background: var(--seal-caution-bg);
+  }
+
+  .seal-tone-neutral {
     color: var(--badge-neutral-text);
+    background: var(--badge-neutral-bg);
   }
 
-  /* Evidence-state colours via --seal-* component tokens */
-  .seal-chip-measured .seal-chip-badge {
-    color: var(--seal-measured-text);
-    background: var(--seal-measured-bg);
-  }
-
-  .seal-chip-inferred .seal-chip-badge {
-    color: var(--seal-inferred-text);
-    background: var(--seal-inferred-bg);
-  }
-
-  .seal-chip-projected .seal-chip-badge {
-    color: var(--seal-projected-text);
-    background: var(--seal-projected-bg);
-  }
-
-  /* Stale modifier: muted on all evidence states */
+  /* Stale is an orthogonal state, not a vocabulary member: it mutes whatever
+     tone the evidence term carries. The word carries the meaning; the wash is
+     redundant emphasis. */
   .seal-chip-stale .seal-chip-badge {
     color: var(--seal-stale-text);
     background: var(--seal-stale-bg);
@@ -270,8 +283,7 @@
 
   /*
    * The why trigger is a real button wrapping the chips — the whole seal is
-   * the affordance, so the «why» is one click away from the seal itself.
-   * It carries no chrome of its own; the chips inside are the visible surface.
+   * the affordance, so the «why» is one tap away from the seal itself.
    */
   .seal-chip-why-trigger {
     display: inline-flex;
@@ -285,7 +297,8 @@
     cursor: pointer;
   }
 
-  .seal-chip-why-trigger:focus-visible {
+  .seal-chip-why-trigger:focus-visible,
+  .seal-chip-why-close:focus-visible {
     outline: var(--focus-ring-width) solid var(--focus-ring-color);
     outline-offset: var(--focus-ring-offset);
     border-radius: var(--radius-sm);
@@ -325,16 +338,10 @@
     cursor: pointer;
   }
 
-  .seal-chip-why-close:focus-visible {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
-    border-radius: var(--radius-sm);
-  }
-
   /*
    * sr-only — visually hidden but present in the DOM so the text travels
-   * with the value when content is copied or cited (prd.md §5.1 #5).
-   * clip-path: inset(50%) is the modern replacement for deprecated clip: rect().
+   * with the value when content is copied or cited: a citation carries the
+   * seal of the value it cites.
    */
   .seal-chip-sr-text {
     position: absolute;

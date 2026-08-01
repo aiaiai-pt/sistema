@@ -1,194 +1,243 @@
 /**
- * Unit tests for assignSeal — the ONLY seal source.
+ * Unit tests for the seal mechanism — assignSeal and resolveSeal.
  *
  * H1 Slice 2 — westeuropeco/atelier-urban-workspace#57.
  *
- * Invariants (prd.md §5.1 five-answers table):
- *   1. future window_start → projected
- *   2. model_derived + current/past window → inferred
- *   3. direct reading (¬model_derived) + current/past window → measured
- *   4. expired window_end → stale (independent of evidence state)
- *   5. future window → never stale (window_end is also in the future)
- *   6. projected + expired → projected + stale
- *   7. no window bounds → never stale
- *   8. probability is NOT implemented in H1 — field is absent from return
+ * The point of these tests is that NO SEAL WORD appears in the module under
+ * test. Assignment is structural (what the datum's provenance makes it) and
+ * the words arrive separately, as declared data. The corpus carries three
+ * competing enumerations with no reconciling ruling and one explicitly parked
+ * wording question, so a hardcoded enum here would silently decide both.
+ *
+ * Invariants:
+ *   1. future window_start                    → future_window
+ *   2. model_derived + current/past window    → model_derived
+ *   3. direct reading + current/past window   → direct_reading
+ *   4. expired window_end                     → stale, independent of class
+ *   5. no window bounds                       → never stale
+ *   6. sealRequired ⟺ future window OR model-derived provenance
+ *   7. rank: direct_reading > model_derived > future_window, always
+ *   8. resolveSeal supplies every word and refuses undeclared ones
  */
 
-import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
 import {
+  EVIDENCE_CLASS_RANK,
   assignSeal,
-  type Probability,
-  type Seal,
+  outranks,
+  resolveSeal,
+  type SealVocabulary,
   type ValueProvenance,
 } from "../../src/core/index.ts";
 
 const NOW = new Date("2026-07-28T12:00:00Z");
-
-// ─── helpers ─────────────────────────────────────────────────────────────────
+const FUTURE = "2026-07-29T00:00:00Z";
+const PAST = "2026-07-27T00:00:00Z";
 
 function seal(override: Partial<ValueProvenance> = {}) {
   const base: ValueProvenance = { model_derived: false };
   return assignSeal({ ...base, ...override }, NOW);
 }
 
-// ─── Evidence state ───────────────────────────────────────────────────────────
+// ─── Evidence class — structural, wordless ───────────────────────────────────
 
-describe("assignSeal — evidence state", () => {
-  it("future window_start → projected", () => {
-    const result = seal({ window_start: "2026-07-29T00:00:00Z" });
-    expect(result.evidence).toBe("projected");
+describe("assignSeal — evidence class", () => {
+  it("future window_start → future_window", () => {
+    expect(seal({ window_start: FUTURE }).evidenceClass).toBe("future_window");
   });
 
-  it("window_start exactly equal to now is NOT future → measured (direct)", () => {
-    // boundary: windowStart === now is not strictly greater, so not projected
-    const result = seal({
-      window_start: NOW.toISOString(),
-      model_derived: false,
-    });
-    expect(result.evidence).toBe("measured");
+  it("model-derived about a current window → model_derived", () => {
+    expect(seal({ model_derived: true }).evidenceClass).toBe("model_derived");
   });
 
-  it("future window_start + model_derived → still projected (window wins)", () => {
-    // Future window trumps model_derived — the value refers to a future moment
-    const result = seal({
-      window_start: "2026-07-29T00:00:00Z",
-      model_derived: true,
-    });
-    expect(result.evidence).toBe("projected");
+  it("direct reading of a current window → direct_reading", () => {
+    expect(seal().evidenceClass).toBe("direct_reading");
   });
 
-  it("model_derived + past window → inferred", () => {
-    const result = seal({
-      window_start: "2026-07-27T00:00:00Z",
-      window_end: "2026-07-27T23:59:59Z",
-      model_derived: true,
-    });
-    expect(result.evidence).toBe("inferred");
+  it("a future window outranks model provenance in classification", () => {
+    // Both conditions hold; the future window is the stronger statement.
+    expect(
+      seal({ window_start: FUTURE, model_derived: true }).evidenceClass,
+    ).toBe("future_window");
   });
 
-  it("model_derived + no window bounds → inferred", () => {
-    const result = seal({ model_derived: true });
-    expect(result.evidence).toBe("inferred");
-  });
-
-  it("direct reading (¬model_derived) + no window bounds → measured", () => {
-    const result = seal({ model_derived: false });
-    expect(result.evidence).toBe("measured");
-  });
-
-  it("direct reading + past window → measured", () => {
-    const result = seal({
-      window_start: "2026-07-27T00:00:00Z",
-      window_end: "2026-07-27T23:59:59Z",
-      model_derived: false,
-    });
-    expect(result.evidence).toBe("measured");
-  });
-});
-
-// ─── Stale flag ───────────────────────────────────────────────────────────────
-
-describe("assignSeal — stale flag", () => {
-  it("no window_end → not stale", () => {
-    expect(seal({ model_derived: false }).stale).toBe(false);
-  });
-
-  it("window_end in the future → not stale", () => {
-    const result = seal({ window_end: "2026-07-29T00:00:00Z" });
-    expect(result.stale).toBe(false);
-  });
-
-  it("window_end equal to now → not stale (strict less-than)", () => {
-    // windowEnd < now is false when they are equal → not stale
-    const result = seal({ window_end: NOW.toISOString() });
-    expect(result.stale).toBe(false);
-  });
-
-  it("window_end in the past → stale", () => {
-    const result = seal({ window_end: "2026-07-27T00:00:00Z" });
-    expect(result.stale).toBe(true);
-  });
-
-  it("future projected seal → NOT stale (future window cannot be expired)", () => {
-    const result = seal({
-      window_start: "2026-07-29T00:00:00Z",
-      window_end: "2026-07-30T00:00:00Z",
-    });
-    expect(result.evidence).toBe("projected");
-    expect(result.stale).toBe(false);
-  });
-
-  it("projected + expired window_end → projected + stale", () => {
-    // Edge case: a projected value whose horizon has now passed
-    const result = seal({
-      window_start: "2026-07-26T00:00:00Z",
-      window_end: "2026-07-27T00:00:00Z",
-      model_derived: true,
-    });
-    // window_start is past, so evidence is inferred (not projected)
-    // Confirm evidence reflects the past start
-    expect(result.evidence).toBe("inferred");
-    expect(result.stale).toBe(true);
-  });
-
-  it("future-start + past-end (impossible in practice) → projected + stale", () => {
-    // If someone passes inconsistent timestamps, we honour each field independently
-    const result = seal({
-      window_start: "2026-07-29T00:00:00Z",
-      window_end: "2026-07-27T00:00:00Z",
-    });
-    expect(result.evidence).toBe("projected");
-    expect(result.stale).toBe(true);
-  });
-});
-
-// ─── Probability axis ─────────────────────────────────────────────────────────
-
-describe("assignSeal — probability axis (slot exists, no H1 source)", () => {
-  it("probability is absent from the return value in H1", () => {
-    const result = seal();
-    // No data source populates the axis, so assignSeal never sets it.
-    // Evidence alone is a valid seal; probability alone is not.
-    expect("probability" in result).toBe(false);
-  });
-
-  it("the two axes are independent — a probability never changes the evidence", () => {
-    // The slot is part of the frozen Selo type: a caller that has a source can
-    // carry probability alongside the assigned evidence without either value
-    // being derived from, or collapsed into, the other.
-    const assigned = assignSeal({ model_derived: true }, NOW);
-    const withProbability: Seal = { ...assigned, probability: "uncertain" };
-
-    expect(withProbability.evidence).toBe("inferred");
-    expect(withProbability.probability).toBe("uncertain");
-    // Two fields, two vocabularies — no merged score, no merged label.
-    expect(withProbability.evidence).not.toBe(withProbability.probability);
-  });
-
-  it("the probability vocabulary is exactly {probable, uncertain}", () => {
-    const probable: Probability = "probable";
-    const uncertain: Probability = "uncertain";
-    expect([probable, uncertain]).toEqual(["probable", "uncertain"]);
-  });
-});
-
-// ─── Date/string inputs ───────────────────────────────────────────────────────
-
-describe("assignSeal — Date object and ISO string inputs", () => {
-  it("accepts Date objects for window_start", () => {
-    const future = new Date("2026-07-29T00:00:00Z");
-    const result = assignSeal(
-      { window_start: future, model_derived: false },
-      NOW,
+  it("accepts Date objects as well as ISO strings", () => {
+    expect(seal({ window_start: new Date(FUTURE) }).evidenceClass).toBe(
+      "future_window",
     );
-    expect(result.evidence).toBe("projected");
+  });
+});
+
+// ─── Staleness — orthogonal to both axes ─────────────────────────────────────
+
+describe("assignSeal — staleness", () => {
+  it("an expired window_end is stale", () => {
+    expect(seal({ window_end: PAST }).stale).toBe(true);
   });
 
-  it("accepts ISO strings for window_end", () => {
-    const result = assignSeal(
-      { window_end: "2026-07-27T00:00:00Z", model_derived: false },
-      NOW,
+  it("staleness is independent of the evidence class", () => {
+    expect(seal({ window_end: PAST, model_derived: true }).stale).toBe(true);
+    expect(
+      seal({ window_start: FUTURE, window_end: PAST }).evidenceClass,
+    ).toBe("future_window");
+    expect(seal({ window_start: FUTURE, window_end: PAST }).stale).toBe(true);
+  });
+
+  it("no window bounds → never stale", () => {
+    expect(seal().stale).toBe(false);
+  });
+
+  it("a window that has not closed yet is not stale", () => {
+    expect(seal({ window_end: FUTURE }).stale).toBe(false);
+  });
+});
+
+// ─── Which values need a seal ────────────────────────────────────────────────
+
+describe("assignSeal — which values need a seal", () => {
+  it("a future window requires a seal", () => {
+    expect(seal({ window_start: FUTURE }).sealRequired).toBe(true);
+  });
+
+  it("model-derived provenance requires a seal", () => {
+    expect(seal({ model_derived: true }).sealRequired).toBe(true);
+  });
+
+  it("a direct reading of a current window does not", () => {
+    expect(seal().sealRequired).toBe(false);
+  });
+});
+
+// ─── The ranking that "measured out-ranks projected" really means ────────────
+
+describe("evidence class ranking", () => {
+  it("a reading outranks a model output outranks a forecast", () => {
+    expect(outranks("direct_reading", "model_derived")).toBe(true);
+    expect(outranks("model_derived", "future_window")).toBe(true);
+    expect(outranks("direct_reading", "future_window")).toBe(true);
+  });
+
+  it("is antisymmetric and irreflexive", () => {
+    expect(outranks("future_window", "direct_reading")).toBe(false);
+    expect(outranks("direct_reading", "direct_reading")).toBe(false);
+  });
+
+  it("the rank table is frozen — ordering is not runtime-editable", () => {
+    expect(Object.isFrozen(EVIDENCE_CLASS_RANK)).toBe(true);
+  });
+});
+
+// ─── The words arrive as declared data ───────────────────────────────────────
+
+/** Cycle-4's origin ruling: a 3-term PT axis plus the 4-term ICD-203-lite ladder. */
+const CYCLE4: SealVocabulary = {
+  evidence: {
+    direct_reading: { value: "confirmed", label: "confirmado", tone: "positive" },
+    model_derived: { value: "inferred", label: "inferido", tone: "info" },
+    future_window: { value: "modelled", label: "modelado", tone: "caution" },
+  },
+  probability: {
+    near_certain: { value: "near_certain", label: "quase certo" },
+    probable: { value: "probable", label: "provável" },
+    uncertain: { value: "uncertain", label: "incerto" },
+    unlikely: { value: "unlikely", label: "pouco provável" },
+  },
+};
+
+/** Cycle-6 / PRD: a narrower 2-term axis — two classes share one term. */
+const CYCLE6: SealVocabulary = {
+  evidence: {
+    direct_reading: { value: "measured", label: "medido", tone: "positive" },
+    model_derived: { value: "inferred", label: "inferido", tone: "info" },
+    future_window: { value: "inferred", label: "inferido", tone: "info" },
+  },
+  probability: {
+    probable: { value: "probable", label: "provável" },
+    uncertain: { value: "uncertain", label: "incerto" },
+  },
+};
+
+describe("resolveSeal — the vocabulary is data", () => {
+  it("resolves the same datum differently under different declarations", () => {
+    const assignment = seal({ window_start: FUTURE });
+
+    expect(resolveSeal(assignment, CYCLE4).evidence.label).toBe("modelado");
+    // The 2-term axis maps future_window onto the model-derived term — a
+    // narrower vocabulary, expressed without any code change.
+    expect(resolveSeal(assignment, CYCLE6).evidence.label).toBe("inferido");
+  });
+
+  it("carries the English code alongside the localized label", () => {
+    const resolved = resolveSeal(seal(), CYCLE6);
+    expect(resolved.evidence.value).toBe("measured");
+    expect(resolved.evidence.label).toBe("medido");
+  });
+
+  it("resolves a 4-term probability ladder the narrower vocabulary lacks", () => {
+    const resolved = resolveSeal(seal(), CYCLE4, "near_certain");
+    expect(resolved.probability?.label).toBe("quase certo");
+    expect(() => resolveSeal(seal(), CYCLE6, "near_certain")).toThrow(
+      /not declared/i,
     );
-    expect(result.stale).toBe(true);
+  });
+
+  it("evidence alone is valid — probability is simply absent", () => {
+    const resolved = resolveSeal(seal(), CYCLE4);
+    expect(resolved.evidence).toBeDefined();
+    expect(resolved.probability).toBeUndefined();
+  });
+
+  it("carries staleness through untouched", () => {
+    expect(resolveSeal(seal({ window_end: PAST }), CYCLE4).stale).toBe(true);
+  });
+
+  it("THROWS when the declaration does not cover an assigned class", () => {
+    const partial = {
+      evidence: { direct_reading: { value: "measured", label: "medido" } },
+    } as unknown as SealVocabulary;
+    expect(() => resolveSeal(seal({ model_derived: true }), partial)).toThrow(
+      /no evidence term for class/i,
+    );
+  });
+
+  it("THROWS on an undeclared probability code rather than dropping it", () => {
+    expect(() => resolveSeal(seal(), CYCLE4, "vibes")).toThrow(/not declared/i);
+  });
+});
+
+// ─── The module itself must carry no vocabulary ──────────────────────────────
+
+describe("the seal module enumerates no seal words", () => {
+  it("seal.ts hardcodes none of the corpus's competing terms", () => {
+    const source = readFileSync(
+      join(import.meta.dirname, "../../src/core/seal.ts"),
+      "utf-8",
+    )
+      // Strip prose: the doc comment names the corpus's words precisely in
+      // order to explain why none of them are baked in.
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+
+    const SEAL_WORDS = [
+      "measured",
+      "inferred",
+      "projected",
+      "confirmado",
+      "inferido",
+      "modelado",
+      "medido",
+      "previsto",
+      "provável",
+      "incerto",
+    ];
+    const found = SEAL_WORDS.filter((word) =>
+      new RegExp(`\\b${word}\\b`, "i").test(source),
+    );
+    expect(
+      found,
+      `seal.ts hardcodes seal vocabulary: ${found.join(", ")}`,
+    ).toEqual([]);
   });
 });
