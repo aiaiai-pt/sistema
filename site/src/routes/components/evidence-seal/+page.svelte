@@ -257,44 +257,52 @@ const seal = resolveSeal(assignment, vocabulary, datum.probability_code);
 		Changing the vocabulary without a release
 	</h2>
 	<p class="type-body-sm" style="margin-bottom: var(--space-md);">
-		The axis values are declared enum choices on the ontology sheet, exactly like every other
-		declared vocabulary. To re-word a term, widen an axis, or collapse a three-term axis into two,
-		edit the declaration and re-provision. No component changes, no package publishes, no host
-		deploy.
+		The terms are rows of a declared vocabulary entity on the ontology sheet — the platform's
+		established pattern for a vocabulary that carries metadata, the same shape
+		<code>occurrence_state</code> uses to carry a code, a display name, a grouping and a colour. To
+		re-word a term, widen an axis, or collapse a three-term axis into two, edit the rows and
+		re-provision. No component changes, no package publishes, no host deploy.
 	</p>
 
 	<pre
 		class="type-body-sm"
 		style="padding: var(--space-md); border: var(--elevation-border); border-radius: var(--radius-md); background: var(--color-surface-secondary); overflow-x: auto;"><code
-			>{`# Evidence terms are declared vocabulary, not a component enum.
-# Each class must resolve to a term; two classes may share one.
-- field_key: evidence_term
-  display_name: Evidência
-  field_type:
-    type: enum
-    choices:
-    - { value: measured,  label: medido,   class: direct_reading, tone: positive }
-    - { value: inferred,  label: inferido, class: model_derived,  tone: info }
-    - { value: projected, label: previsto, class: future_window,  tone: caution }
+			>{`# The vocabulary is an entity type, not an enum on a field.
+- entity_type: seal_term
+  schema:
+    display_name: Termo de Selo
+    tenant_scoped: true
+    fields:
+    - { field_key: code,           field_type: { type: string }, required: true }
+    - { field_key: label,          field_type: { type: string }, required: true }
+    - { field_key: axis,           field_type: { type: string }, required: true }
+    - { field_key: evidence_class, field_type: { type: string }, required: false }
+    - { field_key: tone,           field_type: { type: string }, required: false }
+    - { field_key: order,          field_type: { type: integer }, required: false }`}</code
+		></pre>
 
-# Widening the probability axis from two terms to cycle-4's four
-# is this edit and nothing else:
-- field_key: probability_term
-  display_name: Probabilidade
-  field_type:
-    type: enum
-    choices:
-    - { value: near_certain, label: quase certo }
-    - { value: probable,     label: provável }
-    - { value: uncertain,    label: incerto }
-    - { value: unlikely,     label: pouco provável }`}</code
+	<p class="type-body-sm" style="margin: var(--space-md) 0;">
+		The rows are the vocabulary. These are cycle-6's narrower pair; swapping in cycle-4's
+		three-term axis and four-term ladder is a change to these rows and nothing else:
+	</p>
+
+	<pre
+		class="type-body-sm"
+		style="padding: var(--space-md); border: var(--elevation-border); border-radius: var(--radius-md); background: var(--color-surface-secondary); overflow-x: auto;"><code
+			>{`code          label       axis          evidence_class    tone
+────────────  ──────────  ────────────  ────────────────  ────────
+measured      medido      evidence      direct_reading    positive
+inferred      inferido    evidence      model_derived     info
+inferred      inferido    evidence      future_window     info      ← two classes, one term
+probable      provável    probability   —                 neutral
+uncertain     incerto     probability   —                 neutral`}</code
 		></pre>
 
 	<p class="type-body-sm" style="margin-top: var(--space-md);">
-		Because <code>class</code> is declared beside the term, a deployment that wants a two-term
-		evidence axis simply points <code>future_window</code> and <code>model_derived</code> at the
-		same term. The «previsto» wording question stays where the operator can settle it — in the
-		declaration — instead of being frozen into anyone's component.
+		Because <code>evidence_class</code> is a column rather than something inferred from the word, a
+		deployment that wants a two-term evidence axis just points <code>future_window</code> and
+		<code>model_derived</code> at the same term — the row above. The «previsto» wording question
+		stays where the operator can settle it, in the data, instead of frozen into anyone's component.
 	</p>
 </section>
 
