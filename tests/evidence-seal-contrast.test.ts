@@ -150,14 +150,23 @@ function resolveColor(name: string, tokens: TokenMap, bg?: RGBA): RGBA {
 const root = join(import.meta.dirname, "..");
 const baseCss = readFileSync(join(root, "tokens/base.css"), "utf-8");
 const semanticCss = readFileSync(join(root, "tokens/semantic.css"), "utf-8");
-const componentsCss = readFileSync(join(root, "tokens/components.css"), "utf-8");
+const componentsCss = readFileSync(
+  join(root, "tokens/components.css"),
+  "utf-8",
+);
 const ubpCss = readFileSync(join(root, "tokens/themes/ubp.css"), "utf-8");
 
 const baseTokens = extractTokens(baseCss, ":root");
 const semanticTokens = extractTokens(semanticCss, ":root");
-const darkGenericTokens = extractTokens(semanticCss, `:root[data-scheme="dark"]`);
+const darkGenericTokens = extractTokens(
+  semanticCss,
+  `:root[data-scheme="dark"]`,
+);
 const ubpTokens = extractTokens(ubpCss, `[data-theme="ubp"]`);
-const ubpDarkTokens = extractTokens(ubpCss, `[data-theme="ubp"][data-scheme="dark"]`);
+const ubpDarkTokens = extractTokens(
+  ubpCss,
+  `[data-theme="ubp"][data-scheme="dark"]`,
+);
 const componentTokens = extractTokens(componentsCss, ":root");
 
 // Light: base + semantic + component defaults + ubp theme overrides.
@@ -300,6 +309,50 @@ describe("[Slice 2] Evidence seal — token presence", () => {
       expect(
         componentTokens.has(token),
         `${token} must be in :root block of components.css`,
+      ).toBe(true);
+    });
+  }
+});
+
+// ─── Every token SealChip references must actually exist ─────────────────────
+//
+// A var() naming a token nobody declares fails silently: the declaration is
+// dropped and the affordance simply is not there. That is how `--focus-ring`
+// (the real name is --focus-ring-width / --focus-ring-color) removed the
+// keyboard focus ring from the why trigger without any test noticing.
+//
+// A hardcoded or nonexistent token is a bug, so assert the whole reference set
+// rather than a hand-maintained list.
+
+describe("[Slice 2] SealChip — every referenced token is declared", () => {
+  const declared = merge(
+    baseTokens,
+    semanticTokens,
+    componentTokens,
+    darkGenericTokens,
+    ubpTokens,
+    ubpDarkTokens,
+  );
+
+  const sealChipSource = readFileSync(
+    join(root, "components/SealChip.svelte"),
+    "utf-8",
+  );
+  const referenced = [
+    ...new Set(
+      [...sealChipSource.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]),
+    ),
+  ].sort();
+
+  it("references at least the seal, badge, and focus tokens", () => {
+    expect(referenced.length).toBeGreaterThan(10);
+  });
+
+  for (const token of referenced) {
+    it(`${token} resolves to a declared token`, () => {
+      expect(
+        declared.has(token),
+        `SealChip.svelte references ${token}, which no token file declares`,
       ).toBe(true);
     });
   }

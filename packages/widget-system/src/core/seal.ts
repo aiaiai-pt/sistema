@@ -58,6 +58,17 @@ export interface ValueProvenance {
 export type EvidenceState = "measured" | "inferred" | "projected";
 
 /**
+ * The probability axis — the seal's SECOND, orthogonal vocabulary.
+ *
+ * - `probable`  — the projection is more likely than not to hold.
+ * - `uncertain` — the projection is materially in doubt.
+ *
+ * Orthogonal to `EvidenceState`: the two never collapse into a single score or
+ * a single label. Evidence alone is a valid seal; probability alone is not.
+ */
+export type Probability = "probable" | "uncertain";
+
+/**
  * The evidence seal for a value. Returned exclusively by `assignSeal`.
  */
 export interface Seal {
@@ -66,12 +77,14 @@ export interface Seal {
   /**
    * Probability axis (how likely the projected value is to occur).
    *
-   * NOT implemented in H1 — no data source in this horizon.
-   * Typed `never` so a future addition is a non-breaking API change.
-   * See prd.md §5.1 #2: evidence and probability are independent axes;
-   * evidence alone is valid; probability alone is not.
+   * The SLOT is part of the frozen Selo type and of the chip grammar
+   * (03-evidence.md §1.1); no H1 data source populates it, so `assignSeal`
+   * never sets it and SealChip renders the second chip only when a caller
+   * supplies one. Ship evidence-alone — that is a valid seal.
+   *
+   * Independent of `evidence`: never collapse the two into one score or label.
    */
-  probability?: never;
+  probability?: Probability;
   /**
    * True when the validity window has closed (window_end is in the past).
    * A stale seal means the projection horizon has passed; the value

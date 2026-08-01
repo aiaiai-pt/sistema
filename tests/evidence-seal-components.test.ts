@@ -123,6 +123,250 @@ describe("SealChip — sr-text invariant (seal survives quotation)", () => {
   });
 });
 
+// ─── SealChip — the evidence-chip law ────────────────────────────────────────
+//
+// LAW: "a seal NEVER appears without evidence chips."
+//
+// Before the guard existed, <SealChip value="4.1 MW" /> mounted happily and
+// rendered an EMPTY badge plus an EMPTY sr-text — a value dressed as a sealed
+// datum, carrying no evidence at all and announcing nothing to a screen reader.
+// An out-of-vocabulary word rendered verbatim as the seal label.
+//
+// SealChip is a boundary element: it fails loudly rather than render a
+// sealless seal, the same policy KpiRegister applies to unsealed projections.
+
+describe("SealChip — law: a seal never renders without its evidence chip", () => {
+  it("THROWS when evidence is absent", () => {
+    expect(() => render(SealChip, { value: "4.1 MW" })).toThrow(
+      /must carry an evidence state/i,
+    );
+  });
+
+  it("THROWS when evidence is outside the closed vocabulary", () => {
+    expect(() =>
+      render(SealChip, { value: "4.1 MW", evidence: "vibes" }),
+    ).toThrow(/measured.*inferred.*projected/i);
+  });
+
+  it.each(["measured", "inferred", "projected"])(
+    "accepts %s and renders a non-empty evidence chip and sr-text",
+    (evidence) => {
+      const el = render(SealChip, { value: "4.1 MW", evidence });
+      expect(
+        el.querySelector(".seal-chip-badge")!.textContent!.trim(),
+      ).not.toBe("");
+      expect(el.querySelector(".seal-chip-sr-text")!.textContent).toContain(
+        evidence,
+      );
+    },
+  );
+});
+
+// ─── SealChip — the two axes ─────────────────────────────────────────────────
+//
+// LAW: evidence {measured·inferred·projected} and probability {probable·uncertain}
+// are orthogonal and NEVER merge into one phrase (03-evidence.md:109-110 —
+// "two adjacent chips, never one merged phrase"). Evidence alone is valid;
+// probability alone is not (03-evidence.md:80-82, PRD 5.1.2).
+//
+// No data source populates the probability axis in H1 — the SLOT exists in the
+// frozen Selo type and the chip grammar, and renders only when a source fills it.
+
+describe("SealChip — two orthogonal axes, never merged", () => {
+  it("renders no probability chip when the axis is unpopulated", () => {
+    const el = render(SealChip, { value: "2.3 MW", evidence: "measured" });
+    expect(el.querySelector(".seal-chip-probability")).toBeNull();
+  });
+
+  it("renders probability as a SEPARATE adjacent chip, not merged with evidence", () => {
+    const el = render(SealChip, {
+      value: "2.1 m",
+      evidence: "inferred",
+      probability: "uncertain",
+    });
+    const evidenceChip = el.querySelector(".seal-chip-badge")!;
+    const probabilityChip = el.querySelector(".seal-chip-probability")!;
+    expect(probabilityChip).not.toBeNull();
+    // Two distinct elements — neither contains the other's word.
+    expect(evidenceChip.textContent).toContain("inferred");
+    expect(evidenceChip.textContent).not.toContain("uncertain");
+    expect(probabilityChip.textContent).toContain("uncertain");
+    expect(probabilityChip.textContent).not.toContain("inferred");
+    expect(probabilityChip.contains(evidenceChip)).toBe(false);
+    expect(evidenceChip.contains(probabilityChip)).toBe(false);
+  });
+
+  it("THROWS on probability without evidence — probability alone is not valid", () => {
+    expect(() =>
+      render(SealChip, { value: "2.1 m", probability: "probable" }),
+    ).toThrow(/must carry an evidence state/i);
+  });
+
+  it("THROWS on a probability outside the closed vocabulary", () => {
+    expect(() =>
+      render(SealChip, {
+        value: "2.1 m",
+        evidence: "inferred",
+        probability: "very likely",
+      }),
+    ).toThrow(/probable.*uncertain/i);
+  });
+
+  it("stitches sr-text as «{value} — {evidence}[, {probability}][, stale]»", () => {
+    const el = render(SealChip, {
+      value: "2,1 m",
+      evidence: "inferred",
+      probability: "uncertain",
+      stale: true,
+    });
+    expect(el.querySelector(".seal-chip-sr-text")!.textContent!.trim()).toBe(
+      "2,1 m — inferred, uncertain, stale",
+    );
+  });
+
+  it("stitches evidence-alone sr-text without a probability clause", () => {
+    const el = render(SealChip, { value: "+14 cm/h", evidence: "measured" });
+    expect(el.querySelector(".seal-chip-sr-text")!.textContent!.trim()).toBe(
+      "+14 cm/h — measured",
+    );
+  });
+
+  it("does not announce the value twice — the visual value is aria-hidden", () => {
+    const el = render(SealChip, { value: "2.3 MW", evidence: "measured" });
+    expect(
+      el.querySelector(".seal-chip-value")!.getAttribute("aria-hidden"),
+    ).toBe("true");
+  });
+});
+
+// ─── SealChip — the «why» disclosure ─────────────────────────────────────────
+//
+// LAW: a «why» is ALWAYS reachable from the seal — one tap/click away
+// (03-evidence.md:110-115, :131-133, :139).
+// The chip is a real <button> with aria-expanded opening the provenance
+// one-liner; click/Enter/Space toggle; Esc closes; the panel carries a visible
+// close affordance; the button is named «why — {evidence}».
+// Disclosure state lives in component state, never the DOM.
+
+describe("SealChip — law: a «why» is always reachable from the seal", () => {
+  const WHY = "the 16:00 window has already passed";
+
+  it("exposes the seal as a real button when a why is provided", () => {
+    const el = render(SealChip, {
+      value: "−18 cm",
+      evidence: "projected",
+      why: WHY,
+    });
+    const trigger = el.querySelector("button.seal-chip-why-trigger");
+    expect(trigger).not.toBeNull();
+    expect(trigger!.tagName).toBe("BUTTON");
+    expect(trigger!.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("names the why button «why — {evidence}»", () => {
+    const el = render(SealChip, {
+      value: "−18 cm",
+      evidence: "projected",
+      why: WHY,
+    });
+    expect(
+      el
+        .querySelector("button.seal-chip-why-trigger")!
+        .getAttribute("aria-label"),
+    ).toBe("why — projected");
+  });
+
+  it("one click reveals the provenance one-liner and flips aria-expanded", () => {
+    const el = render(SealChip, {
+      value: "−18 cm",
+      evidence: "projected",
+      why: WHY,
+    });
+    const trigger = el.querySelector<HTMLButtonElement>(
+      "button.seal-chip-why-trigger",
+    )!;
+    expect(el.querySelector(".seal-chip-why-panel")).toBeNull();
+
+    trigger.click();
+    flushSync();
+
+    const panel = el.querySelector(".seal-chip-why-panel");
+    expect(panel).not.toBeNull();
+    expect(panel!.textContent).toContain(WHY);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    // The panel is the element the trigger points at.
+    expect(trigger.getAttribute("aria-controls")).toBe(panel!.id);
+    expect(panel!.id).not.toBe("");
+  });
+
+  it("Escape inside the disclosure closes it", () => {
+    const el = render(SealChip, {
+      value: "−18 cm",
+      evidence: "projected",
+      why: WHY,
+    });
+    const trigger = el.querySelector<HTMLButtonElement>(
+      "button.seal-chip-why-trigger",
+    )!;
+    trigger.click();
+    flushSync();
+    expect(el.querySelector(".seal-chip-why-panel")).not.toBeNull();
+
+    el.querySelector(".seal-chip")!.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    flushSync();
+
+    expect(el.querySelector(".seal-chip-why-panel")).toBeNull();
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("the open disclosure carries a visible close affordance (Esc/X parity)", () => {
+    const el = render(SealChip, {
+      value: "−18 cm",
+      evidence: "projected",
+      why: WHY,
+    });
+    el.querySelector<HTMLButtonElement>(
+      "button.seal-chip-why-trigger",
+    )!.click();
+    flushSync();
+
+    const close = el.querySelector<HTMLButtonElement>(".seal-chip-why-close")!;
+    expect(close).not.toBeNull();
+    // Named for AT, and it actually closes.
+    expect(close.getAttribute("aria-label")).toMatch(/close/i);
+    close.click();
+    flushSync();
+    expect(el.querySelector(".seal-chip-why-panel")).toBeNull();
+  });
+
+  it("keeps disclosure state in component state, not on the DOM chip", () => {
+    const el = render(SealChip, {
+      value: "−18 cm",
+      evidence: "projected",
+      why: WHY,
+    });
+    el.querySelector<HTMLButtonElement>(
+      "button.seal-chip-why-trigger",
+    )!.click();
+    flushSync();
+    // The proto held disclosure state in a data-attribute; that is a recorded
+    // residual (cycle4.md:542) and must not come back.
+    expect(el.querySelector(".seal-chip")!.hasAttribute("data-why")).toBe(
+      false,
+    );
+    expect(el.querySelector(".seal-chip")!.hasAttribute("data-selo")).toBe(
+      false,
+    );
+  });
+
+  it("stays a plain span when no why is supplied (no empty disclosure)", () => {
+    const el = render(SealChip, { value: "2.3 MW", evidence: "measured" });
+    expect(el.querySelector("button.seal-chip-why-trigger")).toBeNull();
+  });
+});
+
 // ─── KpiRegister ─────────────────────────────────────────────────────────────
 
 describe("KpiRegister — boundary invariants", () => {
@@ -199,6 +443,55 @@ describe("KpiRegister — boundary invariants", () => {
     expect(projectedIdx).toBeGreaterThanOrEqual(0);
     // measured must appear BEFORE projected in the DOM
     expect(measuredIdx).toBeLessThan(projectedIdx);
+  });
+
+  it("carries the why through to the projected value's seal", () => {
+    const el = render(KpiRegister, {
+      label: "WATER LEVEL",
+      measuredValue: "+14 cm/h",
+      projectedValue: "−18 cm",
+      projectedSeal: { evidence: "projected", stale: false },
+      projectedWhy: "derived from the 14:00–16:00 tide model run",
+    });
+    const trigger = el.querySelector<HTMLButtonElement>(
+      "button.seal-chip-why-trigger",
+    )!;
+    expect(trigger).not.toBeNull();
+    trigger.click();
+    flushSync();
+    expect(el.querySelector(".seal-chip-why-panel")!.textContent).toContain(
+      "tide model run",
+    );
+  });
+
+  it("carries the probability axis through to the projected value's seal", () => {
+    const el = render(KpiRegister, {
+      label: "WATER LEVEL",
+      measuredValue: "+14 cm/h",
+      projectedValue: "−18 cm",
+      projectedSeal: {
+        evidence: "projected",
+        probability: "uncertain",
+        stale: false,
+      },
+    });
+    expect(el.querySelector(".seal-chip-probability")!.textContent).toContain(
+      "uncertain",
+    );
+  });
+
+  it("measured out-ranks projected in what a screen reader reaches first", () => {
+    const el = render(KpiRegister, {
+      label: "WATER LEVEL",
+      measuredValue: "+14 cm/h",
+      projectedValue: "−18 cm",
+      projectedSeal: { evidence: "projected", stale: false },
+    });
+    // The register's own AT order: the measured number is plain text reached
+    // before the projected value's stitched seal phrase.
+    const text = el.textContent!;
+    expect(text.indexOf("+14 cm/h")).toBeGreaterThanOrEqual(0);
+    expect(text.indexOf("−18 cm")).toBeGreaterThan(text.indexOf("+14 cm/h"));
   });
 
   it("does not render projected row when no projected value is given", () => {

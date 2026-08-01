@@ -15,7 +15,12 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { assignSeal, type ValueProvenance } from "../../src/core/index.ts";
+import {
+  assignSeal,
+  type Probability,
+  type Seal,
+  type ValueProvenance,
+} from "../../src/core/index.ts";
 
 const NOW = new Date("2026-07-28T12:00:00Z");
 
@@ -36,7 +41,10 @@ describe("assignSeal — evidence state", () => {
 
   it("window_start exactly equal to now is NOT future → measured (direct)", () => {
     // boundary: windowStart === now is not strictly greater, so not projected
-    const result = seal({ window_start: NOW.toISOString(), model_derived: false });
+    const result = seal({
+      window_start: NOW.toISOString(),
+      model_derived: false,
+    });
     expect(result.evidence).toBe("measured");
   });
 
@@ -136,11 +144,31 @@ describe("assignSeal — stale flag", () => {
 
 // ─── Probability axis ─────────────────────────────────────────────────────────
 
-describe("assignSeal — probability axis (H1: not implemented)", () => {
+describe("assignSeal — probability axis (slot exists, no H1 source)", () => {
   it("probability is absent from the return value in H1", () => {
     const result = seal();
-    // probability is typed `never` and must not appear in the returned object
+    // No data source populates the axis, so assignSeal never sets it.
+    // Evidence alone is a valid seal; probability alone is not.
     expect("probability" in result).toBe(false);
+  });
+
+  it("the two axes are independent — a probability never changes the evidence", () => {
+    // The slot is part of the frozen Selo type: a caller that has a source can
+    // carry probability alongside the assigned evidence without either value
+    // being derived from, or collapsed into, the other.
+    const assigned = assignSeal({ model_derived: true }, NOW);
+    const withProbability: Seal = { ...assigned, probability: "uncertain" };
+
+    expect(withProbability.evidence).toBe("inferred");
+    expect(withProbability.probability).toBe("uncertain");
+    // Two fields, two vocabularies — no merged score, no merged label.
+    expect(withProbability.evidence).not.toBe(withProbability.probability);
+  });
+
+  it("the probability vocabulary is exactly {probable, uncertain}", () => {
+    const probable: Probability = "probable";
+    const uncertain: Probability = "uncertain";
+    expect([probable, uncertain]).toEqual(["probable", "uncertain"]);
   });
 });
 
@@ -149,7 +177,10 @@ describe("assignSeal — probability axis (H1: not implemented)", () => {
 describe("assignSeal — Date object and ISO string inputs", () => {
   it("accepts Date objects for window_start", () => {
     const future = new Date("2026-07-29T00:00:00Z");
-    const result = assignSeal({ window_start: future, model_derived: false }, NOW);
+    const result = assignSeal(
+      { window_start: future, model_derived: false },
+      NOW,
+    );
     expect(result.evidence).toBe("projected");
   });
 

@@ -30,7 +30,8 @@
 
   /**
    * @typedef {'measured' | 'inferred' | 'projected'} EvidenceState
-   * @typedef {{ evidence: EvidenceState; stale: boolean }} SealRef
+   * @typedef {'probable' | 'uncertain'} Probability
+   * @typedef {{ evidence: EvidenceState; probability?: Probability; stale: boolean }} SealRef
    */
 
   let {
@@ -47,6 +48,13 @@
      * Obtain from assignSeal() in @aiaiai-pt/widget-system/core.
      */
     projectedSeal = undefined,
+    /**
+     * @type {string | undefined}
+     * The provenance one-liner behind the projected value's seal. Supplied by
+     * the surface (assignSeal has no prose); makes the «why» reachable one
+     * click from the seal, as the law requires.
+     */
+    projectedWhy = undefined,
     /** @type {string} */
     class: className = '',
     ...rest
@@ -107,7 +115,9 @@
       <SealChip
         value={projectedValue}
         evidence={projectedSeal.evidence}
+        probability={projectedSeal.probability}
         stale={projectedSeal.stale}
+        why={projectedWhy}
       />
     </div>
   {/if}
