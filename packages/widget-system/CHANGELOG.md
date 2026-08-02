@@ -52,8 +52,19 @@ declared block projects separately to `WidgetMatchContext` for selection and
 `WidgetRenderRequest` for render). A consumer's real adapter must agree with it
 on these fixtures.
 
-`CONTRACT_VERSION` → `1.2.0` (a case was added, then redefined; the fixture
-schema is versioned independently of the package).
+`CONTRACT_VERSION` → `1.3.0` (a case was added, then twice redefined; the
+fixture schema is versioned independently of the package).
+
+**Both selection axes are covered.** Authored blocks carry `type` (a widget-key
+hint, e.g. `stat-grid`) alongside `binding.kind` (the data shape), and the two
+are independent: `kind` is translated through the map, `type` is carried
+through **untranslated**. The admin fixture declares both; the workspace one
+declares no `type`, so the fixtures cover the specialised and the generic path.
+The case asserts the consequence rather than just the value — in a registry that
+also holds a `byTypeOnKind` entry, the admin's authored `type` wins while the
+typeless workspace block still lands on the kind-generic face. An adapter that
+drops or translates `type` silently disables every type-specialised
+registration.
 
 **The declared-kind map.** Hosts do not rename their declared vocabulary to suit
 a widget package, and authored sheets must not churn to adopt a widget kind —
