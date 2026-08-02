@@ -48,6 +48,26 @@ describe("consumer resolution — the published import graph", () => {
     ).toEqual([]);
   });
 
+  it("keeps the design-system link that makes bare specifiers resolve", () => {
+    // The widgets import `@aiaiai-pt/design-system/components/…` BY NAME. The
+    // design system is this repo's ROOT package, not a workspace member, so
+    // without this devDependency nothing makes that name resolvable from inside
+    // packages/ — and a LINKED consumer (every atelier lane, every worktree
+    // override) fails with MODULE_NOT_FOUND while our own suite stays green.
+    //
+    // Verified by isolation: a consumer linking ONLY widget-system, with no
+    // design-system of its own, resolves the specifier through the root link
+    // this creates; removing the link reproduces the consumer's failure exactly.
+    //
+    // devDependencies are not installed by consumers, so this changes nothing
+    // about the published contract — the peerDependency remains the declaration
+    // that matters.
+    const pkg = JSON.parse(
+      readFileSync(join(import.meta.dirname, "../../package.json"), "utf-8"),
+    ) as { devDependencies: Record<string, string> };
+    expect(pkg.devDependencies["@aiaiai-pt/design-system"]).toBe("file:../..");
+  });
+
   it("tsconfig does not re-enable allowImportingTsExtensions", () => {
     // Turning the flag back on would make the offending imports typecheck here
     // while still breaking every consumer — the exact shape of the 0.2.1 defect.
