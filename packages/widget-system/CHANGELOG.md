@@ -101,6 +101,35 @@ Verified against a real consumer: a standalone `tsc` project with
 `moduleResolution: bundler` and no flag reports TS5097 before and compiles clean
 after.
 
+### Added — per-widget deep exports
+
+`@aiaiai-pt/widget-system/widgets` imports every widget, so a consumer binding a
+single face also drags in `NativeChartWidget`, ECharts, and the design system's
+`EChart`. Because the design system is an **optional** peer, that does not fail
+at install — it fails at the *consumer's build*, as an unresolved import for a
+component they never asked for.
+
+Each widget now has a deep export resolving straight to its component:
+
+```ts
+import IndicatorCardWidget from "@aiaiai-pt/widget-system/widgets/IndicatorCardWidget";
+```
+
+The barrel stays for registry consumers who want the whole set. Tests read the
+real import graph rather than trusting the export map, and include a control
+case so the marker list cannot go stale and quietly prove nothing.
+
+### Changed — design-system peer floor `>=0.47.0` → `>=0.51.0`
+
+Published `design-system@0.50.0` **does** contain `SealChip` and `EChart`, but
+its `SealChip` predates the vocabulary rework: it takes a vocabulary **string**
+and carries no guard. These widgets pass a resolved **term**, so against 0.50.0
+the seal renders silently wrong rather than failing — the worst available
+outcome. Raising the floor makes the bad combination an install-time refusal.
+
+> The floor assumes the reworked design system publishes as `0.51.0`. If the
+> train picks a different number, this must move with it.
+
 ### Changed
 
 - `registerBaseWidgets` now registers six widgets rather than two. The base-set
