@@ -3,6 +3,43 @@
 Separately versioned from `@aiaiai-pt/design-system`. SemVer: fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [Unreleased]
+
+### Added — the investigations card faces as widget kinds
+
+Four registered, transport-neutral faces. Each is a FACE only: no arrangement,
+no transport, no product vocabulary — so the same card renders on a board, a
+profile and a painel, and only the arrangement differs. Bespoke per-surface
+faces are what kill card travel, which is why these are registry kinds rather
+than components in a product package.
+
+| kind | key | law it enforces |
+|---|---|---|
+| `stream` | `entry-stream` | an undeclared entry kind throws rather than falling back — a machine line rendered as an utterance mis-attributes it |
+| `indicator` | `indicator-card` | it never fetches; drill is a callback carrying the caller's opaque ref |
+| `members` | `definition-members-card` | members are never a naked list — no provenance header, no render |
+| `chart-mock` | `chart-tile-mock` | a mock never renders unmarked — an unearmarked placeholder is indistinguishable from data |
+
+All four are string-free and vocabulary-free: kind codes, agent and status
+terms, seal terms, and every visible word arrive as declared data or caller
+copy, the same law the evidence seal follows. A standing guard fails the build
+if any declared vocabulary literal appears in a face.
+
+`entry-stream` carries `role="log"` with `aria-live="off"`, which is not
+configurable: the host owns the single live region, and a second one here would
+announce every entry twice.
+
+**Note on the seal and status slots.** Both arrive as resolved DATA rather than
+snippets, because registry dispatch hands a widget `{ data, props, locale }` and
+cannot carry snippets — a "slot" that vanished on the dispatch path would be a
+trap. `composer` (entry-stream) and `row` (definition-members-card) remain
+snippets for direct composition only, and are documented as such.
+
+### Changed
+
+- `registerBaseWidgets` now registers six widgets rather than two. The base-set
+  test is pinned deliberately, so adding to it is always an explicit act.
+
 ## [0.2.1] — 2026-07-29
 
 ### Added
