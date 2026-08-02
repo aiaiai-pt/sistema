@@ -127,8 +127,11 @@ and carries no guard. These widgets pass a resolved **term**, so against 0.50.0
 the seal renders silently wrong rather than failing — the worst available
 outcome. Raising the floor makes the bad combination an install-time refusal.
 
-> The floor assumes the reworked design system publishes as `0.51.0`. If the
-> train picks a different number, this must move with it.
+> The reworked design system publishes as **`0.51.0`** (ruled 2026-08-02, same
+> reasoning as widget-system `0.3.0`: 0.x, and no code consumer of the seal
+> components exists, so the API break lands on nobody). The two are **not
+> independently releasable** — publishing widget-system against an earlier
+> design system is the silent-breakage case above, so they publish together.
 
 ### Changed
 

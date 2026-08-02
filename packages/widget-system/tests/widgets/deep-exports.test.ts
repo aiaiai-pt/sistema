@@ -122,6 +122,12 @@ describe("the design-system peer floor", () => {
     // no guard. These widgets pass a resolved TERM, so against 0.50.0 the seal
     // renders silently wrong rather than failing. An install-time refusal is
     // the only place that can be caught.
+    //
+    // 0.51.0 is the RULED version for the reworked design system, not a guess.
+    // The two packages are not independently releasable: publishing this one
+    // against an earlier design system is precisely the silent-breakage case.
+    // If the operator overrides the number at the publish step, this floor and
+    // this test move with it.
     const floor = pkg.peerDependencies["@aiaiai-pt/design-system"];
     expect(floor).not.toContain("0.47");
     expect(floor).toMatch(/>=0\.51\.0/);
