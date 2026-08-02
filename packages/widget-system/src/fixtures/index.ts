@@ -159,12 +159,16 @@ export const CROSS_HOST_KIND_MAP: DeclaredKindMap = Object.freeze({
  * which `resolve-extras.ts` already switches on. The map is what makes the same
  * face answer both, and it is the map that is under test here.
  *
- * The admin block also carries a `type` (`stat-grid`), matching how blocks are
- * really authored: `type` names a widget-key hint while `binding.kind` names the
- * data shape. The two axes are independent and both reach dispatch — `kind`
- * through the map, `type` untouched — which is what lets a type-specialised
- * entry outrank the kind-generic one. The workspace block deliberately declares
- * no `type`, so the fixtures cover both the specialised and the generic path.
+ * The admin block also carries a `type`, matching how blocks are really
+ * authored: `type` names a widget-key hint while `binding.kind` names the
+ * data shape. `byTypeOnKind`'s tester is `type === key`, so the authored value
+ * must be the REGISTRY KEY of the entry it selects — here the admin host's
+ * `investigation-indicator-card` entry, not `stat-grid`, which is the DS's
+ * batch-default kpi face and would silently keep the old StatGrid. The two
+ * axes are independent and both reach dispatch — `kind` through the map,
+ * `type` untouched — which is what lets a type-specialised entry outrank the
+ * kind-generic one. The workspace block deliberately declares no `type`, so
+ * the fixtures cover both the specialised and the generic path.
  */
 export const CROSS_HOST_INDICATOR_SLOTS: readonly HostSlotFixture[] = [
   {
@@ -183,12 +187,12 @@ export const CROSS_HOST_INDICATOR_SLOTS: readonly HostSlotFixture[] = [
     block: {
       block_type: "admin_page_extra",
       // The authored widget-key hint, alongside the data-shape kind.
-      type: "stat-grid",
+      type: "investigation-indicator-card",
       // The admin's existing declared vocabulary — unchanged for this.
       binding: { kind: "kpi", entity: "occurrence", measure: "count" },
       importance: "optional",
     },
-    expectedContext: { kind: "indicator", type: "stat-grid" },
+    expectedContext: { kind: "indicator", type: "investigation-indicator-card" },
   },
 ] as const;
 
@@ -475,12 +479,16 @@ const crossHostPlacementCase: ContractCase = {
       const specialised = c.createRegistry<unknown>();
       c.registerBaseWidgets(specialised);
       specialised.register(
-        c.byTypeOnKind("stat-grid", c.INDICATOR_CARD_KIND, "SPECIALISED"),
+        c.byTypeOnKind(
+          "investigation-indicator-card",
+          c.INDICATOR_CARD_KIND,
+          "SPECIALISED",
+        ),
       );
 
       const adminCtx = projectMatchContext(admin.block, CROSS_HOST_KIND_MAP);
       assert(
-        specialised.resolve(adminCtx)?.key === "stat-grid",
+        specialised.resolve(adminCtx)?.key === "investigation-indicator-card",
         "the authored type outranks the kind-generic face when one is registered",
       );
 
