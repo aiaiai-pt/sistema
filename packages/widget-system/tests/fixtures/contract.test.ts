@@ -24,6 +24,8 @@ import {
   NATIVE_CHART_KEY,
   EMBEDDED_ANALYSIS_KIND,
   EMBEDDED_ANALYSIS_KEY,
+  INDICATOR_CARD_KIND,
+  INDICATOR_CARD_KEY,
   safeEmbedSrc,
 } from "../../src/widgets/index.ts";
 import {
@@ -45,6 +47,8 @@ const impl: WidgetSystemContract = {
   NATIVE_CHART_KEY,
   EMBEDDED_ANALYSIS_KIND,
   EMBEDDED_ANALYSIS_KEY,
+  INDICATOR_CARD_KIND,
+  INDICATOR_CARD_KEY,
   safeEmbedSrc,
 };
 
@@ -59,7 +63,7 @@ describe("widget-system consumer contract fixtures — producer self-verificatio
     expect(result.cases.every((c) => c.outcome === "passed")).toBe(true);
   });
 
-  it("native-chart and embedded-analysis cases are SKIPPED for a core-only consumer", () => {
+  it("widget-layer cases are SKIPPED for a core-only consumer", () => {
     // A consumer that has not wired /widgets still runs the generic contract;
     // the widget-layer cases report skipped rather than failing.
     const coreOnly: WidgetSystemContract = {
@@ -75,9 +79,12 @@ describe("widget-system consumer contract fixtures — producer self-verificatio
 
     const byName = Object.fromEntries(result.cases.map((c) => [c.name, c.outcome]));
     const skipped = result.cases.filter((c) => c.outcome === "skipped");
-    expect(skipped).toHaveLength(2);
+    // Three cases need the /widgets layer: the two base widgets, plus
+    // cross-host placement (which resolves a registered card face).
+    expect(skipped).toHaveLength(3);
     expect(byName[CONTRACT_CASES[2].name]).toBe("skipped"); // native chart
     expect(byName[CONTRACT_CASES[3].name]).toBe("skipped"); // embedded analysis
+    expect(byName[CONTRACT_CASES[6].name]).toBe("skipped"); // cross-host placement
     // The generic cases still pass.
     expect(byName[CONTRACT_CASES[0].name]).toBe("passed"); // isolation
     expect(byName[CONTRACT_CASES[5].name]).toBe("passed"); // SSR determinism

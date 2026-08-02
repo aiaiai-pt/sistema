@@ -37,7 +37,7 @@ import type {
  * changes (a case added/removed/redefined), independently of the package
  * SemVer. Consumers pin this in their migration evidence.
  */
-export const CONTRACT_VERSION = "1.0.0";
+export const CONTRACT_VERSION = "1.1.0";
 
 /** Every observable widget status — the "complete states" enumeration (#61). */
 export const ALL_WIDGET_STATUSES: readonly WidgetStatus[] = [
@@ -85,6 +85,87 @@ export interface WidgetLayerContract {
   EMBEDDED_ANALYSIS_KIND: string;
   EMBEDDED_ANALYSIS_KEY: string;
   safeEmbedSrc: (raw: string) => string | null;
+  /** The card faces. Present once a consumer resolves a version that ships them. */
+  INDICATOR_CARD_KIND?: string;
+  INDICATOR_CARD_KEY?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Cross-host placement fixtures
+// ---------------------------------------------------------------------------
+
+/**
+ * A widget kind is proven by CROSS-HOST PLACEMENT: it must drop into slots
+ * opened by any host. A kind that only ever renders on one board is unproven,
+ * so these fixtures carry two REAL host slot shapes and assert that the same
+ * registered entry answers both.
+ *
+ * The projection under test is the fixed bridge contract (spec-889): a host's
+ * declared block projects into TWO separate things —
+ *   Block → WidgetMatchContext  { kind, type? }        (selection)
+ *   Block → WidgetRenderRequest { data, props, locale } (render)
+ * — and no host vocabulary crosses into widget-system. These fixtures encode
+ * the SELECTION half, which is the half that decides whether a kind travels.
+ *
+ * The two shapes are deliberately unlike each other: different declaration
+ * vocabulary, different data provenance (a client board binding vs a
+ * server-resolved admin extras read), different callbacks. If a face had
+ * absorbed anything host-shaped, one of them would fail to project.
+ */
+export interface HostSlotFixture {
+  /** Which host opened the slot — for evidence, never for dispatch. */
+  readonly host: string;
+  /** The slot the host opens (board track, extras band, …). */
+  readonly slot: string;
+  /** The host's own declared block, in that host's own vocabulary. */
+  readonly block: Readonly<Record<string, unknown>>;
+  /** What a correct adapter must project for SELECTION. */
+  readonly expectedContext: WidgetMatchContext;
+}
+
+/**
+ * Two hosts, one kind. The workspace declares an indicator on an exploration
+ * board track; the admin declares one as an `extras` block on a stored
+ * `admin_page`, whose value is resolved server-side before render.
+ */
+export const CROSS_HOST_INDICATOR_SLOTS: readonly HostSlotFixture[] = [
+  {
+    host: "workspace",
+    slot: "board-track",
+    block: {
+      block_type: "board_card",
+      binding: { kind: "indicator", code: "open_occurrences" },
+      importance: "optional",
+    },
+    expectedContext: { kind: "indicator" },
+  },
+  {
+    host: "admin",
+    slot: "extras-band",
+    block: {
+      block_type: "admin_page_extra",
+      binding: { kind: "indicator", entity: "occurrence", measure: "count" },
+      importance: "optional",
+    },
+    expectedContext: { kind: "indicator" },
+  },
+] as const;
+
+/**
+ * The SELECTION half of the bridge, as the contract specifies it: read the
+ * declared binding kind and the optional type hint, coerce to plain strings,
+ * and carry nothing else across. A consumer's real adapter must agree with this
+ * on these fixtures.
+ */
+export function projectMatchContext(
+  block: Readonly<Record<string, unknown>>,
+): WidgetMatchContext {
+  const binding = (block.binding ?? {}) as { kind?: unknown };
+  const type = (block as { type?: unknown }).type;
+  return {
+    kind: String(binding.kind ?? ""),
+    ...(typeof type === "string" ? { type } : {}),
+  };
 }
 
 export type WidgetSystemContract = CoreContract & Partial<WidgetLayerContract>;
@@ -251,6 +332,61 @@ const ssrDeterminismCase: ContractCase = {
   },
 };
 
+/**
+ * CROSS-HOST PLACEMENT — the acceptance for a widget kind.
+ *
+ * Same registered entry, two different hosts' slots, two different declaration
+ * vocabularies. This is the case that fails if a face quietly grows a
+ * host-shaped assumption.
+ */
+const crossHostPlacementCase: ContractCase = {
+  name: "cross-host placement — one kind answers slots opened by two hosts",
+  run(c, assert) {
+    if (
+      !c.registerBaseWidgets ||
+      !c.INDICATOR_CARD_KIND ||
+      !c.INDICATOR_CARD_KEY
+    ) {
+      // A consumer on a version predating the card faces skips rather than fails.
+      return "skipped";
+    }
+
+    const registry = c.createRegistry<unknown>();
+    c.registerBaseWidgets(registry);
+
+    const resolvedKeys: string[] = [];
+    for (const fixture of CROSS_HOST_INDICATOR_SLOTS) {
+      const ctx = projectMatchContext(fixture.block);
+      assert(
+        ctx.kind === fixture.expectedContext.kind,
+        `${fixture.host}/${fixture.slot}: projects kind "${fixture.expectedContext.kind}"`,
+      );
+      const match = registry.resolve(ctx);
+      assert(
+        match !== null,
+        `${fixture.host}/${fixture.slot}: the declared kind resolves to a widget`,
+      );
+      assert(
+        match?.key === c.INDICATOR_CARD_KEY,
+        `${fixture.host}/${fixture.slot}: resolves to ${c.INDICATOR_CARD_KEY}`,
+      );
+      resolvedKeys.push(match?.key ?? "");
+    }
+
+    assert(
+      resolvedKeys.length === CROSS_HOST_INDICATOR_SLOTS.length,
+      "every host slot resolved",
+    );
+    // The point of the case: not merely that each resolved, but that they
+    // resolved to the SAME registered entry. Two hosts, one face.
+    assert(
+      new Set(resolvedKeys).size === 1,
+      "both hosts resolve to the SAME registered entry — the card travels",
+    );
+    return "passed";
+  },
+};
+
 /** All contract cases, in a stable order. */
 export const CONTRACT_CASES: readonly ContractCase[] = [
   isolationCase,
@@ -259,6 +395,7 @@ export const CONTRACT_CASES: readonly ContractCase[] = [
   embeddedAnalysisCase,
   completeStatesCase,
   ssrDeterminismCase,
+  crossHostPlacementCase,
 ] as const;
 
 export interface ContractRunResult {

@@ -35,10 +35,32 @@ cannot carry snippets — a "slot" that vanished on the dispatch path would be a
 trap. `composer` (entry-stream) and `row` (definition-members-card) remain
 snippets for direct composition only, and are documented as such.
 
+### Added — cross-host placement fixtures (contract `1.1.0`)
+
+A widget kind is proven by CROSS-HOST PLACEMENT: it must drop into slots opened
+by any host. A kind that only ever renders on one board is unproven.
+
+`CROSS_HOST_INDICATOR_SLOTS` carries two real host slot shapes — a workspace
+board track and an admin `admin_page` extras band — and the new
+`cross-host placement` contract case asserts the SAME registered entry answers
+both. The two declarations are deliberately unlike each other (different
+vocabulary, different data provenance, different callbacks), so a face that
+absorbed anything host-shaped fails to project.
+
+`projectMatchContext` encodes the SELECTION half of the spec-889 bridge (a
+declared block projects separately to `WidgetMatchContext` for selection and
+`WidgetRenderRequest` for render). A consumer's real adapter must agree with it
+on these fixtures.
+
+`CONTRACT_VERSION` → `1.1.0` (a case was added; the fixture schema is versioned
+independently of the package).
+
 ### Changed
 
 - `registerBaseWidgets` now registers six widgets rather than two. The base-set
   test is pinned deliberately, so adding to it is always an explicit act.
+- A core-only consumer now skips three cases rather than two — the third is
+  cross-host placement, which needs a registered card face.
 
 ## [0.2.1] — 2026-07-29
 
