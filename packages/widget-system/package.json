@@ -49,6 +49,7 @@
     }
   },
   "devDependencies": {
+    "@aiaiai-pt/design-system": "file:../..",
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "echarts": "^6.1.0",
     "jsdom": "^29.1.1",
