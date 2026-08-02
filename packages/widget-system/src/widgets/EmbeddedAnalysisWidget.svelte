@@ -23,8 +23,8 @@
   SSR-safe: no browser globals; `<iframe loading="lazy">` defers the network.
 -->
 <script lang="ts">
-  import type { WidgetRenderRequest } from "../core/index.ts";
-  import { safeEmbedSrc } from "./embed-url.ts";
+  import type { WidgetRenderRequest } from "../core/index";
+  import { safeEmbedSrc } from "./embed-url";
 
   let { props }: WidgetRenderRequest = $props();
 

@@ -55,6 +55,27 @@ on these fixtures.
 `CONTRACT_VERSION` → `1.1.0` (a case was added; the fixture schema is versioned
 independently of the package).
 
+### Fixed — TS consumers could not compile against `0.2.1`
+
+Relative imports inside `src/` carried explicit `.ts` extensions
+(`export * from "./seal.ts"`). The package ships TypeScript SOURCE — `exports`
+points straight at `src/**/index.ts` with no build step — so those imports are
+part of the public contract, and any consumer without
+`allowImportingTsExtensions` failed with **TS5097**. This shipped in the
+published `0.2.1` and forced consumers to enable the flag just to install us.
+
+Extensions dropped throughout `src/` and `tests/`, and
+`allowImportingTsExtensions` removed from this package's own `tsconfig.json` —
+it was what let the defect typecheck here while breaking everyone else.
+
+Since CI runs `npm test` rather than `tsc`, removing the flag does not by itself
+prevent a regression, so `tests/core/consumer-resolution.test.ts` polices both
+the import graph and the flag's absence.
+
+Verified against a real consumer: a standalone `tsc` project with
+`moduleResolution: bundler` and no flag reports TS5097 before and compiles clean
+after.
+
 ### Changed
 
 - `registerBaseWidgets` now registers six widgets rather than two. The base-set

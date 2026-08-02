@@ -12,7 +12,7 @@ import {
   type WidgetMatchContext,
   type WidgetRenderRequest,
   type WidgetState,
-} from "../../src/core/index.ts";
+} from "../../src/core/index";
 import {
   registerBaseWidgets,
   NATIVE_CHART_KEY,
@@ -22,7 +22,7 @@ import {
   DEFINITION_MEMBERS_CARD_KEY,
   CHART_TILE_MOCK_KEY,
   type WidgetComponent,
-} from "../../src/widgets/index.ts";
+} from "../../src/widgets/index";
 import WidgetRenderer from "../../src/svelte/WidgetRenderer.svelte";
 
 describe("registerBaseWidgets — distinct keys, no fallback", () => {

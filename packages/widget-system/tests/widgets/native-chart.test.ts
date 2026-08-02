@@ -14,7 +14,7 @@
 import { flushSync, mount, unmount } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
 import NativeChartWidget from "../../src/widgets/NativeChartWidget.svelte";
-import type { WidgetRenderRequest } from "../../src/core/index.ts";
+import type { WidgetRenderRequest } from "../../src/core/index";
 
 let mounts: Array<Record<string, unknown>> = [];
 let targets: HTMLElement[] = [];

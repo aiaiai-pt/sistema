@@ -34,7 +34,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import SealChip from "@aiaiai-pt/design-system/components/SealChip.svelte";
-  import type { WidgetRenderRequest } from "../core/index.ts";
+  import type { WidgetRenderRequest } from "../core/index";
 
   interface SealTerm {
     value: string;

@@ -25,7 +25,7 @@
   the UI rather than only in a backlog.
 -->
 <script lang="ts">
-  import type { WidgetRenderRequest } from "../core/index.ts";
+  import type { WidgetRenderRequest } from "../core/index";
 
   let { props }: WidgetRenderRequest = $props();
 

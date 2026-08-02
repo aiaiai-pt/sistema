@@ -30,7 +30,7 @@ import {
   type RegistryEntry,
   type WidgetMatchContext,
   type WidgetRenderRequest,
-} from "../../src/core/index.ts";
+} from "../../src/core/index";
 
 // ---------------------------------------------------------------------------
 // Helpers

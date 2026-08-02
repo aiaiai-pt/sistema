@@ -32,7 +32,7 @@ import {
   type WidgetMatchContext,
   type WidgetRegistry,
   type WidgetRenderRequest,
-} from "../core/index.ts";
+} from "../core/index";
 import NativeChartWidget from "./NativeChartWidget.svelte";
 import EmbeddedAnalysisWidget from "./EmbeddedAnalysisWidget.svelte";
 import EntryStreamWidget from "./EntryStreamWidget.svelte";
@@ -128,4 +128,4 @@ export { default as EntryStreamWidget } from "./EntryStreamWidget.svelte";
 export { default as IndicatorCardWidget } from "./IndicatorCardWidget.svelte";
 export { default as DefinitionMembersCardWidget } from "./DefinitionMembersCardWidget.svelte";
 export { default as ChartTileMockWidget } from "./ChartTileMockWidget.svelte";
-export { safeEmbedSrc } from "./embed-url.ts";
+export { safeEmbedSrc } from "./embed-url";

@@ -15,7 +15,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { flushSync, mount, unmount } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createRegistry } from "../../src/core/index.ts";
+import { createRegistry } from "../../src/core/index";
 import {
   CHART_TILE_MOCK_KEY,
   CHART_TILE_MOCK_KIND,
@@ -31,7 +31,7 @@ import {
   IndicatorCardWidget,
   registerBaseWidgets,
   type WidgetComponent,
-} from "../../src/widgets/index.ts";
+} from "../../src/widgets/index";
 
 let target: HTMLElement | undefined;
 let component: Record<string, unknown> | undefined;

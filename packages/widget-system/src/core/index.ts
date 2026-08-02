@@ -11,11 +11,11 @@
 
 // Observable render-state model + the fail-closed state decision (S1.3 #58).
 // ./states.ts is pure — it imports only the WidgetRenderRequest TYPE from here.
-export * from "./states.ts";
+export * from "./states";
 
 // Evidence seal assignment — the ONLY seal source (H1 Slice 2, uw#57).
 // Pure TS: zero Svelte/browser imports, passes the /core purity guarantee.
-export * from "./seal.ts";
+export * from "./seal";
 
 // ---------------------------------------------------------------------------
 // WidgetMatchContext — the selection input (what the registry dispatches on)

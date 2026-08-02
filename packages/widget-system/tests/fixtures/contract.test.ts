@@ -17,7 +17,7 @@ import {
   selectEntry,
   resolveWidgetState,
   NOT_APPLICABLE,
-} from "../../src/core/index.ts";
+} from "../../src/core/index";
 import {
   registerBaseWidgets,
   NATIVE_CHART_KIND,
@@ -27,13 +27,13 @@ import {
   INDICATOR_CARD_KIND,
   INDICATOR_CARD_KEY,
   safeEmbedSrc,
-} from "../../src/widgets/index.ts";
+} from "../../src/widgets/index";
 import {
   runContract,
   CONTRACT_CASES,
   CONTRACT_VERSION,
   type WidgetSystemContract,
-} from "../../src/fixtures/index.ts";
+} from "../../src/fixtures/index";
 
 const impl: WidgetSystemContract = {
   createRegistry,

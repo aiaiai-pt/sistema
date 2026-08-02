@@ -16,7 +16,8 @@ export { default as Skeleton } from "./Skeleton.svelte";
 export { default as KeyValue } from "./KeyValue.svelte";
 
 // Evidence seal (H1 Slice 2 — westeuropeco/atelier-urban-workspace#57)
-// DS-owned evidence vocabulary: measured | inferred | projected
+// These own the LAWS and a presentation tone scale. They own NO seal
+// vocabulary: terms arrive as declared data resolved by resolveSeal().
 export { default as SealChip } from "./SealChip.svelte";
 export { default as KpiRegister } from "./KpiRegister.svelte";
 export { default as CaminhoStateChip } from "./CaminhoStateChip.svelte";

@@ -25,7 +25,7 @@
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import type { WidgetRenderRequest } from "../core/index.ts";
+  import type { WidgetRenderRequest } from "../core/index";
 
   /** One member row. `ref` is opaque and echoed back to callbacks untouched. */
   interface Member {

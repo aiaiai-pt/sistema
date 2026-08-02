@@ -30,7 +30,7 @@ import type {
   WidgetMatchContext,
   WidgetRegistry,
   WidgetStatus,
-} from "../core/index.ts";
+} from "../core/index";
 
 /**
  * Fixture-contract schema version. Bumped only when the SHAPE of the contract

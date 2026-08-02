@@ -34,14 +34,14 @@
     WidgetMatchContext,
     WidgetRegistry,
     WidgetRenderRequest,
-  } from "../core/index.ts";
+  } from "../core/index";
   import {
     resolveWidgetState,
     stateRequest,
     type SlotImportance,
     type WidgetState,
     type WidgetStatus,
-  } from "../core/index.ts";
+  } from "../core/index";
 
   interface Props {
     /** The injected registry — created per host/request with `createRegistry`. */

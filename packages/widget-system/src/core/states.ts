@@ -18,7 +18,7 @@
  *     (structural slots must never silently vanish) or soft-empty (optional).
  */
 
-import type { WidgetRenderRequest } from "./index.ts";
+import type { WidgetRenderRequest } from "./index";
 
 /**
  * Every observable status a widget slot can report. `ready`/`stale` mean "there
