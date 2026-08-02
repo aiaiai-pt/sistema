@@ -52,8 +52,22 @@ declared block projects separately to `WidgetMatchContext` for selection and
 `WidgetRenderRequest` for render). A consumer's real adapter must agree with it
 on these fixtures.
 
-`CONTRACT_VERSION` → `1.1.0` (a case was added; the fixture schema is versioned
-independently of the package).
+`CONTRACT_VERSION` → `1.2.0` (a case was added, then redefined; the fixture
+schema is versioned independently of the package).
+
+**The declared-kind map.** Hosts do not rename their declared vocabulary to suit
+a widget package, and authored sheets must not churn to adopt a widget kind —
+the admin has declared its indicator blocks `kpi` since long before these faces
+existed. So the adapter owns an explicit `DeclaredKindMap` as visible data, and
+`projectMatchContext(block, kindMap)` applies it. Identity is the default: a
+declared kind with no row passes through unchanged, so the workspace's
+`indicator` needs no entry and adding one host cannot disturb another.
+`CROSS_HOST_KIND_MAP` (`{ kpi: "indicator" }`) is the pinned map both sides of
+the bridge agree on.
+
+The case also asserts the map is LOAD-BEARING rather than decorative: without
+it, the admin's declared kind must NOT already match, and must fail closed at
+the registry. That is what stops the fixture quietly agreeing with itself.
 
 ### Fixed — TS consumers could not compile against `0.2.1`
 

@@ -37,7 +37,7 @@ import type {
  * changes (a case added/removed/redefined), independently of the package
  * SemVer. Consumers pin this in their migration evidence.
  */
-export const CONTRACT_VERSION = "1.1.0";
+export const CONTRACT_VERSION = "1.2.0";
 
 /** Every observable widget status — the "complete states" enumeration (#61). */
 export const ALL_WIDGET_STATUSES: readonly WidgetStatus[] = [
@@ -124,9 +124,33 @@ export interface HostSlotFixture {
 }
 
 /**
+ * The declared-kind → widget-kind map the ADAPTER owns, as visible data.
+ *
+ * Hosts do not rename their declared vocabulary to suit a widget package, and
+ * authored sheets must not churn to adopt a widget kind. The admin has declared
+ * its indicator blocks `kpi` since long before these faces existed, so the
+ * translation lives in one explicit, readable table in the adapter — never as a
+ * rename in a sheet, and never as a guess inside a widget.
+ *
+ * Identity is the default: a declared kind with no entry passes through
+ * unchanged, so the workspace's `indicator` needs no row here. Unknown kinds
+ * still fail closed at the registry, which resolves them to null.
+ */
+export type DeclaredKindMap = Readonly<Record<string, string>>;
+
+/** The pinned map both sides of the bridge agree on. */
+export const CROSS_HOST_KIND_MAP: DeclaredKindMap = Object.freeze({
+  kpi: "indicator",
+});
+
+/**
  * Two hosts, one kind. The workspace declares an indicator on an exploration
  * board track; the admin declares one as an `extras` block on a stored
  * `admin_page`, whose value is resolved server-side before render.
+ *
+ * Note the admin block declares `kind: "kpi"` — its real, existing vocabulary,
+ * which `resolve-extras.ts` already switches on. The map is what makes the same
+ * face answer both, and it is the map that is under test here.
  */
 export const CROSS_HOST_INDICATOR_SLOTS: readonly HostSlotFixture[] = [
   {
@@ -144,7 +168,8 @@ export const CROSS_HOST_INDICATOR_SLOTS: readonly HostSlotFixture[] = [
     slot: "extras-band",
     block: {
       block_type: "admin_page_extra",
-      binding: { kind: "indicator", entity: "occurrence", measure: "count" },
+      // The admin's existing declared vocabulary — unchanged for this.
+      binding: { kind: "kpi", entity: "occurrence", measure: "count" },
       importance: "optional",
     },
     expectedContext: { kind: "indicator" },
@@ -153,17 +178,20 @@ export const CROSS_HOST_INDICATOR_SLOTS: readonly HostSlotFixture[] = [
 
 /**
  * The SELECTION half of the bridge, as the contract specifies it: read the
- * declared binding kind and the optional type hint, coerce to plain strings,
- * and carry nothing else across. A consumer's real adapter must agree with this
- * on these fixtures.
+ * declared binding kind, translate it through the adapter's explicit map, take
+ * the optional type hint, coerce to plain strings, and carry nothing else
+ * across. A consumer's real adapter must agree with this on these fixtures.
  */
 export function projectMatchContext(
   block: Readonly<Record<string, unknown>>,
+  kindMap: DeclaredKindMap = {},
 ): WidgetMatchContext {
   const binding = (block.binding ?? {}) as { kind?: unknown };
+  const declared = String(binding.kind ?? "");
   const type = (block as { type?: unknown }).type;
   return {
-    kind: String(binding.kind ?? ""),
+    // Identity unless the adapter's map says otherwise.
+    kind: kindMap[declared] ?? declared,
     ...(typeof type === "string" ? { type } : {}),
   };
 }
@@ -356,7 +384,7 @@ const crossHostPlacementCase: ContractCase = {
 
     const resolvedKeys: string[] = [];
     for (const fixture of CROSS_HOST_INDICATOR_SLOTS) {
-      const ctx = projectMatchContext(fixture.block);
+      const ctx = projectMatchContext(fixture.block, CROSS_HOST_KIND_MAP);
       assert(
         ctx.kind === fixture.expectedContext.kind,
         `${fixture.host}/${fixture.slot}: projects kind "${fixture.expectedContext.kind}"`,
@@ -383,6 +411,36 @@ const crossHostPlacementCase: ContractCase = {
       new Set(resolvedKeys).size === 1,
       "both hosts resolve to the SAME registered entry — the card travels",
     );
+
+    // The map must be LOAD-BEARING, not decorative. Without it the admin's
+    // declared `kpi` passes through unchanged and resolves to nothing — which
+    // is the fail-closed behaviour we want, and the proof that the translation
+    // is doing real work rather than the fixture quietly agreeing with itself.
+    const admin = CROSS_HOST_INDICATOR_SLOTS.find((f) => f.host === "admin");
+    if (admin) {
+      const unmapped = projectMatchContext(admin.block);
+      assert(
+        unmapped.kind !== admin.expectedContext.kind,
+        "without the map, the admin's declared kind does NOT already match",
+      );
+      assert(
+        registry.resolve(unmapped) === null,
+        "an unmapped declared kind fails closed rather than resolving by accident",
+      );
+    }
+
+    // Identity is the default: a host whose declared kind already matches needs
+    // no row in the map, so adding one host cannot disturb another.
+    const workspace = CROSS_HOST_INDICATOR_SLOTS.find(
+      (f) => f.host === "workspace",
+    );
+    if (workspace) {
+      assert(
+        projectMatchContext(workspace.block).kind ===
+          projectMatchContext(workspace.block, CROSS_HOST_KIND_MAP).kind,
+        "an unmapped host projects identically with or without the map",
+      );
+    }
     return "passed";
   },
 };
