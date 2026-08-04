@@ -4,6 +4,38 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.51.0] — 2026-08-04
+
+### Added
+- **Marketing display scale.** `--type-display-xl-*` (48px) and
+  `--type-display-2xl-*` (64px) in `tokens/semantic.css`, on new raw steps
+  `--raw-font-size-48` / `--raw-font-size-64` in `tokens/base.css`, with
+  `.type-display-xl` / `.type-display-2xl` utilities that step down one role
+  below 900px. Composed exactly like every other type role — size / weight /
+  leading / tracking / font, each resolving to a raw token, never a literal.
+- **The scale now has two documented halves.** Application surfaces start at
+  `type-display` (36px) and go down; the two new roles are for public pages
+  where the headline is the message rather than a page title. Recorded as a
+  second KEY RULE callout on the typography foundations page.
+
+### Why
+The scale stopped at 36px while the foundations page described `type-display` as
+"Brand moments, hero sections" — and sistema's own site uses it for an `h1`. A
+consuming public site (Palantaco web) therefore had to declare raw font sizes
+above 36px in its own stylesheet, which is the parallel-system failure the
+token-roles lint exists to prevent. Fixing it in the consumer would have made
+every future public surface repeat it.
+
+### Notes
+- `tests/marketing-display-scale.test.ts` guards the **composition contract**,
+  not the pixel values: every role resolves to a raw token, declares all five
+  properties, the raw scale stays monotonic and self-consistent with its own
+  names, and each utility references only its own role's tokens. Written
+  red-first (6 failing, then 6 passing).
+- Suite: 438 passing / 32 files, against a recorded 432 / 31 on `main`. The
+  delta is exactly the six new tests.
+- No breaking changes; MINOR per feat.
+
 ## [0.50.0] — 2026-07-29
 
 ### Added

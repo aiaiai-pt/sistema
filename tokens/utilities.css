@@ -984,6 +984,35 @@
    Instrument Sans is the quiet backdrop for prose.
    ═══════════════════════════════════════════════ */
 
+/* Marketing roles — public pages where the headline is the message.
+   Application surfaces start at .type-display. Both step down one role at
+   narrow viewports rather than wrapping a headline to six lines. */
+.type-display-2xl {
+  font-family: var(--type-display-2xl-font);
+  font-size: var(--type-display-2xl-size);
+  font-weight: var(--type-display-2xl-weight);
+  line-height: var(--type-display-2xl-leading);
+  letter-spacing: var(--type-display-2xl-tracking);
+}
+
+.type-display-xl {
+  font-family: var(--type-display-xl-font);
+  font-size: var(--type-display-xl-size);
+  font-weight: var(--type-display-xl-weight);
+  line-height: var(--type-display-xl-leading);
+  letter-spacing: var(--type-display-xl-tracking);
+}
+
+@media (max-width: 900px) {
+  .type-display-2xl {
+    font-size: var(--type-display-xl-size);
+  }
+
+  .type-display-xl {
+    font-size: var(--type-display-size);
+  }
+}
+
 .type-display {
   font-family: var(--type-display-font);
   font-size: var(--type-display-size);

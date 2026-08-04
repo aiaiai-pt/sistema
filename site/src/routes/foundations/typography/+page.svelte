@@ -3,7 +3,9 @@
 	import Callout from '$lib/components/Callout.svelte';
 
 	const scale = [
-		{ class: 'type-display', label: 'Display', desc: 'Brand moments, hero sections', font: 'Instrument Sans 600' },
+		{ class: 'type-display-2xl', label: 'Display 2XL', desc: 'Public pages only — the headline IS the message', font: 'Instrument Sans 600' },
+		{ class: 'type-display-xl', label: 'Display XL', desc: 'Public pages only — sub-headlines, section openers', font: 'Instrument Sans 600' },
+		{ class: 'type-display', label: 'Display', desc: 'Largest application step — page-level brand moments', font: 'Instrument Sans 600' },
 		{ class: 'type-heading-lg', label: 'Heading Large', desc: 'Page titles', font: 'Instrument Sans 500' },
 		{ class: 'type-heading', label: 'Heading', desc: 'Section headings, card titles', font: 'Instrument Sans 500' },
 		{ class: 'type-heading-sm', label: 'Heading Small', desc: 'Subsection headings', font: 'Instrument Sans 500' },
@@ -76,6 +78,22 @@
 		Labels and data are <strong>always</strong> Berkeley Mono. This is the "exposed mechanism" —
 		the interface reveals its structure through monospace type. Instrument Sans is the quiet
 		backdrop for prose and headings.
+	</p>
+</Callout>
+
+<Callout title="APPLICATION vs PUBLIC">
+	<p class="type-body">
+		The scale has two halves. Application surfaces start at <code>type-display</code> (36px) and
+		go down — that is the whole range a product screen needs.
+		<strong><code>type-display-xl</code> and <code>type-display-2xl</code> are for public pages
+		only</strong>, where the headline is not a page title but the message itself. Reaching for
+		them inside an application is a sign the page is doing marketing; reaching for a raw
+		<code>font-size</code> above 36px on a public page means these two are missing something —
+		fix them here, not in the consuming project.
+	</p>
+	<p class="type-body">
+		Both step down one role below 900px, so a three-line headline stays three lines instead of
+		becoming six.
 	</p>
 </Callout>
 
