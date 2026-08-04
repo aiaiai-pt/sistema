@@ -11,7 +11,9 @@ feat → MINOR, breaking → MAJOR.
   `--type-display-2xl-*` (64px) in `tokens/semantic.css`, on new raw steps
   `--raw-font-size-48` / `--raw-font-size-64` in `tokens/base.css`, with
   `.type-display-xl` / `.type-display-2xl` utilities that step down one role
-  below 900px. Composed exactly like every other type role — size / weight /
+  below 900px, which keeps a marketing headline near its intended line count
+  on a phone instead of doubling it (measured: a three-line 48px headline
+  becomes four lines at 375px, not six). Composed exactly like every other type role — size / weight /
   leading / tracking / font, each resolving to a raw token, never a literal.
 - **The scale now has two documented halves.** Application surfaces start at
   `type-display` (36px) and go down; the two new roles are for public pages

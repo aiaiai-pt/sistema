@@ -986,7 +986,8 @@
 
 /* Marketing roles — public pages where the headline is the message.
    Application surfaces start at .type-display. Both step down one role at
-   narrow viewports rather than wrapping a headline to six lines. */
+   narrow viewports, which holds a headline near its intended line count
+   rather than doubling it. */
 .type-display-2xl {
   font-family: var(--type-display-2xl-font);
   font-size: var(--type-display-2xl-size);
