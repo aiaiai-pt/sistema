@@ -67,7 +67,7 @@
 
 <section style="margin-bottom: var(--space-2xl);">
   <h2 class="type-heading" style="margin-bottom: var(--space-md);">SiteHeader (composed)</h2>
-  <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
+  <div style="border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
     <SiteHeader>
       {#snippet brand()}<strong>Município de Valongo</strong>{/snippet}
       {#snippet nav()}<ServiceNavigation label="Primary" items={navItems} menuId="demo-header-nav" />{/snippet}
@@ -77,7 +77,7 @@
 
 <section style="margin-bottom: var(--space-2xl);">
   <h2 class="type-heading" style="margin-bottom: var(--space-md);">Hero</h2>
-  <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
+  <div style="border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
     <Hero title="Report a problem in Valongo" subtitle="Potholes, lighting, waste — in two minutes." />
   </div>
 </section>
@@ -85,7 +85,7 @@
 <section style="margin-bottom: var(--space-2xl);">
   <h2 class="type-heading" style="margin-bottom: var(--space-md);">Hero with background image</h2>
   <p class="type-body-sm" style="margin-bottom: var(--space-md);">An <code class="type-data">image</code> renders cover/center under the <code class="type-data">--hero-scrim</code> overlay — a surface-tinted (theme-following) scrim, so the text tokens keep their contrast on any photo. Raise the scrim mix for busier imagery.</p>
-  <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
+  <div style="border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
     <Hero
       title="Report a problem in Valongo"
       subtitle="The scrim keeps this readable over the photo."
@@ -97,7 +97,7 @@
 
 <section style="margin-bottom: var(--space-2xl);">
   <h2 class="type-heading" style="margin-bottom: var(--space-md);">ContentBlock + SiteFooter</h2>
-  <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
+  <div style="border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); overflow:hidden;">
     <ContentBlock title="Privacy Policy">
       <p>We respect your data and process reports per RGPD.</p>
       <h2>What we collect</h2>
@@ -119,7 +119,7 @@
     Ordered <code>&lt;ol&gt;</code> progress timeline for the <code>tracker</code> page. The current step gets
     <code>aria-current="step"</code>; each step announces a visually-hidden state label (localizable for the portal's i18n).
   </p>
-  <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-xl); max-width: var(--content-width-narrow);">
+  <div style="border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-xl); max-width: var(--content-width-narrow);">
     <StatusTimeline label="Report progress" steps={timelineSteps} />
   </div>
 </section>
@@ -130,7 +130,7 @@
     Dashboard layout for <code>landing</code> / information-portal pages. Children opt into width with
     <code>widget-span-2</code> / <code>widget-span-full</code>. Resize to see it fold to two columns, then one.
   </p>
-  <div style="border:1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-xl);">
+  <div style="border: var(--border-width) solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-xl);">
     <WidgetGrid columns="3">
       <Card class="widget-span-2">
         <Hero title="Participate in Valongo" subtitle="Open consultations, reports, and local budget voting." />

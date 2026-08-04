@@ -87,7 +87,7 @@
 
 	kbd {
 		font-family: var(--type-mono-font);
-		font-size: 0.875em;
+		font-size: var(--type-body-sm-size);
 		background: var(--color-surface-secondary);
 		padding: 0 var(--space-2xs);
 		border-radius: var(--radius-xs, 2px);

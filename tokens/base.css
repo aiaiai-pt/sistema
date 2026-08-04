@@ -96,6 +96,10 @@
   --raw-font-size-18: 1.125rem;
   --raw-font-size-24: 1.5rem;
   --raw-font-size-36: 2.25rem;
+  /* Marketing steps. Application surfaces stop at 36; these exist for public
+     pages where the headline is the message, not a page title. */
+  --raw-font-size-48: 3rem;
+  --raw-font-size-64: 4rem;
 
   /* ─── Typography: Font Weights ─── */
   --raw-font-weight-regular: 400;

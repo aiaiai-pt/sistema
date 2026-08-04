@@ -63,7 +63,21 @@
   --font-sans: var(--raw-font-sans);
   --font-mono: var(--raw-font-mono);
 
-  /* Type scale — categorical */
+  /* Type scale — categorical.
+     display-2xl / display-xl are MARKETING roles: public pages where the
+     headline is the message. Application surfaces start at `display`. */
+  --type-display-2xl-size: var(--raw-font-size-64);
+  --type-display-2xl-weight: var(--raw-font-weight-semibold);
+  --type-display-2xl-leading: var(--raw-line-height-tight);
+  --type-display-2xl-tracking: var(--raw-tracking-tight);
+  --type-display-2xl-font: var(--font-sans);
+
+  --type-display-xl-size: var(--raw-font-size-48);
+  --type-display-xl-weight: var(--raw-font-weight-semibold);
+  --type-display-xl-leading: var(--raw-line-height-tight);
+  --type-display-xl-tracking: var(--raw-tracking-tight);
+  --type-display-xl-font: var(--font-sans);
+
   --type-display-size: var(--raw-font-size-36);
   --type-display-weight: var(--raw-font-weight-semibold);
   --type-display-leading: var(--raw-line-height-tight);
