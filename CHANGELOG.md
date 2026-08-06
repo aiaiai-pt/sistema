@@ -4,7 +4,45 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
-## [0.51.0] — 2026-08-04
+## [0.51.0] — 2026-08-06
+
+### Changed — BREAKING (evidence seal)
+
+The seal primitives no longer enumerate any seal vocabulary. The design system
+owns the LAWS and a presentation tone scale; the words are declared data.
+
+Fork B was ruled by the operator on 2026-08-01: the design system does **not**
+own the seal vocabulary. The 0.50.0 note below claiming a Fork B ruling in the
+opposite direction was never ratified — it is corrected here rather than edited
+out, since the packages shipped under it.
+
+- **`SealChip`** — `evidence` and `probability` now take a declared term
+  `{ value, label, tone? }` instead of a vocabulary string. `tone` selects from
+  the design system's own scale (`positive · info · caution · neutral`). New
+  props: `why` (provenance one-liner; turns the chip into a real
+  `button[aria-expanded]` disclosure with Esc, a visible close, and a caller-named
+  trigger), `whyLabel`, `closeLabel`, `staleLabel` (all localizable — this package
+  owns no product copy). sr-text is stitched as
+  «{value} — {evidence}[, {probability}][, stale]», with the visible value and
+  chips `aria-hidden` so nothing announces twice.
+- **`KpiRegister`** — `measuredValue`/`projectedValue`/`projectedSeal` become
+  `primaryValue`/`primarySeal`/`secondaryValue`/`secondarySeal`/`secondaryWhy`.
+  "The more authoritative value out-ranks" is now enforced structurally by
+  evidence class rather than by word, in type size, position and reading order;
+  seating a more authoritative value in the lower register throws.
+- **Tokens** — `--seal-{measured,inferred,projected}-*` are renamed to
+  `--seal-{positive,info,caution}-*`. They are tones, not seal words; which term
+  wears which tone is declared beside the term. `--seal-stale-*` is unchanged —
+  staleness is an orthogonal state, never a vocabulary member.
+- **Guards** — `SealChip` now throws rather than render a sealless seal (an absent
+  evidence term previously rendered an empty badge and empty sr-text, silently
+  producing a value that announced no provenance at all).
+
+Pairs with `@aiaiai-pt/widget-system` `assignSeal` (now wordless, returning an
+evidence *class*) plus the new `resolveSeal`, `EVIDENCE_CLASS_RANK` and
+`outranks`.
+
+Refs: westeuropeco/atelier-urban-workspace#57, #80.
 
 ### Added
 - **Marketing display scale.** `--type-display-xl-*` (48px) and

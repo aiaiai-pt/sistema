@@ -150,14 +150,23 @@ function resolveColor(name: string, tokens: TokenMap, bg?: RGBA): RGBA {
 const root = join(import.meta.dirname, "..");
 const baseCss = readFileSync(join(root, "tokens/base.css"), "utf-8");
 const semanticCss = readFileSync(join(root, "tokens/semantic.css"), "utf-8");
-const componentsCss = readFileSync(join(root, "tokens/components.css"), "utf-8");
+const componentsCss = readFileSync(
+  join(root, "tokens/components.css"),
+  "utf-8",
+);
 const ubpCss = readFileSync(join(root, "tokens/themes/ubp.css"), "utf-8");
 
 const baseTokens = extractTokens(baseCss, ":root");
 const semanticTokens = extractTokens(semanticCss, ":root");
-const darkGenericTokens = extractTokens(semanticCss, `:root[data-scheme="dark"]`);
+const darkGenericTokens = extractTokens(
+  semanticCss,
+  `:root[data-scheme="dark"]`,
+);
 const ubpTokens = extractTokens(ubpCss, `[data-theme="ubp"]`);
-const ubpDarkTokens = extractTokens(ubpCss, `[data-theme="ubp"][data-scheme="dark"]`);
+const ubpDarkTokens = extractTokens(
+  ubpCss,
+  `[data-theme="ubp"][data-scheme="dark"]`,
+);
 const componentTokens = extractTokens(componentsCss, ":root");
 
 // Light: base + semantic + component defaults + ubp theme overrides.
@@ -193,27 +202,27 @@ const darkTokens: TokenMap = merge(
 // theme are raw hex values, so they ARE parseable by this suite.
 
 describe("[Slice 2] Evidence seal — UBP light scheme contrast", () => {
-  it("--seal-measured-text on --seal-measured-bg ≥4.5:1 [AA text]", () => {
-    const bg = resolveColor("--seal-measured-bg", lightTokens);
-    const fg = resolveColor("--seal-measured-text", lightTokens, bg);
+  it("--seal-positive-text on --seal-positive-bg ≥4.5:1 [AA text]", () => {
+    const bg = resolveColor("--seal-positive-bg", lightTokens);
+    const fg = resolveColor("--seal-positive-text", lightTokens, bg);
     expect(
       contrastRatio(fg, bg),
       `measured text on measured bg — expected ≥4.5:1`,
     ).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("--seal-inferred-text on --seal-inferred-bg ≥4.5:1 [AA text]", () => {
-    const bg = resolveColor("--seal-inferred-bg", lightTokens);
-    const fg = resolveColor("--seal-inferred-text", lightTokens, bg);
+  it("--seal-info-text on --seal-info-bg ≥4.5:1 [AA text]", () => {
+    const bg = resolveColor("--seal-info-bg", lightTokens);
+    const fg = resolveColor("--seal-info-text", lightTokens, bg);
     expect(
       contrastRatio(fg, bg),
       `inferred text on inferred bg — expected ≥4.5:1`,
     ).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("--seal-projected-text on --seal-projected-bg ≥4.5:1 [AA text]", () => {
-    const bg = resolveColor("--seal-projected-bg", lightTokens);
-    const fg = resolveColor("--seal-projected-text", lightTokens, bg);
+  it("--seal-caution-text on --seal-caution-bg ≥4.5:1 [AA text]", () => {
+    const bg = resolveColor("--seal-caution-bg", lightTokens);
+    const fg = resolveColor("--seal-caution-text", lightTokens, bg);
     expect(
       contrastRatio(fg, bg),
       `projected text on projected bg — expected ≥4.5:1`,
@@ -229,9 +238,9 @@ describe("[Slice 2] Evidence seal — UBP light scheme contrast", () => {
     ).toBeGreaterThanOrEqual(3.0);
   });
 
-  it("--seal-measured-text on --color-surface ≥3.0:1 [large UI — badge shape]", () => {
+  it("--seal-positive-text on --color-surface ≥3.0:1 [large UI — badge shape]", () => {
     const bg = resolveColor("--color-surface", lightTokens);
-    const fg = resolveColor("--seal-measured-text", lightTokens, bg);
+    const fg = resolveColor("--seal-positive-text", lightTokens, bg);
     expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(3.0);
   });
 });
@@ -243,27 +252,27 @@ describe("[Slice 2] Evidence seal — UBP light scheme contrast", () => {
 // Text tokens are asserted on the dark surface (#0b182a = --color-surface dark).
 
 describe("[Slice 2] Evidence seal — UBP dark scheme text contrast on surface", () => {
-  it("--seal-measured-text on --color-surface (dark) ≥7.0:1 [AAA]", () => {
+  it("--seal-positive-text on --color-surface (dark) ≥7.0:1 [AAA]", () => {
     const bg = resolveColor("--color-surface", darkTokens);
-    const fg = resolveColor("--seal-measured-text", darkTokens, bg);
+    const fg = resolveColor("--seal-positive-text", darkTokens, bg);
     expect(
       contrastRatio(fg, bg),
       `dark measured text on dark surface — expected ≥7.0:1`,
     ).toBeGreaterThanOrEqual(7.0);
   });
 
-  it("--seal-inferred-text on --color-surface (dark) ≥7.0:1 [AAA]", () => {
+  it("--seal-info-text on --color-surface (dark) ≥7.0:1 [AAA]", () => {
     const bg = resolveColor("--color-surface", darkTokens);
-    const fg = resolveColor("--seal-inferred-text", darkTokens, bg);
+    const fg = resolveColor("--seal-info-text", darkTokens, bg);
     expect(
       contrastRatio(fg, bg),
       `dark inferred text on dark surface — expected ≥7.0:1`,
     ).toBeGreaterThanOrEqual(7.0);
   });
 
-  it("--seal-projected-text on --color-surface (dark) ≥7.0:1 [AAA]", () => {
+  it("--seal-caution-text on --color-surface (dark) ≥7.0:1 [AAA]", () => {
     const bg = resolveColor("--color-surface", darkTokens);
-    const fg = resolveColor("--seal-projected-text", darkTokens, bg);
+    const fg = resolveColor("--seal-caution-text", darkTokens, bg);
     expect(
       contrastRatio(fg, bg),
       `dark projected text on dark surface — expected ≥7.0:1`,
@@ -272,12 +281,12 @@ describe("[Slice 2] Evidence seal — UBP dark scheme text contrast on surface",
 
   it("dark evidence text tokens are present (ubp dark block provides overrides)", () => {
     // Confirm the dark overrides exist and are raw hex (not inheriting light values)
-    const measuredDark = ubpDarkTokens.get("--seal-measured-text");
-    const inferredDark = ubpDarkTokens.get("--seal-inferred-text");
-    const projectedDark = ubpDarkTokens.get("--seal-projected-text");
-    expect(measuredDark, "--seal-measured-text dark override").toBeDefined();
-    expect(inferredDark, "--seal-inferred-text dark override").toBeDefined();
-    expect(projectedDark, "--seal-projected-text dark override").toBeDefined();
+    const measuredDark = ubpDarkTokens.get("--seal-positive-text");
+    const inferredDark = ubpDarkTokens.get("--seal-info-text");
+    const projectedDark = ubpDarkTokens.get("--seal-caution-text");
+    expect(measuredDark, "--seal-positive-text dark override").toBeDefined();
+    expect(inferredDark, "--seal-info-text dark override").toBeDefined();
+    expect(projectedDark, "--seal-caution-text dark override").toBeDefined();
   });
 });
 
@@ -285,12 +294,12 @@ describe("[Slice 2] Evidence seal — UBP dark scheme text contrast on surface",
 
 describe("[Slice 2] Evidence seal — token presence", () => {
   const LIGHT_TOKENS = [
-    "--seal-measured-text",
-    "--seal-measured-bg",
-    "--seal-inferred-text",
-    "--seal-inferred-bg",
-    "--seal-projected-text",
-    "--seal-projected-bg",
+    "--seal-positive-text",
+    "--seal-positive-bg",
+    "--seal-info-text",
+    "--seal-info-bg",
+    "--seal-caution-text",
+    "--seal-caution-bg",
     "--seal-stale-text",
     "--seal-stale-bg",
   ];
@@ -300,6 +309,50 @@ describe("[Slice 2] Evidence seal — token presence", () => {
       expect(
         componentTokens.has(token),
         `${token} must be in :root block of components.css`,
+      ).toBe(true);
+    });
+  }
+});
+
+// ─── Every token SealChip references must actually exist ─────────────────────
+//
+// A var() naming a token nobody declares fails silently: the declaration is
+// dropped and the affordance simply is not there. That is how `--focus-ring`
+// (the real name is --focus-ring-width / --focus-ring-color) removed the
+// keyboard focus ring from the why trigger without any test noticing.
+//
+// A hardcoded or nonexistent token is a bug, so assert the whole reference set
+// rather than a hand-maintained list.
+
+describe("[Slice 2] SealChip — every referenced token is declared", () => {
+  const declared = merge(
+    baseTokens,
+    semanticTokens,
+    componentTokens,
+    darkGenericTokens,
+    ubpTokens,
+    ubpDarkTokens,
+  );
+
+  const sealChipSource = readFileSync(
+    join(root, "components/SealChip.svelte"),
+    "utf-8",
+  );
+  const referenced = [
+    ...new Set(
+      [...sealChipSource.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]),
+    ),
+  ].sort();
+
+  it("references at least the seal, badge, and focus tokens", () => {
+    expect(referenced.length).toBeGreaterThan(10);
+  });
+
+  for (const token of referenced) {
+    it(`${token} resolves to a declared token`, () => {
+      expect(
+        declared.has(token),
+        `SealChip.svelte references ${token}, which no token file declares`,
       ).toBe(true);
     });
   }
