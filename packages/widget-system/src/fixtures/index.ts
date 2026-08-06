@@ -79,7 +79,12 @@ export interface CoreContract {
  * core-only consumer can still run the generic contract.
  */
 export interface WidgetLayerContract {
-  registerBaseWidgets: (registry: WidgetRegistry<unknown>) => void;
+  // `any`, not `unknown`: WidgetRegistry is invariant in P (register is
+  // contravariant, resolve covariant), so the producer's concrete
+  // WidgetRegistry<WidgetComponent> signature is only assignable through `any`.
+  // The component type is opaque to the contract by design.
+  // biome-ignore lint/suspicious/noExplicitAny: invariance escape hatch, see above
+  registerBaseWidgets: (registry: WidgetRegistry<any>) => void;
   NATIVE_CHART_KIND: string;
   NATIVE_CHART_KEY: string;
   EMBEDDED_ANALYSIS_KIND: string;
