@@ -22,5 +22,5 @@ export type {
   StateDecision,
   WidgetState,
   WidgetStatus,
-} from "../core/index.ts";
-export { resolveWidgetState, stateRequest } from "../core/index.ts";
+} from "../core/index";
+export { resolveWidgetState, stateRequest } from "../core/index";

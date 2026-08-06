@@ -20,7 +20,7 @@ import {
   stateRequest,
   type WidgetState,
   type WidgetStatus,
-} from "../../src/core/index.ts";
+} from "../../src/core/index";
 
 const TERMINAL_STATUSES: WidgetStatus[] = [
   "empty",

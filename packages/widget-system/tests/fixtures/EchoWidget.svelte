@@ -4,7 +4,7 @@
   Atelier vocabulary; consumes the generic { data, props, locale } contract.
 -->
 <script lang="ts">
-  import type { WidgetRenderRequest } from "../../src/core/index.ts";
+  import type { WidgetRenderRequest } from "../../src/core/index";
   let { data, props, locale }: WidgetRenderRequest = $props();
   const title = $derived(typeof props.title === "string" ? props.title : "");
 </script>

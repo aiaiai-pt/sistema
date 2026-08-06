@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { safeEmbedSrc } from "../../src/widgets/embed-url.ts";
+import { safeEmbedSrc } from "../../src/widgets/embed-url";
 
 describe("safeEmbedSrc — accepted", () => {
   it("keeps an https absolute URL", () => {

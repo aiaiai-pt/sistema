@@ -12,7 +12,7 @@ import {
   type WidgetMatchContext,
   type WidgetRenderRequest,
   type WidgetState,
-} from "../../src/core/index.ts";
+} from "../../src/core/index";
 import WidgetRenderer from "../../src/svelte/WidgetRenderer.svelte";
 import EchoWidget from "../fixtures/EchoWidget.svelte";
 

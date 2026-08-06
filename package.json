@@ -16,7 +16,7 @@
     "packages/widget-system"
   ],
   "scripts": {
-    "build:types": "rm -f components/*.d.ts components/renderer/*.d.ts && svelte-package --input . --output dist && cp dist/components/*.d.ts components/ && cp dist/components/renderer/*.d.ts components/renderer/ && rm -rf dist",
+    "build:types": "rm -rf node_modules/@aiaiai-pt/design-system packages/widget-system/node_modules/@aiaiai-pt/design-system && rm -f components/*.d.ts components/renderer/*.d.ts && svelte-package --input . --output dist && cp dist/components/*.d.ts components/ && cp dist/components/renderer/*.d.ts components/renderer/ && rm -rf dist",
     "test": "vitest run",
     "prepublishOnly": "npm run build:types"
   },

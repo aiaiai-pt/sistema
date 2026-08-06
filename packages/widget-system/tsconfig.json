@@ -7,7 +7,6 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "strict": true,
-    "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "outDir": "dist"
   },

@@ -27,7 +27,7 @@
 -->
 <script lang="ts">
   import EChart from "@aiaiai-pt/design-system/components/EChart.svelte";
-  import type { WidgetRenderRequest } from "../core/index.ts";
+  import type { WidgetRenderRequest } from "../core/index";
 
   /** One resolved series — mirrors the Sistema EChart SeriesData contract. */
   interface ResolvedSeries {

@@ -30,14 +30,14 @@ import type {
   WidgetMatchContext,
   WidgetRegistry,
   WidgetStatus,
-} from "../core/index.ts";
+} from "../core/index";
 
 /**
  * Fixture-contract schema version. Bumped only when the SHAPE of the contract
  * changes (a case added/removed/redefined), independently of the package
  * SemVer. Consumers pin this in their migration evidence.
  */
-export const CONTRACT_VERSION = "1.0.0";
+export const CONTRACT_VERSION = "1.3.0";
 
 /** Every observable widget status — the "complete states" enumeration (#61). */
 export const ALL_WIDGET_STATUSES: readonly WidgetStatus[] = [
@@ -79,12 +79,146 @@ export interface CoreContract {
  * core-only consumer can still run the generic contract.
  */
 export interface WidgetLayerContract {
-  registerBaseWidgets: (registry: WidgetRegistry<unknown>) => void;
+  // `any`, not `unknown`: WidgetRegistry is invariant in P (register is
+  // contravariant, resolve covariant), so the producer's concrete
+  // WidgetRegistry<WidgetComponent> signature is only assignable through `any`.
+  // The component type is opaque to the contract by design.
+  // biome-ignore lint/suspicious/noExplicitAny: invariance escape hatch, see above
+  registerBaseWidgets: (registry: WidgetRegistry<any>) => void;
   NATIVE_CHART_KIND: string;
   NATIVE_CHART_KEY: string;
   EMBEDDED_ANALYSIS_KIND: string;
   EMBEDDED_ANALYSIS_KEY: string;
   safeEmbedSrc: (raw: string) => string | null;
+  /** The card faces. Present once a consumer resolves a version that ships them. */
+  INDICATOR_CARD_KIND?: string;
+  INDICATOR_CARD_KEY?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Cross-host placement fixtures
+// ---------------------------------------------------------------------------
+
+/**
+ * A widget kind is proven by CROSS-HOST PLACEMENT: it must drop into slots
+ * opened by any host. A kind that only ever renders on one board is unproven,
+ * so these fixtures carry two REAL host slot shapes and assert that the same
+ * registered entry answers both.
+ *
+ * The projection under test is the fixed bridge contract (spec-889): a host's
+ * declared block projects into TWO separate things —
+ *   Block → WidgetMatchContext  { kind, type? }        (selection)
+ *   Block → WidgetRenderRequest { data, props, locale } (render)
+ * — and no host vocabulary crosses into widget-system. These fixtures encode
+ * the SELECTION half, which is the half that decides whether a kind travels.
+ *
+ * The two shapes are deliberately unlike each other: different declaration
+ * vocabulary, different data provenance (a client board binding vs a
+ * server-resolved admin extras read), different callbacks. If a face had
+ * absorbed anything host-shaped, one of them would fail to project.
+ */
+export interface HostSlotFixture {
+  /** Which host opened the slot — for evidence, never for dispatch. */
+  readonly host: string;
+  /** The slot the host opens (board track, extras band, …). */
+  readonly slot: string;
+  /** The host's own declared block, in that host's own vocabulary. */
+  readonly block: Readonly<Record<string, unknown>>;
+  /** What a correct adapter must project for SELECTION. */
+  readonly expectedContext: WidgetMatchContext;
+}
+
+/**
+ * The declared-kind → widget-kind map the ADAPTER owns, as visible data.
+ *
+ * Hosts do not rename their declared vocabulary to suit a widget package, and
+ * authored sheets must not churn to adopt a widget kind. The admin has declared
+ * its indicator blocks `kpi` since long before these faces existed, so the
+ * translation lives in one explicit, readable table in the adapter — never as a
+ * rename in a sheet, and never as a guess inside a widget.
+ *
+ * Identity is the default: a declared kind with no entry passes through
+ * unchanged, so the workspace's `indicator` needs no row here. Unknown kinds
+ * still fail closed at the registry, which resolves them to null.
+ */
+export type DeclaredKindMap = Readonly<Record<string, string>>;
+
+/**
+ * The pinned map both sides of the bridge agree on.
+ *
+ * ONE table, exported once from the adapter package and imported by every host
+ * adapter — not a per-host map. A declared kind means the same thing wherever
+ * it is authored, so the translation should be greppable in a single place;
+ * per-host maps would let two hosts silently disagree about what `kpi` is.
+ */
+export const CROSS_HOST_KIND_MAP: DeclaredKindMap = Object.freeze({
+  kpi: "indicator",
+});
+
+/**
+ * Two hosts, one kind. The workspace declares an indicator on an exploration
+ * board track; the admin declares one as an `extras` block on a stored
+ * `admin_page`, whose value is resolved server-side before render.
+ *
+ * Note the admin block declares `kind: "kpi"` — its real, existing vocabulary,
+ * which `resolve-extras.ts` already switches on. The map is what makes the same
+ * face answer both, and it is the map that is under test here.
+ *
+ * The admin block also carries a `type`, matching how blocks are really
+ * authored: `type` names a widget-key hint while `binding.kind` names the
+ * data shape. `byTypeOnKind`'s tester is `type === key`, so the authored value
+ * must be the REGISTRY KEY of the entry it selects — here the admin host's
+ * `investigation-indicator-card` entry, not `stat-grid`, which is the DS's
+ * batch-default kpi face and would silently keep the old StatGrid. The two
+ * axes are independent and both reach dispatch — `kind` through the map,
+ * `type` untouched — which is what lets a type-specialised entry outrank the
+ * kind-generic one. The workspace block deliberately declares no `type`, so
+ * the fixtures cover both the specialised and the generic path.
+ */
+export const CROSS_HOST_INDICATOR_SLOTS: readonly HostSlotFixture[] = [
+  {
+    host: "workspace",
+    slot: "board-track",
+    block: {
+      block_type: "board_card",
+      binding: { kind: "indicator", code: "open_occurrences" },
+      importance: "optional",
+    },
+    expectedContext: { kind: "indicator" },
+  },
+  {
+    host: "admin",
+    slot: "extras-band",
+    block: {
+      block_type: "admin_page_extra",
+      // The authored widget-key hint, alongside the data-shape kind.
+      type: "investigation-indicator-card",
+      // The admin's existing declared vocabulary — unchanged for this.
+      binding: { kind: "kpi", entity: "occurrence", measure: "count" },
+      importance: "optional",
+    },
+    expectedContext: { kind: "indicator", type: "investigation-indicator-card" },
+  },
+] as const;
+
+/**
+ * The SELECTION half of the bridge, as the contract specifies it: read the
+ * declared binding kind, translate it through the adapter's explicit map, take
+ * the optional type hint, coerce to plain strings, and carry nothing else
+ * across. A consumer's real adapter must agree with this on these fixtures.
+ */
+export function projectMatchContext(
+  block: Readonly<Record<string, unknown>>,
+  kindMap: DeclaredKindMap = {},
+): WidgetMatchContext {
+  const binding = (block.binding ?? {}) as { kind?: unknown };
+  const declared = String(binding.kind ?? "");
+  const type = (block as { type?: unknown }).type;
+  return {
+    // Identity unless the adapter's map says otherwise.
+    kind: kindMap[declared] ?? declared,
+    ...(typeof type === "string" ? { type } : {}),
+  };
 }
 
 export type WidgetSystemContract = CoreContract & Partial<WidgetLayerContract>;
@@ -251,6 +385,131 @@ const ssrDeterminismCase: ContractCase = {
   },
 };
 
+/**
+ * CROSS-HOST PLACEMENT — the acceptance for a widget kind.
+ *
+ * Same registered entry, two different hosts' slots, two different declaration
+ * vocabularies. This is the case that fails if a face quietly grows a
+ * host-shaped assumption.
+ */
+const crossHostPlacementCase: ContractCase = {
+  name: "cross-host placement — one kind answers slots opened by two hosts",
+  run(c, assert) {
+    if (
+      !c.registerBaseWidgets ||
+      !c.INDICATOR_CARD_KIND ||
+      !c.INDICATOR_CARD_KEY
+    ) {
+      // A consumer on a version predating the card faces skips rather than fails.
+      return "skipped";
+    }
+
+    const registry = c.createRegistry<unknown>();
+    c.registerBaseWidgets(registry);
+
+    const resolvedKeys: string[] = [];
+    for (const fixture of CROSS_HOST_INDICATOR_SLOTS) {
+      const ctx = projectMatchContext(fixture.block, CROSS_HOST_KIND_MAP);
+      assert(
+        ctx.kind === fixture.expectedContext.kind,
+        `${fixture.host}/${fixture.slot}: projects kind "${fixture.expectedContext.kind}"`,
+      );
+      // `type` is the SECOND axis and must survive the projection untouched —
+      // it is never translated, only carried. An adapter that drops it silently
+      // disables every type-specialised registration.
+      assert(
+        ctx.type === fixture.expectedContext.type,
+        `${fixture.host}/${fixture.slot}: carries type ` +
+          `${JSON.stringify(fixture.expectedContext.type)} through untranslated`,
+      );
+      const match = registry.resolve(ctx);
+      assert(
+        match !== null,
+        `${fixture.host}/${fixture.slot}: the declared kind resolves to a widget`,
+      );
+      assert(
+        match?.key === c.INDICATOR_CARD_KEY,
+        `${fixture.host}/${fixture.slot}: resolves to ${c.INDICATOR_CARD_KEY}`,
+      );
+      resolvedKeys.push(match?.key ?? "");
+    }
+
+    assert(
+      resolvedKeys.length === CROSS_HOST_INDICATOR_SLOTS.length,
+      "every host slot resolved",
+    );
+    // The point of the case: not merely that each resolved, but that they
+    // resolved to the SAME registered entry. Two hosts, one face.
+    assert(
+      new Set(resolvedKeys).size === 1,
+      "both hosts resolve to the SAME registered entry — the card travels",
+    );
+
+    // The map must be LOAD-BEARING, not decorative. Without it the admin's
+    // declared `kpi` passes through unchanged and resolves to nothing — which
+    // is the fail-closed behaviour we want, and the proof that the translation
+    // is doing real work rather than the fixture quietly agreeing with itself.
+    const admin = CROSS_HOST_INDICATOR_SLOTS.find((f) => f.host === "admin");
+    if (admin) {
+      const unmapped = projectMatchContext(admin.block);
+      assert(
+        unmapped.kind !== admin.expectedContext.kind,
+        "without the map, the admin's declared kind does NOT already match",
+      );
+      assert(
+        registry.resolve(unmapped) === null,
+        "an unmapped declared kind fails closed rather than resolving by accident",
+      );
+    }
+
+    // Identity is the default: a host whose declared kind already matches needs
+    // no row in the map, so adding one host cannot disturb another.
+    const workspace = CROSS_HOST_INDICATOR_SLOTS.find(
+      (f) => f.host === "workspace",
+    );
+    if (workspace) {
+      assert(
+        projectMatchContext(workspace.block).kind ===
+          projectMatchContext(workspace.block, CROSS_HOST_KIND_MAP).kind,
+        "an unmapped host projects identically with or without the map",
+      );
+    }
+
+    // Carrying `type` only matters if it reaches dispatch, so prove the
+    // consequence: in a registry that ALSO holds a type-specialised entry, the
+    // admin's authored `type` wins, while the workspace block — which declares
+    // none — still lands on the kind-generic face. A separate registry, so the
+    // "same entry" assertion above stays about the generic path.
+    if (admin && workspace) {
+      const specialised = c.createRegistry<unknown>();
+      c.registerBaseWidgets(specialised);
+      specialised.register(
+        c.byTypeOnKind(
+          "investigation-indicator-card",
+          c.INDICATOR_CARD_KIND,
+          "SPECIALISED",
+        ),
+      );
+
+      const adminCtx = projectMatchContext(admin.block, CROSS_HOST_KIND_MAP);
+      assert(
+        specialised.resolve(adminCtx)?.key === "investigation-indicator-card",
+        "the authored type outranks the kind-generic face when one is registered",
+      );
+
+      const workspaceCtx = projectMatchContext(
+        workspace.block,
+        CROSS_HOST_KIND_MAP,
+      );
+      assert(
+        specialised.resolve(workspaceCtx)?.key === c.INDICATOR_CARD_KEY,
+        "a block declaring no type still lands on the kind-generic face",
+      );
+    }
+    return "passed";
+  },
+};
+
 /** All contract cases, in a stable order. */
 export const CONTRACT_CASES: readonly ContractCase[] = [
   isolationCase,
@@ -259,6 +518,7 @@ export const CONTRACT_CASES: readonly ContractCase[] = [
   embeddedAnalysisCase,
   completeStatesCase,
   ssrDeterminismCase,
+  crossHostPlacementCase,
 ] as const;
 
 export interface ContractRunResult {

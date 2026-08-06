@@ -30,7 +30,7 @@ import {
   resolveSeal,
   type SealVocabulary,
   type ValueProvenance,
-} from "../../src/core/index.ts";
+} from "../../src/core/index";
 
 const NOW = new Date("2026-07-28T12:00:00Z");
 const FUTURE = "2026-07-29T00:00:00Z";

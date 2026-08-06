@@ -12,21 +12,36 @@ import {
   type WidgetMatchContext,
   type WidgetRenderRequest,
   type WidgetState,
-} from "../../src/core/index.ts";
+} from "../../src/core/index";
 import {
   registerBaseWidgets,
   NATIVE_CHART_KEY,
   EMBEDDED_ANALYSIS_KEY,
+  ENTRY_STREAM_KEY,
+  INDICATOR_CARD_KEY,
+  DEFINITION_MEMBERS_CARD_KEY,
+  CHART_TILE_MOCK_KEY,
   type WidgetComponent,
-} from "../../src/widgets/index.ts";
+} from "../../src/widgets/index";
 import WidgetRenderer from "../../src/svelte/WidgetRenderer.svelte";
 
 describe("registerBaseWidgets — distinct keys, no fallback", () => {
-  it("registers exactly the two base widgets", () => {
+  // The base set is pinned deliberately: a widget appearing in every host's
+  // registry without anyone opting in is a real change, so it should break this
+  // test and be added here on purpose. The four card faces joined the set when
+  // the investigations surfaces moved from bespoke components to widget kinds.
+  it("registers exactly the base widget set", () => {
     const r = createRegistry<WidgetComponent, WidgetMatchContext>();
     registerBaseWidgets(r);
     expect(r.entries.map((e) => e.key).sort()).toEqual(
-      [EMBEDDED_ANALYSIS_KEY, NATIVE_CHART_KEY].sort(),
+      [
+        EMBEDDED_ANALYSIS_KEY,
+        NATIVE_CHART_KEY,
+        ENTRY_STREAM_KEY,
+        INDICATOR_CARD_KEY,
+        DEFINITION_MEMBERS_CARD_KEY,
+        CHART_TILE_MOCK_KEY,
+      ].sort(),
     );
   });
 

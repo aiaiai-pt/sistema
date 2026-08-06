@@ -3,7 +3,7 @@
   error boundary (acceptance #4: optional-widget failure isolation).
 -->
 <script lang="ts">
-  import type { WidgetRenderRequest } from "../../src/core/index.ts";
+  import type { WidgetRenderRequest } from "../../src/core/index";
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let { data, props, locale }: WidgetRenderRequest = $props();
   const boom = $derived.by((): string => {
