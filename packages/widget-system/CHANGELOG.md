@@ -3,7 +3,29 @@
 Separately versioned from `@aiaiai-pt/design-system`. SemVer: fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
-## [Unreleased]
+## [0.3.0] — 2026-08-06
+
+### Changed — BREAKING (evidence seal core, pairs with design-system 0.51.0)
+
+The seal core no longer owns any seal vocabulary — the design system owns the
+LAWS, the words are declared data (Fork B, ruled 2026-08-01).
+
+- **`assignSeal`** is now wordless: it returns an evidence **class**
+  (`EvidenceClass`), not a vocabulary word. Which term wears which class is
+  declared beside the term (`SealVocabulary`).
+- **New:** `resolveSeal` (class + declared vocabulary → resolved term),
+  `SealVocabulary`, `SealTerm`, `SealTone`, `ResolvedSeal`,
+  `EVIDENCE_CLASS_RANK` and `outranks` (authority is ranked by evidence class,
+  never by word).
+
+### Fixed — strict-consumer papercuts (#96, both halves)
+
+- `.ts`-extension imports dropped from all source, so TS consumers compile
+  without `allowImportingTsExtensions`.
+- `WidgetLayerContract.registerBaseWidgets` no longer fails strict consumers'
+  typecheck: `WidgetRegistry` is invariant in its component parameter, so the
+  injection point is typed `WidgetRegistry<any>` — the component type is opaque
+  to the contract by design.
 
 ### Added — the investigations card faces as widget kinds
 
