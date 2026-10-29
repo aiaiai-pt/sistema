@@ -4,6 +4,25 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.51.1] — 2026-10-29
+
+### Fixed
+
+- **`Popover` viewport fit** — `reposition()` now handles the case where the
+  popover is taller than the room on both sides. Previously it would flip to the
+  opposite side anyway and run off-screen (a 40-item `Menu` with
+  `placement="top-start"` near the bottom of an 800 px viewport would end up at
+  `y=764` with a bottom edge at `y=2264`, unreachable). The new behaviour:
+  prefer the requested side if it fits; flip to the opposite side if that fits;
+  otherwise open on the side with more room and cap `max-height` to that room
+  (`overflow-y: auto`), keeping the entire popover inside the viewport. The cap
+  is reset to `undefined` when enough room is restored on a scroll/resize event.
+  All components that compose `Popover` (`Combobox`, `Menu`, `DatePicker`,
+  `DateRangePicker`, `NotificationBell`) inherit the fix automatically — no API
+  change.
+  The positioning algorithm is extracted to `components/popover-position.js`
+  (`calculatePopoverPosition`) and covered by 7 pure-function unit tests.
+
 ## [0.51.0] — 2026-08-06
 
 ### Changed — BREAKING (evidence seal)
