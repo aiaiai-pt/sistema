@@ -25,6 +25,8 @@
    * @typedef {'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'} Placement
    */
 
+  import { calculatePopoverPosition } from './popover-position.js';
+
   let {
     /** @type {boolean} */
     open = $bindable(false),
@@ -52,6 +54,7 @@
 
   let posX = $state(0);
   let posY = $state(0);
+  let posMaxHeight = /** @type {number | undefined} */ ($state(undefined));
   let width = $state(0);
 
   function reposition() {
@@ -66,27 +69,19 @@
       width = rect.width;
     }
 
-    const isTop = placement.startsWith('top');
-    const isEnd = placement.endsWith('end');
-
-    let x = isEnd ? rect.right - (matchWidth ? rect.width : popRect.width) : rect.left;
-    let y = isTop ? rect.top - popRect.height - offset : rect.bottom + offset;
-
-    // Flip vertical if out of viewport
-    if (!isTop && y + popRect.height > viewportH) {
-      y = rect.top - popRect.height - offset;
-    } else if (isTop && y < 0) {
-      y = rect.bottom + offset;
-    }
-
-    // Clamp horizontal
-    if (x + popRect.width > viewportW) {
-      x = viewportW - popRect.width - offset;
-    }
-    if (x < 0) x = offset;
+    const { x, y, maxHeight } = calculatePopoverPosition(
+      rect,
+      { width: popRect.width, height: popRect.height },
+      viewportH,
+      viewportW,
+      placement,
+      offset,
+      matchWidth,
+    );
 
     posX = x;
     posY = y;
+    posMaxHeight = maxHeight;
   }
 
   // Position + close listeners
@@ -157,6 +152,8 @@
     style:left="{posX}px"
     style:top="{posY}px"
     style:width={matchWidth ? `${width}px` : undefined}
+    style:max-height={posMaxHeight != null ? `${posMaxHeight}px` : undefined}
+    style:overflow-y={posMaxHeight != null ? 'auto' : undefined}
     {...rest}
   >
     {#if children}{@render children()}{/if}
