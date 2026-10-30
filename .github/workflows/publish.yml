@@ -66,5 +66,7 @@ jobs:
 
       # No NODE_AUTH_TOKEN: the npm CLI exchanges the GitHub OIDC token for a
       # short-lived publish credential. The repo is public, so provenance works.
+      # --loglevel verbose: npm reports a refused token exchange only at verbose
+      # level; at the default level the console shows just a bare E404 on the PUT.
       - name: Publish
-        run: npm publish --access public --provenance
+        run: npm publish --access public --provenance --loglevel verbose
