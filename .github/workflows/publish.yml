@@ -1,0 +1,70 @@
+name: Publish @aiaiai-pt/design-system
+
+# Publishes the design system to public npm.
+#
+# Trigger by pushing a tag matching `v*` on the commit to release, e.g.
+# `git tag v0.51.1 origin/main && git push origin v0.51.1`, or by running the
+# workflow by hand with the version. The workflow checks the version against
+# package.json, runs the test suite, and publishes; `prepublishOnly` builds the
+# type declarations.
+#
+# Auth: npm TRUSTED PUBLISHING (OIDC). There is no token. Register this workflow once:
+# npmjs.com → @aiaiai-pt/design-system → Settings → Trusted publishing → GitHub Actions:
+# aiaiai-pt / sistema / publish.yml. Needs id-token: write, npm >= 11.5.1, Node >= 22.14.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (must match package.json)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write   # OIDC for npm trusted publishing and the provenance statement.
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+          cache: npm
+
+      - name: Verify version match
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            TAG_VERSION="${{ inputs.version }}"
+          fi
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::package.json version ($PKG_VERSION) does not match trigger version ($TAG_VERSION)"
+            exit 1
+          fi
+          echo "Publishing @aiaiai-pt/design-system@$PKG_VERSION"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: npm new enough for trusted publishing
+        run: |
+          npm install -g npm@latest
+          npm --version
+
+      # No NODE_AUTH_TOKEN: the npm CLI exchanges the GitHub OIDC token for a
+      # short-lived publish credential. The repo is public, so provenance works.
+      - name: Publish
+        run: npm publish --access public --provenance
