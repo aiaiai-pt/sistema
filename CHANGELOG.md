@@ -4,6 +4,21 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.51.2] — 2026-11-02
+
+### Fixed
+
+- **`Popover` keeps its viewport cap while its content scrolls** — 0.51.1's cap
+  dropped as soon as the capped popover's own content scrolled. The scroll
+  listener is a capture listener, so scrolling inside the popover calls
+  `reposition()`, which measured the rendered (already capped) box; that height
+  always "fits", so `max-height` was cleared and the popover grew back past the
+  viewport. Found as martha admin's tenant picker: a 40-tenant `Menu` in the
+  sidebar footer opened correctly, then ran off the bottom of the screen on the
+  first scroll, so the last tenants were unreachable. `reposition()` now
+  measures the natural height (`scrollHeight` plus the box's borders). Covered
+  by `tests/popover-reposition.test.ts`.
+
 ## [0.51.1] — 2026-10-29
 
 ### Fixed
