@@ -62,6 +62,12 @@
 
     const rect = anchor.getBoundingClientRect();
     const popRect = popoverEl.getBoundingClientRect();
+    // Natural height, not the rendered box: once capped, the box reads the cap,
+    // which always "fits", and the cap would drop on the next reposition (the
+    // capture scroll listener fires when the popover's own content scrolls).
+    // scrollHeight is the content height; the rest of the box is its borders.
+    const naturalHeight =
+      popoverEl.scrollHeight + (popRect.height - popoverEl.clientHeight);
     const viewportH = window.innerHeight;
     const viewportW = window.innerWidth;
 
@@ -71,7 +77,7 @@
 
     const { x, y, maxHeight } = calculatePopoverPosition(
       rect,
-      { width: popRect.width, height: popRect.height },
+      { width: popRect.width, height: naturalHeight },
       viewportH,
       viewportW,
       placement,
