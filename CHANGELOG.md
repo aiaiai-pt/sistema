@@ -4,6 +4,38 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.52.0] — 2026-11-08
+
+### Added
+
+- **Labelled pins on `MapCluster`** — a marker with `pin` text (a price, a
+  time) is drawn as a pill with that text instead of a dot, from the new
+  `--map-pin-*` tokens. `active: true` draws it in the active style
+  (`--map-pin-active-*`, inverted text and surface), and the marker whose popup
+  is open is drawn active too. Pins are canvas images, so they hit-test,
+  cluster and follow theme changes like any marker, and they redraw once the
+  token font has loaded. A marker without `pin` is unchanged. Found building
+  a family trip planner, where hotel prices could only appear on hover or in
+  the popup.
+- **Muted basemap: `tileSource.tone: 'muted'`** on every map component and every
+  tile source. The tile layer gets its own canvas (class `map-tiles-muted`),
+  filtered with `--map-tiles-muted-filter`: greyed in light schemes, inverted
+  to a dark ground under `data-scheme="dark"`. Markers, pins and overlays stay
+  at full colour. It needs no API key, so it works on keyless OSM.
+
+### Fixed
+
+- **`MapCluster` popups are no longer cut off at the top of a short map.**
+  Opening a popup centred the view on the marker, so a card taller than half
+  the map ran off the top edge (a 220 px hotel card on a 288 px map lost its
+  photo and name). The view now centres the marker and the card together,
+  measured after the card renders, keeping the marker 24 px inside the bottom
+  edge (`popupCenter` in `map-utils.js`).
+- **Map docs no longer show broken basemaps.** The CARTO Positron, Dark Matter
+  and Voyager examples now get an "API KEY REQUIRED" image for every tile
+  (checked 2026-11-08), and Stadia answers 401 without a key. The page now shows
+  OSM muted instead and no longer says Stadia is keyless.
+
 ## [0.51.2] — 2026-11-02
 
 ### Fixed

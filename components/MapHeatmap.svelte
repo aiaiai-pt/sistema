@@ -208,4 +208,9 @@
   .map-heatmap :global(.ol-viewport) {
     border-radius: inherit;
   }
+
+  /* tileSource.tone 'muted': only the basemap's own canvas is filtered. */
+  .map-heatmap :global(.map-tiles-muted) {
+    filter: var(--map-tiles-muted-filter);
+  }
 </style>

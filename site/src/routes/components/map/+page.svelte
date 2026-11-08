@@ -5,6 +5,7 @@
 	import MapPicker from '$ui/MapPicker.svelte';
 	import MapCluster from '$ui/MapCluster.svelte';
 	import MapHeatmap from '$ui/MapHeatmap.svelte';
+	import MapPopup from '$ui/MapPopup.svelte';
 	import 'ol/ol.css';
 
 	let pickedPoint = $state<[number, number] | undefined>(undefined);
@@ -67,6 +68,15 @@
 		{ id: '12', lon: -9.155, lat: 38.730, label: 'Centro de Dia' },
 	];
 
+	// Priced places: `pin` is drawn as the marker, `active` marks the chosen one.
+	const pricedPlaces = [
+		{ id: 'p1', lon: -9.1365, lat: 38.7139, label: 'Guesthouse in Baixa', pin: '€128' },
+		{ id: 'p2', lon: -9.1302, lat: 38.7118, label: 'Rooms in Alfama', pin: '€96', active: true },
+		{ id: 'p3', lon: -9.1446, lat: 38.7106, label: 'Hotel in Chiado', pin: '€214' },
+		{ id: 'p4', lon: -9.1488, lat: 38.7203, label: 'Flat near Príncipe Real', pin: '€162' },
+		{ id: 'p5', lon: -9.1418, lat: 38.7237, label: 'Hotel on Avenida', pin: '€188' },
+	];
+
 	// Heatmap points (occurrences)
 	const heatPoints = [
 		{ lon: -9.139, lat: 38.722, weight: 8 },
@@ -96,6 +106,13 @@
 		'--map-cluster-text-fill: var(--color-text-on-accent)',
 		'--map-polygon-fill: color-mix(in srgb, var(--color-accent) 20%, transparent)',
 		'--map-polygon-stroke: var(--color-accent)',
+		'--map-pin-bg: var(--color-surface)',
+		'--map-pin-text: var(--color-text)',
+		'--map-pin-border-color: var(--color-border-strong)',
+		'--map-pin-radius: var(--radius-pill)',
+		'--map-pin-active-bg: var(--color-text)',
+		'--map-pin-active-text: var(--color-surface)',
+		'--map-tiles-muted-filter: grayscale(1) contrast(0.7) brightness(1.08)',
 	];
 </script>
 
@@ -230,6 +247,23 @@
 		height="360px"
 		data-testid="cluster-with-layers"
 	/>
+
+	<p class="type-body-sm" style="margin: var(--space-md) 0;">Pins: a marker with <code>pin</code> text is drawn as a labelled pin, such as a price or a time. <code>active: true</code> draws it in the active style, and the marker whose popup is open is drawn active too. Over a muted basemap (<code>tileSource.tone: 'muted'</code>) the pins carry the colour. Set <code>distance</code> to about a pin's width so pins that would overlap form a cluster instead.</p>
+
+	<MapCluster
+		markers={pricedPlaces}
+		tileSource={{ type: 'osm', tone: 'muted' }}
+		distance={56}
+		height="360px"
+		data-testid="cluster-with-pins"
+	>
+		{#snippet popup(place: (typeof pricedPlaces)[number], close: () => void)}
+			<MapPopup visible onclose={close}>
+				<strong class="type-body-sm">{place.label}</strong>
+				<span class="type-data">{place.pin} a night</span>
+			</MapPopup>
+		{/snippet}
+	</MapCluster>
 </section>
 
 <!-- MapHeatmap -->
@@ -261,7 +295,7 @@
 <!-- Styled Tiles -->
 <section style="margin-bottom: var(--space-2xl);">
 	<h2 class="type-heading" style="margin-bottom: var(--space-md);">Styled Tiles</h2>
-	<p class="type-body-sm" style="margin-bottom: var(--space-md);">All map components accept a tileSource prop. Default is OSM. Stadia Maps layers are free for web (no API key). XYZ supports Mapbox, CARTO, and any tile URL.</p>
+	<p class="type-body-sm" style="margin-bottom: var(--space-md);">All map components accept a tileSource prop. Default is OSM. Any source takes <code>tone: 'muted'</code>, which greys the basemap in light schemes and darkens it in dark ones, so markers and routes carry the colour. It needs no API key. Stadia Maps and CARTO basemaps now need one; pass Stadia's as <code>apiKey</code>.</p>
 
 	<div class="map-demo-grid">
 		<div>
@@ -274,33 +308,14 @@
 			/>
 		</div>
 		<div>
-			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">CARTO POSITRON (LIGHT)</span>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">OSM, MUTED</span>
 			<MapDisplay
 				center={[-9.139, 38.722]}
 				zoom={14}
 				marker={[-9.139, 38.722]}
-				tileSource={{ type: 'xyz', url: 'https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', attributions: '&copy; CARTO &copy; OpenStreetMap' }}
+				tileSource={{ type: 'osm', tone: 'muted' }}
 				height="200px"
-			/>
-		</div>
-		<div>
-			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">CARTO DARK MATTER</span>
-			<MapDisplay
-				center={[-9.139, 38.722]}
-				zoom={14}
-				marker={[-9.139, 38.722]}
-				tileSource={{ type: 'xyz', url: 'https://{a-d}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png', attributions: '&copy; CARTO &copy; OpenStreetMap' }}
-				height="200px"
-			/>
-		</div>
-		<div>
-			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">CARTO VOYAGER</span>
-			<MapDisplay
-				center={[-9.139, 38.722]}
-				zoom={14}
-				marker={[-9.139, 38.722]}
-				tileSource={{ type: 'xyz', url: 'https://{a-d}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png', attributions: '&copy; CARTO &copy; OpenStreetMap' }}
-				height="200px"
+				data-testid="tiles-muted"
 			/>
 		</div>
 	</div>
@@ -315,12 +330,16 @@
 			<span class="type-body-sm">Default. Standard OpenStreetMap tiles.</span>
 		</div>
 		<div class="size-row">
+			<code class="type-data">{'{ type: "osm", tone: "muted" }'}</code>
+			<span class="type-body-sm">Any source with <code>tone: "muted"</code>: the basemap is filtered with --map-tiles-muted-filter, which has a light and a dark value. Markers, pins and overlays stay at full colour.</span>
+		</div>
+		<div class="size-row">
 			<code class="type-data">{'{ type: "stadia", layer: "...", apiKey: "..." }'}</code>
 			<span class="type-body-sm">Stadia Maps. Requires API key. Layers: stamen_toner_lite, alidade_smooth, alidade_smooth_dark, stamen_watercolor, outdoors, osm_bright.</span>
 		</div>
 		<div class="size-row">
 			<code class="type-data">{'{ type: "xyz", url: "..." }'}</code>
-			<span class="type-body-sm">Any XYZ tile URL. Use for Mapbox, CARTO, or self-hosted tiles.</span>
+			<span class="type-body-sm">Any XYZ tile URL, such as Mapbox, keyed CARTO or self-hosted tiles.</span>
 		</div>
 	</div>
 </section>

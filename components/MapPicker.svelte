@@ -397,6 +397,11 @@
     border-radius: inherit;
   }
 
+  /* tileSource.tone 'muted': only the basemap's own canvas is filtered. */
+  .map-picker-canvas :global(.map-tiles-muted) {
+    filter: var(--map-tiles-muted-filter);
+  }
+
   .map-picker-canvas.map-picker-error {
     border-color: var(--input-error-border-color);
   }
