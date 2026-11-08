@@ -11,14 +11,28 @@
     markers={[{ id: '1', lon: -9.14, lat: 38.74, label: 'HQ' }]}
     onclick={(marker) => goto(`/equipment/${marker.id}`)}
   />
+
+  A marker with `pin` text is drawn as a labelled pin (a price, a time) from
+  the --map-pin-* tokens; `active: true` uses the active pin style, and the
+  marker whose popup is open is drawn active too.
+
+  @example
+  <MapCluster
+    markers={[{ id: 'h1', lon: -9.14, lat: 38.71, label: 'Hotel Lis', pin: '€182', active: true }]}
+    tileSource={{ type: 'osm', tone: 'muted' }}
+    {popup}
+  />
 -->
 <script>
+  import { tick } from 'svelte';
   import { fromLonLat } from 'ol/proj.js';
   import { boundingExtent } from 'ol/extent.js';
-  import { createTileLayer, createMapStyles, createOverlayLayers, clusterTooltipLabel, watchTheme, renderMapError } from './map-utils.js';
+  import { createTileLayer, createMapStyles, createOverlayLayers, clusterFeatureStyle, clusterTooltipLabel, popupCenter, watchTheme, renderMapError } from './map-utils.js';
 
   let {
-    /** @type {{ id: string, lon: number, lat: number, label?: string, [key: string]: any }[]} */
+    /** @type {{ id: string, lon: number, lat: number, label?: string, pin?: string, active?: boolean, [key: string]: any }[]}
+     *  `pin`: text drawn as the marker (a price, a time). `active`: draw
+     *  that pin in the active style (chosen, saved, current). */
     markers = [],
     /** @type {[number, number] | undefined} — initial center [lon, lat].
      *  Omit to auto-FIT the markers' extent (the right default for "show
@@ -76,6 +90,14 @@
   let _vectorSource = $state();
   /** @type {any} — Cluster source */
   let _clusterSource = $state();
+  /** @type {any} — Cluster vector layer */
+  let _clusterLayer = $state();
+
+  // The marker whose popup is open is drawn active: restyle on change.
+  $effect(() => {
+    void selected;
+    _clusterLayer?.changed();
+  });
   /** @type {any} — shared style factory (set at mount, consumed by the
    *  overlay owner effect) */
   let _styles = $state();
@@ -196,11 +218,9 @@
 
       const clusterLayer = new VectorLayer({
         source: clusterSource,
-        style: (feature) => {
-          const size = feature.get('features')?.length ?? 1;
-          return styles.cluster(size);
-        },
+        style: (feature) => clusterFeatureStyle(feature, styles, selected?.id),
       });
+      _clusterLayer = clusterLayer;
 
       // Tooltip overlay
       const tooltipEl = document.createElement('div');
@@ -312,11 +332,19 @@
           selected = data;
           if (coords) {
             _popupOverlay?.setPosition(coords);
-            // Fly TO the clicked marker: animate the view so the marker (and its
-            // anchored popup) is centred — a clear "the map moved to what I
-            // tapped" gesture, not a subtle edge-nudge. The small ficha-resumo
-            // card opens above the now-centred marker and stays in view.
-            map?.getView().animate({ center: coords, duration: 400 });
+            // Fly TO the clicked marker: animate the view so the marker and
+            // its anchored popup are centred together — a clear "the map moved
+            // to what I tapped" gesture. Measured after the snippet renders, so
+            // a tall card is not cut off at the top of a short map.
+            void tick().then(() => {
+              const view = map?.getView();
+              const height = map?.getSize()?.[1] ?? 0;
+              if (!view) return;
+              view.animate({
+                center: popupCenter(coords, popupEl?.offsetHeight ?? 0, height, view.getResolution() ?? 0),
+                duration: 400,
+              });
+            });
           }
         } else {
           onclick?.(data);
@@ -372,6 +400,13 @@
         styles.refresh();
         clusterSource.changed();
       });
+      // Pins are drawn on canvas with the token font. If the web font was
+      // still loading, redraw them once it is ready.
+      document.fonts?.ready.then(() => {
+        if (disposed) return;
+        styles.refresh();
+        clusterSource.changed();
+      });
     } catch (err) { renderMapError(container, 'MapCluster', /** @type {Error} */ (err)); } })();
 
     // Escape closes an open popup (keyboard dismissal).
@@ -418,6 +453,12 @@
 
   .map-cluster :global(.ol-viewport) {
     border-radius: inherit;
+  }
+
+  /* tileSource.tone 'muted': the tile layer has its own canvas (see
+     tileLayerClass), so only the basemap is filtered. */
+  .map-cluster :global(.map-tiles-muted) {
+    filter: var(--map-tiles-muted-filter);
   }
 
   /* Overlay element wrapper — OL owns its position (inline transform); this

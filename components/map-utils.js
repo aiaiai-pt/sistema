@@ -4,11 +4,28 @@
  */
 
 /**
- * @typedef {{ type: 'osm' }} OsmSource
- * @typedef {{ type: 'xyz', url: string, attributions?: string, maxZoom?: number }} XyzSource
- * @typedef {{ type: 'stadia', layer: string, retina?: boolean, apiKey?: string }} StadiaSource
+ * @typedef {{ tone?: 'muted' }} TileTone — `tone: 'muted'` greys the
+ *   basemap (and darkens it in the dark scheme) through
+ *   `--map-tiles-muted-filter`, so markers and routes carry the colour. It
+ *   works with any source, including keyless OSM.
+ * @typedef {{ type: 'osm' } & TileTone} OsmSource
+ * @typedef {{ type: 'xyz', url: string, attributions?: string, maxZoom?: number } & TileTone} XyzSource
+ * @typedef {{ type: 'stadia', layer: string, retina?: boolean, apiKey?: string } & TileTone} StadiaSource
  * @typedef {OsmSource | XyzSource | StadiaSource} TileSourceConfig
  */
+
+/**
+ * The tile layer's class. OpenLayers draws consecutive layers that share a
+ * class on one canvas, so a distinct class gives the tiles a canvas of their
+ * own. The map components filter that canvas with `--map-tiles-muted-filter`;
+ * the markers and overlays above it stay at full colour.
+ *
+ * @param {TileSourceConfig} config
+ * @returns {string}
+ */
+export function tileLayerClass(config) {
+  return config?.tone === "muted" ? "ol-layer map-tiles-muted" : "ol-layer";
+}
 
 /**
  * Creates an OL tile layer from a config object.
@@ -18,10 +35,12 @@
  */
 export async function createTileLayer(config) {
   const { default: TileLayer } = await import("ol/layer/Tile.js");
+  const className = tileLayerClass(config);
 
   if (config.type === "stadia") {
     const { default: StadiaMaps } = await import("ol/source/StadiaMaps.js");
     return new TileLayer({
+      className,
       source: new StadiaMaps({
         layer: config.layer,
         retina: config.retina ?? true,
@@ -33,6 +52,7 @@ export async function createTileLayer(config) {
   if (config.type === "xyz") {
     const { default: XYZ } = await import("ol/source/XYZ.js");
     return new TileLayer({
+      className,
       source: new XYZ({
         url: config.url,
         attributions: config.attributions,
@@ -43,7 +63,7 @@ export async function createTileLayer(config) {
   }
 
   const { default: OSM } = await import("ol/source/OSM.js");
-  return new TileLayer({ source: new OSM() });
+  return new TileLayer({ className, source: new OSM() });
 }
 
 // ─── Theme-Reactive Style Factory ────────────────────────────────
@@ -53,6 +73,9 @@ export async function createTileLayer(config) {
  * @property {import('ol/style/Style.js').default} marker
  * @property {import('ol/style/Style.js').default} polygon
  * @property {(size: number) => import('ol/style/Style.js').default} cluster
+ * @property {(text: string, active?: boolean) => import('ol/style/Style.js').default} pin
+ *   — a label drawn as the marker itself (a price, a time, a short name),
+ *   from the --map-pin-* tokens; `active` uses the --map-pin-active-* set
  * @property {() => void} refresh — re-read CSS tokens, mutate styles in place
  */
 
@@ -71,12 +94,14 @@ export async function createMapStyles(el) {
     { default: Fill },
     { default: Stroke },
     { default: Text },
+    { default: Icon },
   ] = await Promise.all([
     import("ol/style/Style.js"),
     import("ol/style/Circle.js"),
     import("ol/style/Fill.js"),
     import("ol/style/Stroke.js"),
     import("ol/style/Text.js"),
+    import("ol/style/Icon.js"),
   ]);
 
   // Mutable fill/stroke refs — mutated in-place on refresh()
@@ -106,6 +131,10 @@ export async function createMapStyles(el) {
 
   /** @type {Map<string, import('ol/style/Style.js').default>} */
   const clusterCache = new Map();
+  /** @type {Map<string, import('ol/style/Style.js').default>} */
+  const pinCache = new Map();
+  /** @type {Record<string, any>} — pin tokens, read in readTokens() */
+  let pinTokens = {};
 
   function readTokens() {
     markerFillObj.setColor(cssVar(el, "--map-marker-fill", "#ff6b35"));
@@ -123,6 +152,23 @@ export async function createMapStyles(el) {
     const font = cssVar(el, "--map-cluster-font", "monospace");
     const fontSize = cssVar(el, "--map-cluster-font-size", "12px");
     clusterFontStr = `600 ${fontSize} ${font}`;
+    pinTokens = {
+      bg: resolveColor(el, cssVar(el, "--map-pin-bg", "#fff")),
+      text: resolveColor(el, cssVar(el, "--map-pin-text", "#2c2825")),
+      border: resolveColor(el, cssVar(el, "--map-pin-border-color", "#999")),
+      activeBg: resolveColor(el, cssVar(el, "--map-pin-active-bg", "#2c2825")),
+      activeText: resolveColor(el, cssVar(el, "--map-pin-active-text", "#fff")),
+      activeBorder: resolveColor(
+        el,
+        cssVar(el, "--map-pin-active-border-color", "#2c2825"),
+      ),
+      borderWidth: cssPx(el, "--map-pin-border-width", 1),
+      radius: cssPx(el, "--map-pin-radius", 999),
+      paddingX: cssPx(el, "--map-pin-padding-x", 8),
+      paddingY: cssPx(el, "--map-pin-padding-y", 4),
+      fontSize: cssPx(el, "--map-pin-font-size", 12),
+      font: `${cssVar(el, "--map-pin-font-weight", "600")} ${cssPx(el, "--map-pin-font-size", 12)}px ${cssVar(el, "--map-pin-font", "sans-serif")}`,
+    };
 
     // Rebuild marker image with new radius (CircleStyle radius is immutable)
     marker.setImage(
@@ -164,12 +210,74 @@ export async function createMapStyles(el) {
     return style;
   }
 
+  /**
+   * A pill with the text inside, drawn on a canvas at the device's pixel
+   * ratio and used as the marker image, so it hit-tests, clusters and
+   * themes like any marker.
+   *
+   * @param {string} text
+   * @param {boolean} [active]
+   */
+  function pin(text, active = false) {
+    const key = `${active ? "a" : "n"}|${text}`;
+    const cached = pinCache.get(key);
+    if (cached) return cached;
+
+    const t = pinTokens;
+    const ratio = window.devicePixelRatio || 1;
+    const canvas = document.createElement("canvas");
+    const measure = canvas.getContext("2d");
+    if (!measure) return marker;
+    measure.font = t.font;
+    const width = Math.ceil(
+      measure.measureText(text).width + 2 * (t.paddingX + t.borderWidth),
+    );
+    const height = Math.ceil(t.fontSize + 2 * (t.paddingY + t.borderWidth));
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+
+    const ctx = /** @type {CanvasRenderingContext2D} */ (
+      canvas.getContext("2d")
+    );
+    ctx.scale(ratio, ratio);
+    const inset = t.borderWidth / 2;
+    ctx.beginPath();
+    ctx.roundRect(
+      inset,
+      inset,
+      width - t.borderWidth,
+      height - t.borderWidth,
+      Math.min(t.radius, height / 2),
+    );
+    ctx.fillStyle = active ? t.activeBg : t.bg;
+    ctx.fill();
+    if (t.borderWidth > 0) {
+      ctx.lineWidth = t.borderWidth;
+      ctx.strokeStyle = active ? t.activeBorder : t.border;
+      ctx.stroke();
+    }
+    ctx.font = t.font;
+    ctx.fillStyle = active ? t.activeText : t.text;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, width / 2, height / 2);
+
+    const style = new Style({
+      image: new Icon({ img: canvas, scale: 1 / ratio }),
+      // Active pins draw above the rest; pins above plain markers.
+      zIndex: active ? 2 : 1,
+    });
+    pinCache.set(key, style);
+    return style;
+  }
+
   function refresh() {
     readTokens();
     clusterCache.clear(); // cluster styles must be rebuilt with new colors
+    pinCache.clear();
   }
 
-  return { marker, polygon, cluster, refresh };
+  return { marker, polygon, cluster, pin, refresh };
 }
 
 // ─── Theme Watcher ───────────────────────────────────────────────
@@ -487,6 +595,53 @@ export async function createOverlayLayers(defs, styles) {
       }
       return new VectorLayer({ source, style: buildStyleFn(def) });
     });
+}
+
+// ─── Clustered marker style ──────────────────────────────────────
+
+/**
+ * Decide how one feature of the cluster layer is drawn.
+ *
+ * A cluster of one is its marker: a pin with the marker's `pin` text when it
+ * has one (active when the marker says `active` or is the one whose popup is
+ * open), otherwise the plain marker dot. A cluster of many shows its count.
+ *
+ * @param {{ get: (key: string) => any }} feature — a Cluster-source feature
+ * @param {Pick<MapStyles, 'marker' | 'cluster' | 'pin'>} styles
+ * @param {string | number | null | undefined} [selectedId] — id of the
+ *   marker whose popup is open
+ * @returns {import('ol/style/Style.js').default}
+ */
+export function clusterFeatureStyle(feature, styles, selectedId) {
+  const members = feature.get("features");
+  if (!members?.length) return styles.marker;
+  if (members.length > 1) return styles.cluster(members.length);
+  const data = members[0].get("markerData");
+  const text = data?.pin == null ? "" : String(data.pin);
+  if (!text) return styles.marker;
+  const active =
+    data.active === true || (selectedId != null && data.id === selectedId);
+  return styles.pin(text, active);
+}
+
+// ─── Popup framing ───────────────────────────────────────────────
+
+/**
+ * Where to centre the view so a marker and the popup above it are centred
+ * together: the marker sits below the middle by half the popup's height, so
+ * a card taller than half the map is not cut off at the top. The shift is
+ * capped so the marker stays `margin` pixels inside the bottom edge.
+ *
+ * @param {number[]} coords — marker coordinate in view projection (y grows north)
+ * @param {number} popupHeight — popup element height, px
+ * @param {number} mapHeight — map viewport height, px
+ * @param {number} resolution — view resolution, map units per px
+ * @param {number} [margin] — px kept between marker and bottom edge
+ * @returns {number[]}
+ */
+export function popupCenter(coords, popupHeight, mapHeight, resolution, margin = 24) {
+  const shift = Math.max(0, Math.min(popupHeight / 2, mapHeight / 2 - margin));
+  return [coords[0], coords[1] + shift * resolution];
 }
 
 // ─── Hover tooltip label ─────────────────────────────────────────

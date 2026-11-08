@@ -859,6 +859,26 @@
   --map-marker-stroke: var(--color-surface);
   --map-marker-stroke-width: var(--border-width-thick);
 
+  /* Pin: a marker drawn as a label (marker.pin: a price, a time) */
+  --map-pin-bg: var(--color-surface);
+  --map-pin-text: var(--color-text);
+  --map-pin-border-color: var(--color-border-strong);
+  --map-pin-border-width: var(--border-width);
+  --map-pin-radius: var(--radius-pill);
+  --map-pin-padding-x: var(--space-sm);
+  --map-pin-padding-y: var(--space-xs);
+  --map-pin-font: var(--type-label-font);
+  --map-pin-font-size: var(--type-label-size);
+  --map-pin-font-weight: var(--type-heading-weight);
+  /* Active pin (marker.active, or the marker whose popup is open) */
+  --map-pin-active-bg: var(--color-text);
+  --map-pin-active-text: var(--color-surface);
+  --map-pin-active-border-color: var(--color-text);
+
+  /* Basemap tone (tileSource.tone: 'muted'): quiet tiles so markers and
+     routes carry the colour. Redefined for the dark scheme below. */
+  --map-tiles-muted-filter: grayscale(1) contrast(0.7) brightness(1.08);
+
   /* Cluster */
   --map-cluster-radius: var(--space-md);
   --map-cluster-fill: var(--color-accent);
@@ -994,4 +1014,9 @@
   --focus-ring-width: var(--border-width-thick);
   --focus-ring-offset: var(--border-width-thick);
   --focus-ring-color: var(--color-accent);
+}
+
+/* Dark scheme: the muted basemap inverts to a dark ground. */
+:root[data-scheme="dark"] {
+  --map-tiles-muted-filter: grayscale(1) invert(1) contrast(0.8) brightness(0.9);
 }
