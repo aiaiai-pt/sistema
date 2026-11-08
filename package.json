@@ -1,6 +1,6 @@
 {
   "name": "@aiaiai-pt/design-system",
-  "version": "0.52.0",
+  "version": "0.53.0",
   "description": "Design system tokens and Svelte components for aiaiai products",
   "license": "MIT",
   "type": "module",
@@ -91,7 +91,50 @@
     "ol": "^10.0.0",
     "svelte": "^5.0.0"
   },
+  "peerDependenciesMeta": {
+    "@codemirror/commands": {
+      "optional": true
+    },
+    "@codemirror/lang-json": {
+      "optional": true
+    },
+    "@codemirror/lang-python": {
+      "optional": true
+    },
+    "@codemirror/lang-sql": {
+      "optional": true
+    },
+    "@codemirror/language": {
+      "optional": true
+    },
+    "@codemirror/state": {
+      "optional": true
+    },
+    "@codemirror/view": {
+      "optional": true
+    },
+    "@lezer/highlight": {
+      "optional": true
+    },
+    "date-fns": {
+      "optional": true
+    },
+    "echarts": {
+      "optional": true
+    },
+    "ol": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/lang-sql": "^6.10.0",
+    "@codemirror/language": "^6.12.2",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.40.0",
+    "@lezer/highlight": "^1.0.0",
     "@sveltejs/package": "^2.5.7",
     "date-fns": "^4.1.0",
     "echarts": "^6.1.0",
