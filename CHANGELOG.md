@@ -4,6 +4,31 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.53.0] — 2026-11-08
+
+### Changed
+
+- **Chart, map, date and editor libraries are optional peers.** Only `svelte`
+  is required now. An app that imports only the components it uses no longer
+  installs echarts, OpenLayers, date-fns and CodeMirror it never loads, and
+  `npm ci` works on a lockfile made with `legacy-peer-deps` (it failed with
+  EUSAGE before, which made every consumer carry an `.npmrc` workaround).
+
+### Upgrading
+
+npm no longer installs these for you. If you use one of these components, add
+its libraries to your own `dependencies`:
+
+| Components | Install |
+|---|---|
+| `EChart`, chart renderers | `echarts` |
+| `MapDisplay`, `MapPicker`, `MapCluster`, `MapHeatmap` | `ol` |
+| `Calendar`, `DatePicker`, `DateTimePicker`, `DateRangePicker` | `date-fns` |
+| `CodeEditor` | `@codemirror/commands`, `@codemirror/lang-json`, `@codemirror/lang-python`, `@codemirror/lang-sql`, `@codemirror/language`, `@codemirror/state`, `@codemirror/view`, `@lezer/highlight` |
+
+An app that imports the `@aiaiai-pt/design-system` barrel loads every
+component, so it needs all of them.
+
 ## [0.52.0] — 2026-11-08
 
 ### Added
