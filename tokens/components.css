@@ -879,6 +879,10 @@
      routes carry the colour. Redefined for the dark scheme below. */
   --map-tiles-muted-filter: grayscale(1) contrast(0.7) brightness(1.08);
 
+  /* ── Chart ───────────────────────────────────── */
+  /* The wash behind an EChart `band` (a stay inside a run of days), on the canvas and on its table rows. */
+  --chart-band-bg: var(--color-accent-subtle);
+
   /* Cluster */
   --map-cluster-radius: var(--space-md);
   --map-cluster-fill: var(--color-accent);

@@ -31,6 +31,16 @@ export interface ChartTokens {
   /** Panel surface behind floating chrome (tooltip); themes the default-white
       ECharts tooltip for dark/high-contrast schemes (#89). */
   surface: string;
+  /** Wash behind a `band` (`--chart-band-bg`); falls back to an accent wash. */
+  band?: string;
+}
+
+/** A run of categories to shade, inclusive at both ends (a stay inside a run
+ *  of days). Ends that are not categories draw no band. */
+export interface ChartBand {
+  from: string;
+  to: string;
+  label?: string;
 }
 
 export interface BuildChartOptionOpts {
@@ -45,6 +55,8 @@ export interface BuildChartOptionOpts {
   ySecondary?: boolean;
   /** Pie/donut hole as a fraction of the outer radius (0 = full pie). */
   innerRadius?: number;
+  /** Shade a run of categories (cartesian charts only). */
+  band?: ChartBand;
 }
 
 /** Token-driven tooltip chrome — ECharts defaults to a white panel that
@@ -169,6 +181,43 @@ function toEchartsSeries(
   };
 }
 
+/** The ECharts markArea for a band, or null when its ends are not categories. */
+function bandArea(
+  category: ReadonlyArray<string>,
+  opts: BuildChartOptionOpts,
+): Record<string, unknown> | null {
+  const { band, tokens, orientation } = opts;
+  if (!band || !category.includes(band.from) || !category.includes(band.to)) {
+    return null;
+  }
+  const key = orientation === "horizontal" ? "yAxis" : "xAxis";
+  return {
+    silent: true,
+    itemStyle: {
+      color:
+        tokens.band ||
+        `color-mix(in srgb, ${tokens.accent} 16%, transparent)`,
+    },
+    label: {
+      show: Boolean(band.label),
+      position: "insideTop",
+      color: tokens.textSecondary,
+    },
+    data: [[{ name: band.label ?? "", [key]: band.from }, { [key]: band.to }]],
+  };
+}
+
+/** Index range of a band's rows in the category order, or null. */
+export function bandRows(
+  category: ReadonlyArray<string>,
+  band: ChartBand | undefined,
+): [number, number] | null {
+  if (!band) return null;
+  const from = category.indexOf(band.from);
+  const to = category.indexOf(band.to);
+  return from < 0 || to < 0 ? null : [Math.min(from, to), Math.max(from, to)];
+}
+
 function buildCartesianOption(
   data: ChartData,
   opts: BuildChartOptionOpts,
@@ -211,6 +260,8 @@ function buildCartesianOption(
     : [valueAxis(false)];
 
   const echSeries = series.map((s, i) => toEchartsSeries(s, i, opts));
+  const area = bandArea(category, opts);
+  if (area && echSeries[0]) echSeries[0].markArea = area;
 
   return {
     animation: false,
