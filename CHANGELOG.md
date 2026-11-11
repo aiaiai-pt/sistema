@@ -4,6 +4,20 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.54.0] — 2026-11-11
+
+### Added
+
+- **Chart bands.** `EChart` takes `band={{ from, to, label? }}` to shade a run
+  of categories, inclusive at both ends: a stay inside a run of days, a
+  campaign inside a run of weeks. The canvas draws it in the new
+  `--chart-band-bg` token (default `--color-accent-subtle`). The data table
+  marks the same rows with `data-band` and the band's label, so the band is
+  never encoded only in pixels. Ends that are not categories draw no band.
+- **Named tables.** `DataTable` takes `caption`, the accessible name of its
+  `<table>`. Attributes spread onto `DataTable` land on its wrapper, so the
+  table itself had no way to be named.
+
 ## [0.53.0] — 2026-11-08
 
 ### Changed

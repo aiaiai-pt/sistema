@@ -121,6 +121,8 @@
     cell = undefined,
     /** @type {import('svelte').Snippet | undefined} */
     children = undefined,
+    /** @type {string | undefined} Accessible name for the <table> itself; spread attributes land on the wrapper. */
+    caption = undefined,
     /** @type {string} */
     class: className = '',
     ...rest
@@ -222,7 +224,7 @@
   {/if}
 
   <div class="table-scroll">
-    <table class="table">
+    <table class="table" aria-label={caption}>
       <thead class="table-head">
         <tr>
           {#if selectable}

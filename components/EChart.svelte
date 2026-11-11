@@ -26,6 +26,10 @@
   palette is an alpha ramp off `--color-accent` — no hardcoded colour list.
   Soft-empty: no series/category → renders nothing.
 
+  `band` shades a run of categories, inclusive (a stay inside a run of days).
+  The canvas draws it in `--chart-band-bg`; the table marks the same rows with
+  `data-band` and the band's label, so it is never encoded only in pixels.
+
   @example
   <EChart
     caption="Reports by status"
@@ -38,18 +42,27 @@
     legend
     locale="pt"
   />
+  @example A band over a stay
+  <EChart
+    caption="Usual weather"
+    labelHeader="Day"
+    category={["1 Oct", "2 Oct", "3 Oct", "4 Oct"]}
+    series={[{ name: "High °C", type: "line", data: [24, 25, 23, 22] }]}
+    band={{ from: "2 Oct", to: "3 Oct", label: "Stay" }}
+  />
 -->
 <script module>
   /**
    * @typedef {{ label: string, value: number }} ChartItem
    * @typedef {import('./renderer/aggregate').ChartData} ChartData
    * @typedef {import('./renderer/aggregate').SeriesData} SeriesData
+   * @typedef {import('./renderer/chart-option').ChartBand} ChartBand
    */
 </script>
 
 <script>
   import { watchTheme } from "./map-utils.js";
-  import { buildChartOption } from "./renderer/chart-option";
+  import { bandRows, buildChartOption } from "./renderer/chart-option";
 
   let {
     /** @type {string[]} The category (x / pie-angle) ticks. */
@@ -64,6 +77,8 @@
     ySecondary = false,
     /** @type {number} Pie/donut hole as a fraction of the radius (0 = full pie). */
     innerRadius = 0,
+    /** @type {ChartBand | undefined} Shade a run of categories, inclusive. */
+    band = undefined,
     /** @type {ChartItem[]} BACK-COMPAT: single-series `{label,value}` rows. */
     items = [],
     /** @type {"bar" | "line" | "donut"} BACK-COMPAT: legacy single-series kind. */
@@ -109,6 +124,9 @@
   });
 
   // Legacy donut gets the ring hole even though the caller passes no innerRadius.
+  /** The table rows inside `band`, or null. */
+  const rows = $derived(bandRows(chartData.category, band));
+
   const effInnerRadius = $derived(
     series.length === 0 && kind === "donut" ? 0.45 : innerRadius,
   );
@@ -149,12 +167,14 @@
         textSecondary: token("--color-text-secondary", "#6b7280"),
         border: token("--color-border", "#e5e7eb"),
         surface: token("--color-surface", "#ffffff"),
+        band: token("--chart-band-bg", ""),
       },
       locale,
       legend,
       orientation: effOrientation,
       ySecondary,
       innerRadius: effInnerRadius,
+      band,
     });
   }
 
@@ -188,6 +208,7 @@
           components.GridComponent,
           components.TooltipComponent,
           components.LegendComponent,
+          components.MarkAreaComponent,
           renderers.CanvasRenderer,
           // echarts 6 (#773): `grid.containLabel` moved behind this opt-in
           // feature. Registering it preserves the v5 layout (labels contained
@@ -231,6 +252,7 @@
     void effOrientation;
     void ySecondary;
     void effInnerRadius;
+    void band;
     if (_chart) _chart.setOption(buildOption(), true);
   });
 </script>
@@ -260,8 +282,9 @@
       </thead>
       <tbody>
         {#each chartData.category as cat, r (cat + r)}
-          <tr>
-            <th scope="row">{cat}</th>
+          {@const inBand = rows !== null && r >= rows[0] && r <= rows[1]}
+          <tr data-band={inBand ? "" : undefined}>
+            <th scope="row">{cat}{#if inBand && band?.label}{" "}<span class="echart-band-label">{band.label}</span>{/if}</th>
             {#each chartData.series as s, si (si)}
               <td>{fmt(s.data[r] ?? 0)}</td>
             {/each}
@@ -302,6 +325,14 @@
     font-weight: 600;
   }
 
+  .echart-table tr[data-band] {
+    background: var(--chart-band-bg);
+  }
+  .echart-band-label {
+    margin-inline-start: var(--space-xs);
+    color: var(--color-text-secondary);
+    font-size: var(--type-label-size);
+  }
   .echart-table tbody th {
     font-weight: 400;
     color: var(--color-text-primary);
