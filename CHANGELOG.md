@@ -4,6 +4,19 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.55.0] — 2026-11-11
+
+### Added
+
+- **Muted chart series.** A series with `tone: "muted"` draws in the secondary
+  text colour, light enough to sit behind the accent series (rain bars under
+  temperature lines). The accent ramp counts only the accent series, so a muted
+  one does not fade the rest. Every series was a shade of the accent before, so
+  bars and lines on one chart read as one colour.
+- **Axis ceilings.** `EChart` takes `yCeiling` and `ySecondaryCeiling`: the
+  axis reaches at least that value, and larger data still extends it. A value
+  axis fitted to its data made 3 mm of rain fill the chart like 30 mm.
+
 ## [0.54.0] — 2026-11-11
 
 ### Added

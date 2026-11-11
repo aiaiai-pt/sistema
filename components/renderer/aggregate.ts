@@ -147,6 +147,9 @@ export interface SeriesData {
   data: number[];
   stack?: string;
   axis?: "primary" | "secondary";
+  /** `muted` draws the series in the secondary text colour, behind the accent
+   *  series (rain bars under temperature lines). Default `accent`. */
+  tone?: "accent" | "muted";
 }
 
 /** The shape `EChart` / `ResultsChart` render: aligned category + series. */

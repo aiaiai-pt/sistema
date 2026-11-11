@@ -30,6 +30,11 @@
   The canvas draws it in `--chart-band-bg`; the table marks the same rows with
   `data-band` and the band's label, so it is never encoded only in pixels.
 
+  A series with `tone: "muted"` draws in the secondary text colour, behind the
+  accent series, and leaves the accent ramp to the others. `yCeiling` and
+  `ySecondaryCeiling` make an axis reach at least that value (larger data still
+  extends it), so small values look small: 3 mm of rain on a 20 mm scale.
+
   @example
   <EChart
     caption="Reports by status"
@@ -49,6 +54,19 @@
     category={["1 Oct", "2 Oct", "3 Oct", "4 Oct"]}
     series={[{ name: "High °C", type: "line", data: [24, 25, 23, 22] }]}
     band={{ from: "2 Oct", to: "3 Oct", label: "Stay" }}
+  />
+  @example Quiet rain bars under temperature lines
+  <EChart
+    caption="Usual weather"
+    labelHeader="Day"
+    category={["1 Oct", "2 Oct", "3 Oct"]}
+    series={[
+      { name: "High °C", type: "line", data: [24, 25, 23] },
+      { name: "Rain mm", type: "bar", axis: "secondary", tone: "muted", data: [1, 9, 2] },
+    ]}
+    ySecondary
+    ySecondaryCeiling={20}
+    legend
   />
 -->
 <script module>
@@ -79,6 +97,10 @@
     innerRadius = 0,
     /** @type {ChartBand | undefined} Shade a run of categories, inclusive. */
     band = undefined,
+    /** @type {number | undefined} The primary axis reaches at least this value. */
+    yCeiling = undefined,
+    /** @type {number | undefined} The secondary axis reaches at least this value. */
+    ySecondaryCeiling = undefined,
     /** @type {ChartItem[]} BACK-COMPAT: single-series `{label,value}` rows. */
     items = [],
     /** @type {"bar" | "line" | "donut"} BACK-COMPAT: legacy single-series kind. */
@@ -175,6 +197,8 @@
       ySecondary,
       innerRadius: effInnerRadius,
       band,
+      yCeiling,
+      ySecondaryCeiling,
     });
   }
 
@@ -253,6 +277,8 @@
     void ySecondary;
     void effInnerRadius;
     void band;
+    void yCeiling;
+    void ySecondaryCeiling;
     if (_chart) _chart.setOption(buildOption(), true);
   });
 </script>
