@@ -57,6 +57,11 @@ export interface BuildChartOptionOpts {
   innerRadius?: number;
   /** Shade a run of categories (cartesian charts only). */
   band?: ChartBand;
+  /** The primary value axis reaches at least this value; larger data extends it.
+   *  Keeps small values looking small (3 mm of rain on a 20 mm scale). */
+  yCeiling?: number;
+  /** The same, for the secondary value axis. */
+  ySecondaryCeiling?: number;
 }
 
 /** Token-driven tooltip chrome — ECharts defaults to a white panel that
@@ -109,7 +114,13 @@ function buildPieOption(
         `${p.name}: ${fmt(p.value)} (${p.percent}%)`,
     },
     ...(opts.legend
-      ? { legend: { show: true, top: 0, textStyle: { color: tokens.textPrimary } } }
+      ? {
+          legend: {
+            show: true,
+            top: 0,
+            textStyle: { color: tokens.textPrimary },
+          },
+        }
       : {}),
     color: palette,
     series: [
@@ -127,7 +138,12 @@ function buildPieOption(
   };
 }
 
-/** Map one shaped series → its ECharts series object. */
+/** A muted series: the secondary text colour, light enough to sit behind the accent. */
+export function mutedColor(textSecondary: string): string {
+  return `color-mix(in srgb, ${textSecondary} 35%, transparent)`;
+}
+
+/** Map one shaped series → its ECharts series object. `i` counts accent series only. */
 function toEchartsSeries(
   s: SeriesData,
   i: number,
@@ -135,7 +151,10 @@ function toEchartsSeries(
 ): Record<string, unknown> {
   const { tokens, orientation, ySecondary } = opts;
   const horizontal = orientation === "horizontal";
-  const color = seriesColor(tokens.accent, i);
+  const color =
+    s.tone === "muted"
+      ? mutedColor(tokens.textSecondary)
+      : seriesColor(tokens.accent, i);
   // The value dimension is y for vertical charts, x for horizontal.
   const axisKey = horizontal ? "xAxisIndex" : "yAxisIndex";
   const axisIndex = s.axis === "secondary" && ySecondary ? 1 : 0;
@@ -195,8 +214,7 @@ function bandArea(
     silent: true,
     itemStyle: {
       color:
-        tokens.band ||
-        `color-mix(in srgb, ${tokens.accent} 16%, transparent)`,
+        tokens.band || `color-mix(in srgb, ${tokens.accent} 16%, transparent)`,
     },
     label: {
       show: Boolean(band.label),
@@ -244,22 +262,32 @@ function buildCartesianOption(
     axisTick: { show: false },
   };
 
-  const valueAxis = (secondary: boolean) => ({
-    type: "value" as const,
-    axisLabel: {
-      color: tokens.textSecondary,
-      formatter: (v: number) => fmt(v),
-    },
-    axisLine: { lineStyle: { color: tokens.border } },
-    // Hide the 2nd axis' grid lines to avoid a double grid.
-    splitLine: { show: !secondary, lineStyle: { color: tokens.border } },
-  });
+  const valueAxis = (secondary: boolean) => {
+    const ceiling = secondary ? opts.ySecondaryCeiling : opts.yCeiling;
+    return {
+      type: "value" as const,
+      ...(ceiling === undefined
+        ? {}
+        : { max: (extent: { max: number }) => Math.max(extent.max, ceiling) }),
+      axisLabel: {
+        color: tokens.textSecondary,
+        formatter: (v: number) => fmt(v),
+      },
+      axisLine: { lineStyle: { color: tokens.border } },
+      // Hide the 2nd axis' grid lines to avoid a double grid.
+      splitLine: { show: !secondary, lineStyle: { color: tokens.border } },
+    };
+  };
 
   const valueAxes = ySecondary
     ? [valueAxis(false), valueAxis(true)]
     : [valueAxis(false)];
 
-  const echSeries = series.map((s, i) => toEchartsSeries(s, i, opts));
+  // The accent ramp counts accent series only, so a muted one does not fade the rest.
+  let accentIndex = 0;
+  const echSeries = series.map((s) =>
+    toEchartsSeries(s, s.tone === "muted" ? 0 : accentIndex++, opts),
+  );
   const area = bandArea(category, opts);
   if (area && echSeries[0]) echSeries[0].markArea = area;
 
