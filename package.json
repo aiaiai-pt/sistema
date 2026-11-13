@@ -136,6 +136,7 @@
     "@codemirror/view": "^6.40.0",
     "@lezer/highlight": "^1.0.0",
     "@sveltejs/package": "^2.5.7",
+    "axe-core": "^4.14.0",
     "date-fns": "^4.1.0",
     "echarts": "^6.1.0",
     "jsdom": "^29.1.1",

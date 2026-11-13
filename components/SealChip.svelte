@@ -28,13 +28,13 @@
   H1 Slice 2 — westeuropeco/atelier-urban-workspace#57.
 
   @example A reading, using whatever terms the deployment declares
-  <SealChip value="+14 cm/h" evidence={{ value: 'measured', label: 'medido', tone: 'positive' }} />
+  <SealChip value="+14 cm/h" evidence={{ value: 'term-a', label: 'leitura', tone: 'positive' }} />
 
   @example Both axes, horizon passed, why one tap away
   <SealChip
     value="2,1 m"
-    evidence={{ value: 'inferred', label: 'inferido', tone: 'info' }}
-    probability={{ value: 'uncertain', label: 'incerto' }}
+    evidence={{ value: 'term-b', label: 'modelo', tone: 'info' }}
+    probability={{ value: 'rung-c', label: 'grau-c' }}
     stale
     why="the 16:00 window has already passed"
   />
@@ -250,7 +250,7 @@
 
   /*
    * TONES — the presentation scale the design system owns. Which declared term
-   * wears which tone is data, declared beside the word and never inferred from
+   * wears which tone is data, declared beside the word and never guessed from
    * it, so these rules carry no vocabulary.
    */
   .seal-tone-positive {
