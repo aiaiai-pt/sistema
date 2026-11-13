@@ -2,7 +2,7 @@
   @component KpiRegister
 
   The two-register composition for one KPI: the more authoritative value above,
-  the less authoritative beneath. It is where "measured out-ranks projected"
+  the less authoritative beneath. It is where "a reading out-ranks a forecast"
   becomes concrete — in type SIZE, in POSITION, and in SCREEN-READER READING
   ORDER, all three.
 

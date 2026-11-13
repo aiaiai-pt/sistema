@@ -4,7 +4,7 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
-## [0.55.1] — 2026-11-13
+## [0.55.2] — 2026-11-13
 
 ### Fixed
 
@@ -23,6 +23,14 @@ feat → MINOR, breaking → MAJOR.
   `aria-disabled`) put focus on a control the user cannot use. With no enabled
   control it leaves focus where it was. Covered by
   `tests/menu-item-roles.test.ts` and `tests/popover-focus.test.ts`.
+
+## [0.55.1] — 2026-11-13
+
+### Fixed
+
+- **Seal vocabulary and accessibility.** `SealChip` and `KpiRegister` drop the
+  leftover seal wording, the `ubp` theme seal tokens are adjusted, and an axe
+  audit test covers the seal components (#126, uws:180).
 
 ## [0.55.0] — 2026-11-11
 
