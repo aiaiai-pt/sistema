@@ -12,7 +12,7 @@
 //
 // westeuropeco/atelier-urban-workspace#57
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { flushSync, mount, unmount } from "svelte";
 import { afterEach, describe, expect, it } from "vitest";
@@ -169,10 +169,20 @@ describe("SealChip — the vocabulary is data, not code", () => {
 // ─── No vocabulary may hide in the source ────────────────────────────────────
 
 describe("the design system enumerates no seal words", () => {
+  const root = join(import.meta.dirname, "..");
+
+  function cssUnder(dir: string): string[] {
+    return readdirSync(join(root, dir), { recursive: true, encoding: "utf-8" })
+      .filter((rel) => rel.endsWith(".css"))
+      .map((rel) => join(dir, rel))
+      .sort();
+  }
+
   const sources = [
     "components/SealChip.svelte",
     "components/KpiRegister.svelte",
-    "tokens/components.css",
+    "components/CaminhoStateChip.svelte",
+    ...cssUnder("tokens"),
   ];
 
   // Every seal word from every competing enumeration in the corpus.
@@ -191,23 +201,28 @@ describe("the design system enumerates no seal words", () => {
     "pouco provável",
   ];
 
-  for (const source of sources) {
-    it(`${source} contains no seal vocabulary`, () => {
-      const root = join(import.meta.dirname, "..");
-      // Strip the prose blocks: doc comments legitimately discuss the corpus's
-      // words in order to explain why none of them are hardcoded. What must
-      // stay clean is the executable part.
-      const text = readFileSync(join(root, source), "utf-8")
-        .replace(/<!--[\s\S]*?-->/g, "")
-        .replace(/\/\*[\s\S]*?\*\//g, "")
-        .replace(/^\s*\/\/.*$/gm, "");
+  it("covers every token stylesheet, not a hand-picked few", () => {
+    expect(sources).toContain("tokens/components.css");
+    expect(sources).toContain(join("tokens", "themes", "ubp.css"));
+  });
 
+  for (const source of sources) {
+    it(`${source} contains no seal vocabulary — code, comments or @examples`, () => {
+      // Comments and @examples included: an example is copied into consumers
+      // verbatim, and prose that names one enumeration reads as a ruling on
+      // it. Placeholders (term-a / leitura, term-b / modelo) carry the point.
+      const text = readFileSync(join(root, source), "utf-8");
+
+      // \b is ASCII-only in JS regex, so bound words with Unicode letters.
       const found = SEAL_WORDS.filter((word) =>
-        new RegExp(`\\b${word.replace(/\s/g, "\\s")}\\b`, "i").test(text),
+        new RegExp(
+          `(?<![\\p{L}\\p{N}_])${word.replace(/\s/g, "\\s")}(?![\\p{L}\\p{N}_])`,
+          "iu",
+        ).test(text),
       );
       expect(
         found,
-        `${source} hardcodes seal vocabulary: ${found.join(", ")}. ` +
+        `${source} names seal vocabulary: ${found.join(", ")}. ` +
           "The words are declared data; the design system owns only the laws.",
       ).toEqual([]);
     });
