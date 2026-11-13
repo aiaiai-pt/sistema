@@ -3,6 +3,8 @@
 
   A single actionable row inside a Menu.
   Renders as <button role="menuitem"> with optional leading/trailing snippets.
+  Set role="menuitemradio" or role="menuitemcheckbox" with `checked` for
+  selectable items; aria-checked is rendered only for those two roles.
 
   Consumes --menu-item-* tokens from components.css.
 
@@ -18,6 +20,11 @@
     Delete
   </MenuItem>
 
+  @example Radio item
+  <MenuItem role="menuitemradio" checked={sort === 'name'} onclick={() => (sort = 'name')}>
+    Sort by name
+  </MenuItem>
+
   @example With keyboard shortcut
   <MenuItem onclick={handleCopy}>
     Copy
@@ -25,9 +32,29 @@
   </MenuItem>
 -->
 <script>
+  /**
+   * @typedef {'menuitem' | 'menuitemradio' | 'menuitemcheckbox'} MenuItemRole
+   * @typedef {{
+   *   variant?: string,
+   *   role?: MenuItemRole,
+   *   checked?: boolean,
+   *   disabled?: boolean,
+   *   leading?: import('svelte').Snippet,
+   *   trailing?: import('svelte').Snippet,
+   *   children?: import('svelte').Snippet,
+   *   class?: string,
+   *   [key: string]: unknown,
+   * }} Props
+   */
+
+  /** @type {Props} */
   let {
     /** @type {'default' | 'destructive'} */
     variant = 'default',
+    /** @type {MenuItemRole} */
+    role = 'menuitem',
+    /** Checked state; rendered as aria-checked only for menuitemradio/menuitemcheckbox. @type {boolean} */
+    checked = false,
     /** @type {boolean} */
     disabled = false,
     /** @type {import('svelte').Snippet | undefined} */
@@ -40,10 +67,15 @@
     class: className = '',
     ...rest
   } = $props();
+
+  const ariaChecked = $derived(
+    role === 'menuitemradio' || role === 'menuitemcheckbox' ? (checked ? 'true' : 'false') : undefined
+  );
 </script>
 
 <button
-  role="menuitem"
+  {role}
+  aria-checked={ariaChecked}
   class="menu-item menu-item-{variant} {className}"
   class:menu-item-disabled={disabled}
   disabled={disabled || undefined}

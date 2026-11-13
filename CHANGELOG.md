@@ -4,6 +4,26 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.55.1] — 2026-11-13
+
+### Fixed
+
+- **`Menu` walks radio and checkbox items.** Arrow keys, Home/End and
+  typeahead only saw `role="menuitem"`, and Enter/Space only activated it, so a
+  menu of sort options built from `menuitemradio` items could not be reached
+  by keyboard. `Menu` now walks `menuitem`, `menuitemradio` and
+  `menuitemcheckbox`, skipping items that are `aria-disabled="true"` or
+  natively `:disabled`.
+- **`MenuItem` takes `role` and `checked`.** `role` is
+  `'menuitem' | 'menuitemradio' | 'menuitemcheckbox'` (default `'menuitem'`,
+  so existing menus are unchanged). `checked` renders `aria-checked` on radio
+  and checkbox items only. The generated `.d.ts` now carries the role union.
+- **`Popover` focuses the first enabled control on open.** It took the first
+  focusable match, so a popover whose first button was disabled (or
+  `aria-disabled`) put focus on a control the user cannot use. With no enabled
+  control it leaves focus where it was. Covered by
+  `tests/menu-item-roles.test.ts` and `tests/popover-focus.test.ts`.
+
 ## [0.55.0] — 2026-11-11
 
 ### Added

@@ -99,11 +99,15 @@
     /** @type {HTMLElement | null} */
     const previouslyFocused = /** @type {HTMLElement | null} */ (document.activeElement);
 
-    // Focus first focusable child
+    // Focus the first focusable child that is enabled (not :disabled and not
+    // aria-disabled). With none, leave focus where it is.
     requestAnimationFrame(() => {
-      const focusable = popoverEl?.querySelector(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
+      if (!popoverEl) return;
+      const focusable = Array.from(
+        popoverEl.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).find((el) => !el.matches(':disabled, [aria-disabled="true"]'));
       if (focusable) /** @type {HTMLElement} */ (focusable).focus();
     });
 
