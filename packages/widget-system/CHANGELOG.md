@@ -3,6 +3,41 @@
 Separately versioned from `@aiaiai-pt/design-system`. SemVer: fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.4.0] — 2026-11-13
+
+### Added — a native severity chip on `definition-members-card` rows (!uws:347)
+
+A member may now carry an optional `severity`, rendered by the widget itself as
+the design-system `Badge`, so a host no longer overrides the `row` snippet and
+restates the row CSS just to show it.
+
+| `severity` | `Badge` variant |
+|---|---|
+| `low` | `neutral` |
+| `moderate` | `info` |
+| `high` | `warning` |
+| `critical` | `error` |
+
+- **String-free (D9):** the chip's text is the member's `severityLabel`,
+  falling back to the raw key. The widget owns the variant mapping, not the
+  words.
+- **`severityTestId`** lands on the chip as `data-testid`; absent → no
+  attribute.
+- **Placement:** detail and chip share a meta group (`.definition-members-card-meta`)
+  that stays BESIDE the label, right-aligned and never shrunk, on plain AND
+  drill rows. This is the layout hosts had restated as `.ws-member*`.
+- **Absent or unknown severity → no chip.** The row's element DOM is exactly the
+  severity-less row; no meta group, nothing in the chip's place.
+- The `row` snippet override is unchanged and still replaces the whole row.
+- The label now carries `min-width: 0`, so a long label wraps instead of
+  pushing the meta group out of the row.
+
+`Badge` is imported by name (`@aiaiai-pt/design-system/components/Badge.svelte`),
+like SealChip and EChart. It exists, with the same props, at the current peer
+floor. `src/widgets/design-system-badge.d.ts` types that import for this
+package's own typecheck only, because the design system's generated
+`.svelte.d.ts` files are not present in the monorepo.
+
 ## [0.3.0] — 2026-08-06
 
 ### Changed — BREAKING (evidence seal core, pairs with design-system 0.51.0)

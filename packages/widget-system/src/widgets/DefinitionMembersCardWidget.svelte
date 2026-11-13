@@ -20,12 +20,25 @@
   dispatch path, which cannot carry snippets. A `row` snippet overrides it for
   direct composition.
 
+  Severity (0.4.0): a member MAY carry `severity` — one of `low`, `moderate`,
+  `high`, `critical` — rendered as a design-system `Badge` on plain and drill
+  rows alike (low→neutral, moderate→info, high→warning, critical→error). The
+  chip sits with the detail in a meta group BESIDE the label, right-aligned.
+  Its text is the caller's `severityLabel`, falling back to the raw key; its
+  `data-testid` is the caller's `severityTestId`. An absent or unknown
+  severity renders no chip and nothing in its place — the row DOM is exactly
+  the severity-less row. The `row` snippet still overrides the whole row.
+
   String-free (D9) and vocabulary-free: every visible word, including the expand
   and drill affordances and the count phrasing, is caller-supplied.
 -->
 <script lang="ts">
   import type { Snippet } from "svelte";
+  import Badge from "@aiaiai-pt/design-system/components/Badge.svelte";
   import type { WidgetRenderRequest } from "../core/index";
+
+  type MemberSeverity = "low" | "moderate" | "high" | "critical";
+  type SeverityVariant = "neutral" | "info" | "warning" | "error";
 
   /** One member row. `ref` is opaque and echoed back to callbacks untouched. */
   interface Member {
@@ -33,7 +46,35 @@
     label: string;
     /** Optional secondary line, caller-supplied. */
     detail?: string;
+    /** Optional severity key; an unknown value renders no chip. */
+    severity?: MemberSeverity;
+    /** Caller-supplied chip text (D9); the raw key when absent. */
+    severityLabel?: string;
+    /** `data-testid` for the chip, caller-supplied. */
+    severityTestId?: string;
     ref?: unknown;
+  }
+
+  /** Severity key → design-system Badge variant. Closed: no other key renders. */
+  const SEVERITY_BADGE: Readonly<Record<MemberSeverity, SeverityVariant>> = {
+    low: "neutral",
+    moderate: "info",
+    high: "warning",
+    critical: "error",
+  };
+
+  /** The chip a member wears, or `null` when its severity is absent/unknown. */
+  function chipOf(
+    member: Member,
+  ): { variant: SeverityVariant; text: string; testId?: string } | null {
+    const key: unknown = member.severity;
+    if (typeof key !== "string" || !Object.hasOwn(SEVERITY_BADGE, key)) return null;
+    const label = member.severityLabel;
+    return {
+      variant: SEVERITY_BADGE[key as MemberSeverity],
+      text: typeof label === "string" && label !== "" ? label : key,
+      testId: typeof member.severityTestId === "string" ? member.severityTestId : undefined,
+    };
   }
 
   interface Props extends WidgetRenderRequest {
@@ -104,6 +145,24 @@
   const listId = $props.id();
 </script>
 
+<!--
+  A row's cells, shared by plain and drill rows. Without a chip this is exactly
+  the severity-less markup; with one, detail and chip share a meta group that
+  stays beside the label, right-aligned.
+-->
+{#snippet cells(member: Member)}
+  {@const chip = chipOf(member)}
+  <span class="definition-members-card-label">{member.label}</span>
+  {#if chip}<span class="definition-members-card-meta"
+      >{#if member.detail}<span class="definition-members-card-detail"
+          >{member.detail}</span
+        >{/if}<Badge variant={chip.variant} data-testid={chip.testId}>{chip.text}</Badge
+      ></span
+    >{:else if member.detail}<span class="definition-members-card-detail"
+      >{member.detail}</span
+    >{/if}
+{/snippet}
+
 <section class="definition-members-card" aria-labelledby={title ? `${listId}-t` : undefined}>
   <header class="definition-members-card-head">
     {#if title}
@@ -131,17 +190,11 @@
               class="definition-members-card-row definition-members-card-row-action"
               onclick={() => onDrill?.(member.ref)}
             >
-              <span class="definition-members-card-label">{member.label}</span>
-              {#if member.detail}<span class="definition-members-card-detail"
-                  >{member.detail}</span
-                >{/if}
+              {@render cells(member)}
             </button>
           {:else}
             <div class="definition-members-card-row">
-              <span class="definition-members-card-label">{member.label}</span>
-              {#if member.detail}<span class="definition-members-card-detail"
-                  >{member.detail}</span
-                >{/if}
+              {@render cells(member)}
             </div>
           {/if}
         </li>
@@ -239,6 +292,7 @@
   }
 
   .definition-members-card-label {
+    min-width: 0;
     font-family: var(--type-body-sm-font);
     font-size: var(--type-body-sm-size);
     color: var(--color-text);
@@ -248,6 +302,14 @@
     font-family: var(--type-caption-font);
     font-size: var(--type-caption-size);
     color: var(--color-text-muted);
+  }
+
+  /* Detail + severity chip: beside the label, right-aligned, never squeezed. */
+  .definition-members-card-meta {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+    flex-shrink: 0;
   }
 
   .definition-members-card-empty {
