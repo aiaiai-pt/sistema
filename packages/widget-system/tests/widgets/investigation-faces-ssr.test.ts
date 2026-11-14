@@ -119,3 +119,61 @@ describe("investigations faces — server render", () => {
     expect(once).toBe(twice);
   });
 });
+
+// !uws:347 — the native severity chip must be in the FIRST paint: a host that
+// server-renders the board shows the chip before hydration, not after.
+describe("definition-members-card severity — server render", () => {
+  const ssr = (members: Record<string, unknown>[], props: Record<string, unknown> = {}) =>
+    render(DefinitionMembersCardWidget, {
+      props: { data: { members }, props: { provenance: "p", ...props } },
+    }).body;
+
+  const variants: [string, string][] = [
+    ["low", "badge-neutral"],
+    ["moderate", "badge-info"],
+    ["high", "badge-warning"],
+    ["critical", "badge-error"],
+  ];
+
+  for (const [severity, variantClass] of variants) {
+    it(`emits severity «${severity}» as a ${variantClass} chip`, () => {
+      const body = ssr([{ label: "Sensor A", severity }]);
+      expect(body).toMatch(new RegExp(`class="badge ${variantClass}[ "]`));
+      expect(body.match(/class="badge /g)).toHaveLength(1);
+      expect(body).toContain("definition-members-card-meta");
+    });
+  }
+
+  it("emits no chip and no meta group when severity is absent", () => {
+    const body = ssr([{ label: "Sensor A", detail: "rua" }]);
+    expect(body).not.toContain('class="badge');
+    expect(body).not.toContain("definition-members-card-meta");
+    expect(body).toContain("rua");
+  });
+
+  it("emits no chip for an unknown severity", () => {
+    const body = ssr([{ label: "Sensor A", severity: "catastrophic" }]);
+    expect(body).not.toContain('class="badge');
+    expect(body).not.toContain("catastrophic");
+  });
+
+  it("emits the caller's label, falling back to the raw key", () => {
+    const body = ssr([
+      { label: "A", severity: "critical", severityLabel: "crítica" },
+      { label: "B", severity: "moderate" },
+    ]);
+    // Badge's own markup interleaves whitespace and hydration comments before
+    // its children, so match up to the chip's text rather than a literal `>`.
+    expect(body).toMatch(/badge-error[^>]*>(?:\s|<!--[^>]*-->)*crítica</);
+    expect(body).toMatch(/badge-info[^>]*>(?:\s|<!--[^>]*-->)*moderate</);
+  });
+
+  it("emits severityTestId as the chip's data-testid, on drill rows too", () => {
+    const body = ssr(
+      [{ label: "A", severity: "high", severityTestId: "sev-a", ref: "m1" }],
+      { drillLabel: "abrir", onDrill: () => {} },
+    );
+    expect(body).toContain("definition-members-card-row-action");
+    expect(body).toMatch(/<span class="badge badge-warning[^"]*"[^>]*data-testid="sev-a"/);
+  });
+});
