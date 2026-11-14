@@ -1,0 +1,67 @@
+name: Publish @aiaiai-pt/widget-system
+
+# Publishes packages/widget-system to public npm, mirroring publish.yml
+# (design-system). Trigger by pushing a `widget-system-v*` tag on the commit to
+# release, e.g. `git tag widget-system-v0.3.1 origin/main && git push origin
+# widget-system-v0.3.1`, or run it by hand with the version.
+#
+# Auth: npm TRUSTED PUBLISHING (OIDC), no token. Register once:
+# npmjs.com → @aiaiai-pt/widget-system → Settings → Trusted publishing →
+# GitHub Actions: aiaiai-pt / sistema / publish-widget-system.yml.
+
+on:
+  push:
+    tags:
+      - "widget-system-v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (must match packages/widget-system/package.json)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+          cache: npm
+
+      - name: Verify version match
+        run: |
+          PKG_VERSION=$(node -p "require('./packages/widget-system/package.json').version")
+          if [ "${{ github.event_name }}" = "push" ]; then
+            TAG_VERSION="${GITHUB_REF#refs/tags/widget-system-v}"
+          else
+            TAG_VERSION="${{ inputs.version }}"
+          fi
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::widget-system package.json version ($PKG_VERSION) does not match trigger version ($TAG_VERSION)"
+            exit 1
+          fi
+          echo "Publishing @aiaiai-pt/widget-system@$PKG_VERSION"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run widget-system tests
+        working-directory: packages/widget-system
+        run: npm test
+
+      - name: npm new enough for trusted publishing
+        run: |
+          npm install -g npm@latest
+          npm --version
+
+      - name: Publish
+        working-directory: packages/widget-system
+        run: npm publish --access public --provenance --loglevel verbose
