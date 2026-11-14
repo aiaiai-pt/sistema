@@ -46,14 +46,21 @@
   let typeaheadBuffer = $state('');
   let typeaheadTimer = $state(0);
 
+  /** Every WAI-ARIA menu item role: plain, radio and checkbox items. */
+  const ITEM_ROLES = ['menuitem', 'menuitemradio', 'menuitemcheckbox'];
+  const ITEM_SELECTOR = ITEM_ROLES.map((r) => `[role="${r}"]`).join(', ');
+
   /**
-   * Get all enabled menu items inside the menu container.
+   * Get all enabled menu items (any item role) inside the menu container.
+   * Skips items that are aria-disabled or natively :disabled.
    * @returns {HTMLElement[]}
    */
   function getItems() {
     if (!menuEl) return [];
     return /** @type {HTMLElement[]} */ (
-      Array.from(menuEl.querySelectorAll('[role="menuitem"]:not([aria-disabled="true"])'))
+      Array.from(menuEl.querySelectorAll(ITEM_SELECTOR)).filter(
+        (el) => !el.matches(':disabled, [aria-disabled="true"]')
+      )
     );
   }
 
@@ -101,7 +108,7 @@
       case 'Enter':
       case ' ': {
         e.preventDefault();
-        if (current && current.getAttribute('role') === 'menuitem') {
+        if (current && ITEM_ROLES.includes(current.getAttribute('role') ?? '')) {
           current.click();
         }
         break;

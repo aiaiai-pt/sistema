@@ -108,6 +108,12 @@ describe("assignSeal — which values need a seal", () => {
   it("a direct reading of a current window does not", () => {
     expect(seal().sealRequired).toBe(false);
   });
+
+  it("omitted model_derived is a strict false, not undefined", () => {
+    const r = assignSeal({ window_start: PAST } as ValueProvenance, NOW);
+    expect(r.evidenceClass).toBe("direct_reading");
+    expect(r.sealRequired).toBe(false);
+  });
 });
 
 // ─── The ranking that "measured out-ranks projected" really means ────────────

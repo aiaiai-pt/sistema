@@ -179,7 +179,7 @@ export function assignSeal(value: ValueProvenance, now: Date): SealAssignment {
 
   // A value needs a seal when its window is later than now OR its provenance
   // includes a model. A direct reading of a current/past window does not.
-  const sealRequired = isFutureWindow || value.model_derived;
+  const sealRequired = isFutureWindow || value.model_derived === true;
 
   return { evidenceClass, stale, sealRequired };
 }
