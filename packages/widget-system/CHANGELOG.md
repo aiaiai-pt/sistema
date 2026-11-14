@@ -3,6 +3,14 @@
 Separately versioned from `@aiaiai-pt/design-system`. SemVer: fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.3.1] — 2026-11-13
+
+### Fixed
+
+- `assignSeal` returns `sealRequired: false` (strict boolean) when
+  `model_derived` is omitted on a non-future window; it used to leak
+  `undefined` through `||` (atelier !uws:188).
+
 ## [0.3.0] — 2026-08-06
 
 ### Changed — BREAKING (evidence seal core, pairs with design-system 0.51.0)
