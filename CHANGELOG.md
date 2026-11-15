@@ -31,6 +31,14 @@ feat → MINOR, breaking → MAJOR.
     defaultSection) are forwarded or used internally so the consumer
     can reach them from one call site.
 
+### Changed
+
+- **`DataTable`**: hover highlight is now gated to clickable rows only
+  (atelier#2668 P3b). A table whose rows have no `on_row_click` handler
+  no longer highlights on hover — the `.table-row:hover` rule was
+  replaced with `.table-row-clickable:hover`. Selectable rows keep their
+  selected-state affordance unchanged.
+
 ## [0.56.0] — 2026-11-15
 
 ### Added

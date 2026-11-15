@@ -447,7 +447,11 @@
     background: var(--color-surface-secondary);
   }
 
-  .table-row:hover {
+  /* #2668 P3b — only clickable rows highlight on hover. A list whose rows
+     go nowhere (no on_row_click) looked clickable because .table-row:hover
+     highlighted all rows. Selectable rows keep their .table-row-selected
+     affordance (the checkbox cell has its own click handler). */
+  .table-row-clickable:hover {
     background: var(--color-surface-tertiary);
   }
 
