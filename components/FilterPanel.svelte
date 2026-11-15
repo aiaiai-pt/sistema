@@ -47,6 +47,14 @@
     onchange = undefined,
     /** @type {(() => void) | undefined} */
     onclear = undefined,
+    /** @type {string} — default option label in select filters */
+    allLabel = 'All',
+    /** @type {string} — clear-all button label */
+    clearLabel = 'Clear all',
+    /** @type {string} — boolean filter "yes" label */
+    booleanYesLabel = 'Yes',
+    /** @type {string} — boolean filter "no" label */
+    booleanNoLabel = 'No',
     /** @type {string} */
     class: className = '',
     ...rest
@@ -102,7 +110,7 @@
             value={value[filter.key] ?? ''}
             onchange={(e) => setFilter(filter.key, /** @type {HTMLSelectElement} */ (e.currentTarget).value)}
           >
-            <option value="">All</option>
+            <option value="">{allLabel}</option>
             {#each filter.options as opt (opt.value)}
               <option value={opt.value}>{opt.label}</option>
             {/each}
@@ -112,7 +120,7 @@
           </span>
         </div>
       {:else if filter.type === 'boolean'}
-        {@const opts = filter.options ?? [{ value: 'true', label: 'Yes' }, { value: 'false', label: 'No' }]}
+        {@const opts = filter.options ?? [{ value: 'true', label: booleanYesLabel }, { value: 'false', label: booleanNoLabel }]}
         <span class="filter-field-label">{filter.label}</span>
         <div class="filter-bool-chips">
           {#each opts as opt (opt.value)}
@@ -130,7 +138,7 @@
         <Combobox
           size="sm"
           label={filter.label}
-          placeholder="All"
+          placeholder={allLabel}
           items={filter.searchItems ?? []}
           value={value[filter.key] ?? ''}
           onchange={(val) => setFilter(filter.key, val)}
@@ -147,7 +155,7 @@
       onclick={clearAll}
       type="button"
     >
-      Clear all
+      {clearLabel}
     </button>
   {/if}
 </div>

@@ -61,6 +61,11 @@
     /** @type {((size: number) => void) | undefined} */
     on_page_size_change = undefined,
 
+    /** @type {string} — label for the "previous" nav button */
+    prevLabel = 'PREV',
+    /** @type {string} — label for the "next" nav button */
+    nextLabel = 'NEXT',
+
     /** @type {string} */
     class: className = '',
     ...rest
@@ -146,15 +151,15 @@
 
   {#if mode === 'cursor'}
     <button class="pagination-nav" disabled={!has_prev} onclick={on_prev} aria-label="Previous page">
-      {@render chevronLeft()}<span>PREV</span>
+      {@render chevronLeft()}<span>{prevLabel}</span>
     </button>
     <button class="pagination-nav" disabled={!has_next} onclick={on_next} aria-label="Next page">
-      <span>NEXT</span>{@render chevronRight()}
+      <span>{nextLabel}</span>{@render chevronRight()}
     </button>
 
   {:else}
     <button class="pagination-nav" disabled={current_page <= 1} onclick={() => on_page_change?.(current_page - 1)} aria-label="Previous page">
-      {@render chevronLeft()}<span>PREV</span>
+      {@render chevronLeft()}<span>{prevLabel}</span>
     </button>
 
     <div class="pagination-pages">
@@ -177,7 +182,7 @@
     </div>
 
     <button class="pagination-nav" disabled={current_page >= (total_pages ?? current_page)} onclick={() => on_page_change?.(current_page + 1)} aria-label="Next page">
-      <span>NEXT</span>{@render chevronRight()}
+      <span>{nextLabel}</span>{@render chevronRight()}
     </button>
   {/if}
 </div>

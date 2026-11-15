@@ -37,6 +37,8 @@
     width = 'default',
     /** @type {(() => void) | undefined} */
     onclose,
+    /** @type {string} — aria-label for the close button */
+    closeLabel = 'Close',
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
@@ -124,7 +126,7 @@
         <button
           class="modal-close"
           onclick={onclose}
-          aria-label="Close"
+          aria-label={closeLabel}
         >
           <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>

@@ -16,6 +16,8 @@
     removable = false,
     /** @type {(() => void) | undefined} */
     onremove = undefined,
+    /** @type {string} — aria-label for the remove button */
+    removeLabel = 'Remove tag',
     /** @type {string} */
     class: className = '',
     /** @type {import('svelte').Snippet | undefined} */
@@ -39,7 +41,7 @@
     <button
       type="button"
       class="tag-remove"
-      aria-label="Remove tag"
+      aria-label={removeLabel}
       onclick={(e) => {
         e.stopPropagation();
         onremove?.();

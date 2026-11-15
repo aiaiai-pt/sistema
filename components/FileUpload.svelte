@@ -36,6 +36,8 @@
     icon = undefined,
     /** @type {import('svelte').Snippet | undefined} */
     children = undefined,
+    /** @type {string} — drop-zone instruction text */
+    dropLabel = 'Drop files here or click to browse',
     /** @type {string} */
     class: className = '',
     ...rest
@@ -192,7 +194,7 @@
       {#if icon}
         <span class="fileupload-icon">{@render icon()}</span>
       {/if}
-      <span class="fileupload-text">Drop files here or click to browse</span>
+      <span class="fileupload-text">{dropLabel}</span>
       {#if accept || maxSize}
         <span class="fileupload-hint">
           {#if accept}{accept}{/if}

@@ -57,6 +57,10 @@
     onsearch = undefined,
     /** @type {boolean} */
     loading = false,
+    /** @type {string} — shown when loading (async search debounce) */
+    searchingLabel = 'Searching…',
+    /** @type {string} — shown when the filtered list is empty */
+    noResultsLabel = 'No results found',
     /** @type {string} */
     class: className = '',
     ...rest
@@ -247,11 +251,11 @@
     >
       {#if loading}
         <li class="combobox-empty" role="option" aria-selected="false" aria-disabled="true">
-          Searching…
+          {searchingLabel}
         </li>
       {:else if filtered.length === 0}
         <li class="combobox-empty" role="option" aria-selected="false" aria-disabled="true">
-          No results found
+          {noResultsLabel}
         </li>
       {:else}
         {#each [...grouped.entries()] as [group, groupItems]}
