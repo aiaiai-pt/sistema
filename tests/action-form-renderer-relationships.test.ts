@@ -463,4 +463,27 @@ describe("relationship picker placeholder (atelier#2672 L3)", () => {
     expect(input.placeholder).toBe("Search Staff Member...");
     expect(input.placeholder).not.toContain("staff_member");
   });
+
+  it("uses the consumer's searchPlaceholder function when provided", () => {
+    const t = render({
+      parameters: [
+        {
+          key: "rel:person",
+          label: "Pessoa",
+          type: "relationship",
+          relationship: {
+            relCode: "person",
+            targetTypeCode: "vulnerable_person",
+            targetDisplayName: "Pessoa Vulneravel",
+            cardinality: "many_to_one",
+          },
+        },
+      ],
+      searchEntities: vi.fn().mockResolvedValue([]),
+      searchPlaceholder: (name: string) => `Pesquisar ${name}...`,
+    });
+    const input = comboboxInput();
+    expect(input.placeholder).toBe("Pesquisar Pessoa Vulneravel...");
+    expect(input.placeholder).not.toContain("Search");
+  });
 });
