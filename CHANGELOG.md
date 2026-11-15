@@ -4,6 +4,21 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.56.0] — 2026-11-15
+
+### Added
+
+- **`ActionFormRenderer` names the relationship target in its picker
+  placeholder.** The placeholder was built from the target's type code
+  ("Search vulnerable_person..."). Relationship metadata now takes an optional
+  `targetDisplayName` (`target_display_name` is read too); when present the
+  placeholder uses it, otherwise the type code as before.
+- **`ActionFormRenderer` takes `searchPlaceholder`.** A function
+  `(displayName: string) => string` that returns the whole placeholder, so a
+  consumer can translate it. The default is the previous English text
+  (`Search <name>...`, or `Search...` with no name), so existing consumers are
+  unchanged. Applies to the single-value and multi-value relationship pickers.
+
 ## [0.55.2] — 2026-11-13
 
 ### Fixed

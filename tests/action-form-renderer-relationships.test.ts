@@ -396,3 +396,94 @@ describe("hydration fallbacks", () => {
     expect(chips).toEqual(["u-9"]);
   });
 });
+
+// ─── picker placeholder — display name vs raw type code ──────────────────────
+
+describe("relationship picker placeholder (atelier#2672 L3)", () => {
+  it("uses targetDisplayName for the single-value picker placeholder when provided", () => {
+    const t = render({
+      parameters: [
+        {
+          key: "rel:person",
+          label: "Pessoa",
+          type: "relationship",
+          relationship: {
+            relCode: "person",
+            targetTypeCode: "vulnerable_person",
+            targetDisplayName: "Pessoa Vulneravel",
+            cardinality: "many_to_one",
+          },
+        },
+      ],
+      searchEntities: vi.fn().mockResolvedValue([]),
+    });
+    const input = comboboxInput();
+    expect(input.placeholder).toBe("Search Pessoa Vulneravel...");
+    expect(input.placeholder).not.toContain("vulnerable_person");
+  });
+
+  it("falls back to the type code when targetDisplayName is absent", () => {
+    const t = render({
+      parameters: [
+        {
+          key: "rel:org",
+          label: "Organization",
+          type: "relationship",
+          relationship: {
+            relCode: "organization",
+            targetTypeCode: "organization",
+            cardinality: "many_to_one",
+          },
+        },
+      ],
+      searchEntities: vi.fn().mockResolvedValue([]),
+    });
+    const input = comboboxInput();
+    expect(input.placeholder).toBe("Search organization...");
+  });
+
+  it("uses targetDisplayName for the multi-value picker placeholder", () => {
+    const t = render({
+      parameters: [
+        {
+          key: "rel:inspectors",
+          label: "Inspectors",
+          type: "relationship",
+          relationship: {
+            relCode: "inspectors",
+            targetTypeCode: "staff_member",
+            targetDisplayName: "Staff Member",
+            cardinality: "many_to_many",
+          },
+        },
+      ],
+      searchEntities: vi.fn().mockResolvedValue([]),
+    });
+    const input = comboboxInput();
+    expect(input.placeholder).toBe("Search Staff Member...");
+    expect(input.placeholder).not.toContain("staff_member");
+  });
+
+  it("uses the consumer's searchPlaceholder function when provided", () => {
+    const t = render({
+      parameters: [
+        {
+          key: "rel:person",
+          label: "Pessoa",
+          type: "relationship",
+          relationship: {
+            relCode: "person",
+            targetTypeCode: "vulnerable_person",
+            targetDisplayName: "Pessoa Vulneravel",
+            cardinality: "many_to_one",
+          },
+        },
+      ],
+      searchEntities: vi.fn().mockResolvedValue([]),
+      searchPlaceholder: (name: string) => `Pesquisar ${name}...`,
+    });
+    const input = comboboxInput();
+    expect(input.placeholder).toBe("Pesquisar Pessoa Vulneravel...");
+    expect(input.placeholder).not.toContain("Search");
+  });
+});

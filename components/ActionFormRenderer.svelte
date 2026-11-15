@@ -45,6 +45,7 @@
     isRelationshipParam,
     normalizeRelIds,
     relationshipTypeCode,
+    relationshipDisplayName,
   } from "./action-form-renderer-relationships";
   // #36/#37 — widget-first dispatch (field summaries carry render intent in
   // `widget`; derived-action params in `ui_schema.widget`; legacy params fall
@@ -141,6 +142,12 @@
      *  in submit modes. */
     captcha?: Snippet;
     submitLabel?: string;
+    /** Consumer-provided placeholder builder for relationship pickers.
+     *  Receives the target type's display name (or type code as fallback);
+     *  returns the full placeholder string. The consumer owns the translation
+     *  (e.g. `(name) => t('Search {0}...', name)`); the DS provides the
+     *  English default. Consistent with the `submitLabel` pattern. */
+    searchPlaceholder?: (displayName: string) => string;
     /** Forwarded VERBATIM to every `geo` parameter's MapPicker (the renderer
      *  stays generic — boundary/overlay semantics live in the consumer):
      *  `boundary` draws the dashed tenant-boundary overlay and arms the
@@ -185,6 +192,7 @@
     fieldErrors = undefined,
     captcha = undefined,
     submitLabel = "Submit",
+    searchPlaceholder = (name: string) => name ? `Search ${name}...` : "Search...",
     boundary = undefined,
     layers = [],
     onoutofbounds = undefined,
@@ -907,9 +915,7 @@
           value: id,
           label: relLabel(key, id),
         }))}
-        placeholder={relationshipTypeCode(parameter)
-          ? `Search ${relationshipTypeCode(parameter)}...`
-          : "Search..."}
+        placeholder={searchPlaceholder(relationshipDisplayName(parameter))}
         disabled={!searchEntities || !editable || fieldDisabled}
         loading={(referenceLoading[key] ?? false) || parameter.loading === true}
         error={fieldError}
@@ -922,9 +928,7 @@
         label={String(parameter.label ?? key)}
         items={relComboItems(parameter)}
         value={String(values[key] ?? "")}
-        placeholder={relationshipTypeCode(parameter)
-          ? `Search ${relationshipTypeCode(parameter)}...`
-          : "Search..."}
+        placeholder={searchPlaceholder(relationshipDisplayName(parameter))}
         disabled={!searchEntities || !editable || fieldDisabled}
         loading={(referenceLoading[key] ?? false) || parameter.loading === true}
         error={fieldError}
