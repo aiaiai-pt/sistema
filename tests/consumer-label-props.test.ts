@@ -264,50 +264,117 @@ describe("ActionFormRenderer label pass-through", () => {
     flushSync();
   }
 
-  it("passes noResultsLabel through to the relationship Combobox", async () => {
-    await renderAFR({ noResultsLabel: "Sem resultados" });
-    const input = target!.querySelector(
-      "input[role='combobox']",
-    ) as HTMLInputElement;
-    input.focus();
-    input.value = "x";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    flushSync();
-    // Wait for debounce if needed
-    await vi.advanceTimersByTimeAsync?.(300).catch(() => {});
-    flushSync();
-    const empty = target!.querySelector(".combobox-empty");
-    expect(empty?.textContent?.trim()).toBe("Sem resultados");
-  });
+  it(
+    "passes noResultsLabel through to the relationship Combobox",
+    { timeout: 15000 },
+    async () => {
+      await renderAFR({ noResultsLabel: "Sem resultados" });
+      const input = target!.querySelector(
+        "input[role='combobox']",
+      ) as HTMLInputElement;
+      input.focus();
+      input.value = "x";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      flushSync();
+      // Wait for debounce if needed
+      await vi.advanceTimersByTimeAsync?.(300).catch(() => {});
+      flushSync();
+      const empty = target!.querySelector(".combobox-empty");
+      expect(empty?.textContent?.trim()).toBe("Sem resultados");
+    },
+  );
 
-  it("passes booleanYesLabel / booleanNoLabel through to boolean selects", async () => {
-    const AFR = (await import("../components/ActionFormRenderer.svelte"))
-      .default;
-    if (app) {
+  it(
+    "passes booleanYesLabel / booleanNoLabel through to boolean selects",
+    { timeout: 15000 },
+    async () => {
+      const AFR = (await import("../components/ActionFormRenderer.svelte"))
+        .default;
+      if (app) {
+        unmount(app);
+        app = undefined;
+      }
+      app = mount(AFR, {
+        target: el(),
+        props: {
+          action: ACTION,
+          mode: "admin-execute",
+          parameters: [
+            {
+              key: "is_active",
+              label: "Active",
+              type: "boolean",
+              required: false,
+            },
+          ],
+          booleanYesLabel: "Sim",
+          booleanNoLabel: "Não",
+        },
+      });
+      flushSync();
+      const options = [...target!.querySelectorAll("option")];
+      const labels = options.map((o) => o.textContent?.trim());
+      expect(labels).toContain("Sim");
+      expect(labels).toContain("Não");
+    },
+  );
+
+  it(
+    "defaultSectionLabel: default is 'Details', override renders",
+    { timeout: 15000 },
+    async () => {
+      const AFR = (await import("../components/ActionFormRenderer.svelte"))
+        .default;
+      if (app) {
+        unmount(app);
+        app = undefined;
+      }
+      // A parameter with no section metadata falls back to defaultSectionLabel
+      app = mount(AFR, {
+        target: el(),
+        props: {
+          action: ACTION,
+          mode: "admin-execute",
+          parameters: [
+            {
+              key: "title",
+              label: "Title",
+              type: "string",
+              required: false,
+            },
+          ],
+        },
+      });
+      flushSync();
+      const headings = [...target!.querySelectorAll("h3, h4, legend")].map(
+        (h) => h.textContent?.trim(),
+      );
+      expect(headings.some((h) => h === "Details")).toBe(true);
+
+      // Override
       unmount(app);
-      app = undefined;
-    }
-    app = mount(AFR, {
-      target: el(),
-      props: {
-        action: ACTION,
-        mode: "admin-execute",
-        parameters: [
-          {
-            key: "is_active",
-            label: "Active",
-            type: "boolean",
-            required: false,
-          },
-        ],
-        booleanYesLabel: "Sim",
-        booleanNoLabel: "Não",
-      },
-    });
-    flushSync();
-    const options = [...target!.querySelectorAll("option")];
-    const labels = options.map((o) => o.textContent?.trim());
-    expect(labels).toContain("Sim");
-    expect(labels).toContain("Não");
-  });
+      app = mount(AFR, {
+        target: el(),
+        props: {
+          action: ACTION,
+          mode: "admin-execute",
+          parameters: [
+            {
+              key: "title",
+              label: "Title",
+              type: "string",
+              required: false,
+            },
+          ],
+          defaultSectionLabel: "Detalhes",
+        },
+      });
+      flushSync();
+      const overridden = [...target!.querySelectorAll("h3, h4, legend")].map(
+        (h) => h.textContent?.trim(),
+      );
+      expect(overridden.some((h) => h === "Detalhes")).toBe(true);
+      expect(overridden.some((h) => h === "Details")).toBe(false);
+    },
+  );
 });

@@ -26,8 +26,9 @@ feat → MINOR, breaking → MAJOR.
   - **`ActionFormRenderer`**: `requiredLabel`, `selectPlaceholder`,
     `loadingOptionsLabel`, `noOptionsLabel`, `booleanYesLabel`,
     `booleanNoLabel`, `fileReplaceLabel`, `requiredHintLabel`,
-    `noResultsLabel`, `searchingLabel`, `dropLabel` — the last three
-    are forwarded to the child Combobox / FileUpload so the consumer
+    `noResultsLabel`, `searchingLabel`, `dropLabel`,
+    `defaultSectionLabel` — the last four (noResults/searching/drop/
+    defaultSection) are forwarded or used internally so the consumer
     can reach them from one call site.
 
 ## [0.56.0] — 2026-11-15

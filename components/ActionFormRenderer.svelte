@@ -201,6 +201,8 @@
     searchingLabel?: string;
     /** FileUpload: drop-zone instruction text (passed through). */
     dropLabel?: string;
+    /** Default section heading when no section label is declared. */
+    defaultSectionLabel?: string;
   }
 
   let {
@@ -236,6 +238,7 @@
     noResultsLabel = "No results found",
     searchingLabel = "Searching…",
     dropLabel = "Drop files here or click to browse",
+    defaultSectionLabel = "Details",
   }: Props = $props();
 
   let values = $state<Record<string, unknown>>({});
@@ -413,7 +416,7 @@
       const section = row.section_label || row.section;
       if (section) return String(section);
     }
-    return "Details";
+    return defaultSectionLabel;
   }
 
   function groupIntoSections(items: Entity[]): Array<{ name: string; items: Entity[] }> {
@@ -439,7 +442,7 @@
         // predicate, and `order` (the server emits sections pre-sorted; the
         // sort below is a defensive mirror, stable via declaration index).
         return {
-          name: String(section.label ?? section.key ?? "Details"),
+          name: String(section.label ?? section.key ?? defaultSectionLabel),
           key: section.key ? String(section.key) : undefined,
           columns: Number(section.columns ?? 1),
           visibleWhen:
