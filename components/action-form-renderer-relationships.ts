@@ -10,6 +10,11 @@
 export type RelationshipMeta = {
   relCode?: string;
   targetTypeCode: string;
+  /** Human display name for the target type (e.g. "Pessoa Vulneravel" instead
+   *  of "vulnerable_person"). Consumers pass it from the ontology schema; the
+   *  renderer prefers it for the picker placeholder. Falls back to
+   *  `targetTypeCode` when absent (backward-compatible). */
+  targetDisplayName?: string;
   cardinality?: string;
 };
 
@@ -34,9 +39,14 @@ export function relationshipMeta(parameter: Entity): RelationshipMeta | null {
   if (!targetTypeCode) return null;
   const relCode = carrier.relCode ?? carrier.rel_code;
   const cardinality = carrier.cardinality;
+  const targetDisplayName =
+    carrier.targetDisplayName ?? carrier.target_display_name;
   return {
     relCode: relCode ? String(relCode) : undefined,
     targetTypeCode,
+    ...(targetDisplayName
+      ? { targetDisplayName: String(targetDisplayName) }
+      : {}),
     cardinality: cardinality ? String(cardinality) : undefined,
   };
 }
@@ -63,6 +73,19 @@ export function isMultiRelationship(parameter: Entity): boolean {
 export function relationshipTypeCode(parameter: Entity): string {
   return (
     relationshipMeta(parameter)?.targetTypeCode ??
+    String(parameter.object_type ?? "")
+  );
+}
+
+/** Human display name for the relationship target, for use in the picker
+ *  placeholder. Prefers `targetDisplayName` from the relationship metadata
+ *  (populated by the consumer from the ontology schema); falls back to the
+ *  raw type code so existing consumers without the display name are unchanged. */
+export function relationshipDisplayName(parameter: Entity): string {
+  const meta = relationshipMeta(parameter);
+  return (
+    meta?.targetDisplayName ??
+    meta?.targetTypeCode ??
     String(parameter.object_type ?? "")
   );
 }

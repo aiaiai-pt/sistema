@@ -45,6 +45,7 @@
     isRelationshipParam,
     normalizeRelIds,
     relationshipTypeCode,
+    relationshipDisplayName,
   } from "./action-form-renderer-relationships";
   // #36/#37 — widget-first dispatch (field summaries carry render intent in
   // `widget`; derived-action params in `ui_schema.widget`; legacy params fall
@@ -907,8 +908,8 @@
           value: id,
           label: relLabel(key, id),
         }))}
-        placeholder={relationshipTypeCode(parameter)
-          ? `Search ${relationshipTypeCode(parameter)}...`
+        placeholder={relationshipDisplayName(parameter)
+          ? `Search ${relationshipDisplayName(parameter)}...`
           : "Search..."}
         disabled={!searchEntities || !editable || fieldDisabled}
         loading={(referenceLoading[key] ?? false) || parameter.loading === true}
@@ -922,8 +923,8 @@
         label={String(parameter.label ?? key)}
         items={relComboItems(parameter)}
         value={String(values[key] ?? "")}
-        placeholder={relationshipTypeCode(parameter)
-          ? `Search ${relationshipTypeCode(parameter)}...`
+        placeholder={relationshipDisplayName(parameter)
+          ? `Search ${relationshipDisplayName(parameter)}...`
           : "Search..."}
         disabled={!searchEntities || !editable || fieldDisabled}
         loading={(referenceLoading[key] ?? false) || parameter.loading === true}
