@@ -377,4 +377,90 @@ describe("ActionFormRenderer label pass-through", () => {
       expect(overridden.some((h) => h === "Details")).toBe(false);
     },
   );
+
+  it(
+    "requiredFieldsMessage: default renders, override renders",
+    { timeout: 15000 },
+    async () => {
+      const AFR = (await import("../components/ActionFormRenderer.svelte"))
+        .default;
+      if (app) {
+        unmount(app);
+        app = undefined;
+      }
+      // public-submit mode with onApply + a required empty field → submit hint visible
+      app = mount(AFR, {
+        target: el(),
+        props: {
+          action: ACTION,
+          mode: "public-submit",
+          parameters: [
+            { key: "title", label: "Title", type: "string", required: true },
+          ],
+          onApply: async () => ({ ok: true }),
+        },
+      });
+      flushSync();
+      const hint = target!.querySelector(".submit-hint");
+      expect(hint).not.toBeNull();
+      expect(hint!.textContent!.trim()).toBe(
+        "Fill in all required fields to submit.",
+      );
+
+      // Override
+      unmount(app);
+      app = mount(AFR, {
+        target: el(),
+        props: {
+          action: ACTION,
+          mode: "public-submit",
+          parameters: [
+            { key: "title", label: "Title", type: "string", required: true },
+          ],
+          onApply: async () => ({ ok: true }),
+          requiredFieldsMessage: "Preencha todos os campos obrigatórios.",
+        },
+      });
+      flushSync();
+      const overridden = target!.querySelector(".submit-hint");
+      expect(overridden).not.toBeNull();
+      expect(overridden!.textContent!.trim()).toBe(
+        "Preencha todos os campos obrigatórios.",
+      );
+    },
+  );
+});
+
+// ─── Calendar nav aria-labels (#2672 P14) ───────────────────────────────────
+
+describe("Calendar nav aria-labels", () => {
+  it("default prevAriaLabel/nextAriaLabel are 'Previous'/'Next'", async () => {
+    const Calendar = (await import("../components/Calendar.svelte")).default;
+    if (app) {
+      unmount(app);
+      app = undefined;
+    }
+    app = mount(Calendar, { target: el(), props: {} });
+    flushSync();
+    const buttons = target!.querySelectorAll("button.calendar-nav-btn");
+    expect(buttons.length).toBeGreaterThanOrEqual(2);
+    expect(buttons[0].getAttribute("aria-label")).toBe("Previous");
+    expect(buttons[1].getAttribute("aria-label")).toBe("Next");
+  });
+
+  it("overridden prevAriaLabel/nextAriaLabel render", async () => {
+    const Calendar = (await import("../components/Calendar.svelte")).default;
+    if (app) {
+      unmount(app);
+      app = undefined;
+    }
+    app = mount(Calendar, {
+      target: el(),
+      props: { prevAriaLabel: "Anterior", nextAriaLabel: "Seguinte" },
+    });
+    flushSync();
+    const buttons = target!.querySelectorAll("button.calendar-nav-btn");
+    expect(buttons[0].getAttribute("aria-label")).toBe("Anterior");
+    expect(buttons[1].getAttribute("aria-label")).toBe("Seguinte");
+  });
 });

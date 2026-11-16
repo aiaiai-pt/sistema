@@ -68,6 +68,10 @@
     weekLabel = 'Week',
     /** @type {string} — "Day" view toggle label */
     dayLabel = 'Day',
+    /** @type {string} — aria-label on the "previous" nav button */
+    prevAriaLabel = 'Previous',
+    /** @type {string} — aria-label on the "next" nav button */
+    nextAriaLabel = 'Next',
     /** @type {string} */
     class: className = '',
     ...rest
@@ -276,12 +280,12 @@
   <!-- Toolbar buttons blur() on click to prevent stale focus rings when user presses keys afterward -->
   <div class="calendar-toolbar">
     <div class="calendar-toolbar-left">
-      <button type="button" class="calendar-nav-btn" onclick={(e) => { prev(); /** @type {HTMLElement} */ (e.currentTarget).blur(); }} aria-label="Previous">
+      <button type="button" class="calendar-nav-btn" onclick={(e) => { prev(); /** @type {HTMLElement} */ (e.currentTarget).blur(); }} aria-label={prevAriaLabel}>
         <svg viewBox="0 0 256 256" aria-hidden="true">
           <polyline points="160,208 80,128 160,48" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
-      <button type="button" class="calendar-nav-btn" onclick={(e) => { next(); /** @type {HTMLElement} */ (e.currentTarget).blur(); }} aria-label="Next">
+      <button type="button" class="calendar-nav-btn" onclick={(e) => { next(); /** @type {HTMLElement} */ (e.currentTarget).blur(); }} aria-label={nextAriaLabel}>
         <svg viewBox="0 0 256 256" aria-hidden="true">
           <polyline points="96,48 176,128 96,208" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
