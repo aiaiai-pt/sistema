@@ -4,6 +4,19 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.58.0] — 2026-11-16
+
+### Added
+
+- **`ActionFormRenderer`**: `requiredFieldsMessage` — the a11y hint shown
+  when the submit button is disabled because required fields are empty
+  (default "Fill in all required fields to submit."). The consumer can
+  translate it for non-English locales.
+- **`Calendar`**: `prevAriaLabel`, `nextAriaLabel` — the aria-labels on
+  the month/week/day navigation buttons (defaults "Previous"/"Next").
+  These are screen-reader names, not the visible text (which was already
+  covered by `todayLabel`/`monthLabel`/`weekLabel`/`dayLabel` in 0.57.0).
+
 ## [0.57.0] — 2026-11-15
 
 ### Added

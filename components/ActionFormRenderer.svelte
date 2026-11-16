@@ -203,6 +203,10 @@
     dropLabel?: string;
     /** Default section heading when no section label is declared. */
     defaultSectionLabel?: string;
+    /** A11y hint shown when the submit button is disabled because required
+     *  fields are empty. Rendered as a polite `role="status"` so screen
+     *  readers announce why the form cannot be submitted. */
+    requiredFieldsMessage?: string;
   }
 
   let {
@@ -239,6 +243,7 @@
     searchingLabel = "Searching…",
     dropLabel = "Drop files here or click to browse",
     defaultSectionLabel = "Details",
+    requiredFieldsMessage = "Fill in all required fields to submit.",
   }: Props = $props();
 
   let values = $state<Record<string, unknown>>({});
@@ -1179,7 +1184,7 @@
              `aria-required` that marks which fields are needed. -->
         {#if !canSubmit && !submitting}
           <p class="submit-hint" role="status">
-            Fill in all required fields to submit.
+            {requiredFieldsMessage}
           </p>
         {/if}
         <Button
