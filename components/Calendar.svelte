@@ -60,6 +60,14 @@
     ondateclick = undefined,
     /** @type {import('svelte').Snippet<[CalendarEvent]> | undefined} */
     event: eventSnippet = undefined,
+    /** @type {string} — "Today" button label */
+    todayLabel = 'Today',
+    /** @type {string} — "Month" view toggle label */
+    monthLabel = 'Month',
+    /** @type {string} — "Week" view toggle label */
+    weekLabel = 'Week',
+    /** @type {string} — "Day" view toggle label */
+    dayLabel = 'Day',
     /** @type {string} */
     class: className = '',
     ...rest
@@ -278,7 +286,7 @@
           <polyline points="96,48 176,128 96,208" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
-      <button type="button" class="calendar-today-btn" onclick={(e) => { goToday(); /** @type {HTMLElement} */ (e.currentTarget).blur(); }}>Today</button>
+      <button type="button" class="calendar-today-btn" onclick={(e) => { goToday(); /** @type {HTMLElement} */ (e.currentTarget).blur(); }}>{todayLabel}</button>
       <h2 class="calendar-title">
         {#if view === 'month'}
           {format(date, 'LLLL yyyy', { locale })}
@@ -296,19 +304,19 @@
           class="calendar-toggle-btn"
           class:calendar-toggle-active={view === 'month'}
           onclick={(e) => { view = 'month'; /** @type {HTMLElement} */ (e.currentTarget).blur(); }}
-        >Month</button>
+        >{monthLabel}</button>
         <button
           type="button"
           class="calendar-toggle-btn"
           class:calendar-toggle-active={view === 'week'}
           onclick={(e) => { view = 'week'; /** @type {HTMLElement} */ (e.currentTarget).blur(); }}
-        >Week</button>
+        >{weekLabel}</button>
         <button
           type="button"
           class="calendar-toggle-btn"
           class:calendar-toggle-active={view === 'day'}
           onclick={(e) => { view = 'day'; /** @type {HTMLElement} */ (e.currentTarget).blur(); }}
-        >Day</button>
+        >{dayLabel}</button>
       </div>
     </div>
   </div>

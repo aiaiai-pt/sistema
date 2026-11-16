@@ -56,6 +56,14 @@
     onremove = undefined,
     /** @type {((query: string) => void) | undefined} — async search; parent owns items */
     onsearch = undefined,
+    /** @type {string} — shown when search returns nothing (forwarded to Combobox) */
+    noResultsLabel = 'No results found',
+    /** @type {string} — shown while searching (forwarded to Combobox) */
+    searchingLabel = 'Searching…',
+    /** @type {string} — aria-label for chip remove buttons (forwarded to Tag) */
+    removeLabel = 'Remove tag',
+    /** @type {string} — hint appended to the label when required */
+    requiredLabel = ' (required)',
     /** @type {string} */
     class: className = '',
     ...rest
@@ -89,14 +97,14 @@
 >
   {#if label}
     <span id={`${mscId}-label`} class="msc-label"
-      >{label}{required ? ' (required)' : ''}</span
+      >{label}{required ? requiredLabel : ''}</span
     >
   {/if}
 
   {#if selected.length}
     <div class="msc-chips">
       {#each selected as entry (entry.value)}
-        <Tag removable={!disabled} onremove={() => onremove?.(entry.value)}>
+        <Tag removable={!disabled} {removeLabel} onremove={() => onremove?.(entry.value)}>
           {entry.label}
         </Tag>
       {/each}
@@ -112,6 +120,8 @@
     {error}
     {help}
     {size}
+    {noResultsLabel}
+    {searchingLabel}
     onsearch={onsearch}
     onchange={handlePick}
   />

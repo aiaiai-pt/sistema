@@ -176,6 +176,33 @@
      *  complete payload (incl. attachment_keys) to review and submit. Read-only
      *  consumers omit it. */
     onchange?: (payload: Record<string, unknown>) => void;
+
+    // #2672 L4 — consumer-overridable labels for i18n. Each has today's
+    // English as the default so no consumer changes behaviour.
+    /** Hint appended to required file-param labels, e.g. " (required)". */
+    requiredLabel?: string;
+    /** Placeholder for choice-type selects. */
+    selectPlaceholder?: string;
+    /** Shown in a choice select while options load. */
+    loadingOptionsLabel?: string;
+    /** Shown in a choice select when no options exist. */
+    noOptionsLabel?: string;
+    /** Boolean toggle "yes" option label. */
+    booleanYesLabel?: string;
+    /** Boolean toggle "no" option label. */
+    booleanNoLabel?: string;
+    /** Hint shown when a file param has a stored file on edit. */
+    fileReplaceLabel?: string;
+    /** Hint shown below a required field (submit modes). */
+    requiredHintLabel?: string;
+    /** Combobox: shown when search returns nothing (passed through). */
+    noResultsLabel?: string;
+    /** Combobox: shown while searching / debouncing (passed through). */
+    searchingLabel?: string;
+    /** FileUpload: drop-zone instruction text (passed through). */
+    dropLabel?: string;
+    /** Default section heading when no section label is declared. */
+    defaultSectionLabel?: string;
   }
 
   let {
@@ -200,6 +227,18 @@
     activeSectionKey = null,
     hideSubmit = false,
     onchange = undefined,
+    requiredLabel = " (required)",
+    selectPlaceholder = "Select value",
+    loadingOptionsLabel = "Loading options...",
+    noOptionsLabel = "No options available",
+    booleanYesLabel = "Yes",
+    booleanNoLabel = "No",
+    fileReplaceLabel = "Current file — uploading replaces it",
+    requiredHintLabel = "Required",
+    noResultsLabel = "No results found",
+    searchingLabel = "Searching…",
+    dropLabel = "Drop files here or click to browse",
+    defaultSectionLabel = "Details",
   }: Props = $props();
 
   let values = $state<Record<string, unknown>>({});
@@ -377,7 +416,7 @@
       const section = row.section_label || row.section;
       if (section) return String(section);
     }
-    return "Details";
+    return defaultSectionLabel;
   }
 
   function groupIntoSections(items: Entity[]): Array<{ name: string; items: Entity[] }> {
@@ -403,7 +442,7 @@
         // predicate, and `order` (the server emits sections pre-sorted; the
         // sort below is a defensive mirror, stable via declaration index).
         return {
-          name: String(section.label ?? section.key ?? "Details"),
+          name: String(section.label ?? section.key ?? defaultSectionLabel),
           key: section.key ? String(section.key) : undefined,
           columns: Number(section.columns ?? 1),
           visibleWhen:
@@ -842,13 +881,13 @@
       name={key}
       value={String(values[key] ?? initialValue(parameter) ?? "")}
       {options}
-      placeholder="Select value"
+      placeholder={selectPlaceholder}
       disabled={fieldDisabled || !editable || options.length === 0}
       error={fieldError}
       help={parameter.loading === true
-        ? "Loading options..."
+        ? loadingOptionsLabel
         : options.length === 0
-          ? "No options available"
+          ? noOptionsLabel
           : undefined}
       onchange={(value: string) => setValue(key, value)}
       aria-required={ariaRequired}
@@ -874,8 +913,8 @@
       name={key}
       value={values[key] ? "true" : "false"}
       options={[
-        { value: "true", label: "Yes" },
-        { value: "false", label: "No" },
+        { value: "true", label: booleanYesLabel },
+        { value: "false", label: booleanNoLabel },
       ]}
       disabled={fieldDisabled || !editable}
       error={fieldError}
@@ -919,6 +958,9 @@
         disabled={!searchEntities || !editable || fieldDisabled}
         loading={(referenceLoading[key] ?? false) || parameter.loading === true}
         error={fieldError}
+        {noResultsLabel}
+        {searchingLabel}
+        requiredLabel={requiredLabel}
         onsearch={(query: string) => handleReferenceSearch(parameter, query)}
         onadd={(value: string) => addRelId(key, value)}
         onremove={(value: string) => removeRelId(key, value)}
@@ -932,6 +974,8 @@
         disabled={!searchEntities || !editable || fieldDisabled}
         loading={(referenceLoading[key] ?? false) || parameter.loading === true}
         error={fieldError}
+        {noResultsLabel}
+        {searchingLabel}
         onsearch={(query: string) => handleReferenceSearch(parameter, query)}
         onchange={(value: string) => pickSingleRel(key, value)}
       />
@@ -947,7 +991,7 @@
     <div class="afr-file-param" role="group" aria-labelledby={`${key}-file-label`}>
       <span id={`${key}-file-label`} class="afr-file-label"
         >{String(parameter.label ?? key)}{parameter.required
-          ? " (required)"
+          ? requiredLabel
           : ""}</span
       >
       <!-- #40 — REPLACE semantics: the stored current shows until a pending
@@ -966,7 +1010,7 @@
           {:else}
             <span class="afr-file-current-name">{storedFile.name}</span>
           {/if}
-          <span class="afr-file-current-hint">Current file — uploading replaces it</span>
+          <span class="afr-file-current-hint">{fileReplaceLabel}</span>
         </div>
       {/if}
       {#each fileUploads[key] ?? [] as f (f.key)}
@@ -981,6 +1025,7 @@
           maxSize={fileMaxBytes(parameter)}
           multiple={!replaceMode}
           disabled={!uploadFile || fileBusy[key]}
+          {dropLabel}
           onfiles={(files: File[]) => handleFiles(key, files, replaceMode)}
           onreject={() => {
             fileError = {
@@ -1063,7 +1108,7 @@
     <!-- EXECUTE surfaces (citizen public-submit AND staff admin-execute,
          #629 follow-up): just a quiet required hint — the "Required / type"
          line is operator DEBUG chrome, preview modes only. -->
-    {#if parameter.required}<p class="field-meta">Required</p>{/if}
+    {#if parameter.required}<p class="field-meta">{requiredHintLabel}</p>{/if}
   {:else}
     <p class="field-meta">
       {String(parameter.required ? "Required" : "Optional")} / {type}

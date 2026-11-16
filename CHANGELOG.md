@@ -4,6 +4,41 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.57.0] — 2026-11-15
+
+### Added
+
+- **Consumer-overridable label props for i18n** (atelier#2672 L4). Every
+  hard-coded user-visible English string in the DS now has a per-string prop
+  with the current English as the default, so consumers can pass translated
+  values without a DS release. No consumer changes behaviour.
+
+  - **`Combobox`**: `noResultsLabel`, `searchingLabel`.
+  - **`MultiSelectCombobox`**: `noResultsLabel`, `searchingLabel`,
+    `removeLabel`, `requiredLabel` (forwarded to Combobox / Tag).
+  - **`Pagination`**: `prevLabel`, `nextLabel`.
+  - **`FilterPanel`**: `allLabel`, `clearLabel`, `booleanYesLabel`,
+    `booleanNoLabel`.
+  - **`FileUpload`**: `dropLabel`.
+  - **`Calendar`**: `todayLabel`, `monthLabel`, `weekLabel`, `dayLabel`.
+  - **`Modal`**: `closeLabel` (aria-label on close button).
+  - **`Tag`**: `removeLabel` (aria-label on remove button).
+  - **`ActionFormRenderer`**: `requiredLabel`, `selectPlaceholder`,
+    `loadingOptionsLabel`, `noOptionsLabel`, `booleanYesLabel`,
+    `booleanNoLabel`, `fileReplaceLabel`, `requiredHintLabel`,
+    `noResultsLabel`, `searchingLabel`, `dropLabel`,
+    `defaultSectionLabel` — the last four (noResults/searching/drop/
+    defaultSection) are forwarded or used internally so the consumer
+    can reach them from one call site.
+
+### Changed
+
+- **`DataTable`**: hover highlight is now gated to clickable rows only
+  (atelier#2668 P3b). A table whose rows have no `on_row_click` handler
+  no longer highlights on hover — the `.table-row:hover` rule was
+  replaced with `.table-row-clickable:hover`. Selectable rows keep their
+  selected-state affordance unchanged.
+
 ## [0.56.0] — 2026-11-15
 
 ### Added
