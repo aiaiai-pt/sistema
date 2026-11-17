@@ -4,6 +4,22 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.59.0] — 2026-11-16
+
+### Added
+
+- **`SidebarItem` collapsed abbreviation.** New props: `abbr` (string)
+  shows a short text (e.g. the first letter) when the sidebar is collapsed
+  and no icon snippet is given; `label` (string) provides the full
+  accessible name as `aria-label` and `title` on the collapsed link/button.
+  When expanded, `children` are the visible name and no `aria-label` is
+  added. When an `icon` snippet is present, `abbr` is not rendered (icon
+  takes precedence). No behaviour change for existing consumers that do
+  not pass the new props.
+
+  - **`SidebarSection` when collapsed:** renders nothing (no divider).
+    A column of abbreviation letters needs no section headers. Unchanged.
+
 ## [0.58.0] — 2026-11-16
 
 ### Added
