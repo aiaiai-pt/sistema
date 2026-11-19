@@ -4,6 +4,56 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.60.0] — 2026-11-19
+
+### Added
+
+- **`ActionFormRenderer` geometry by declared type** (atelier#2838,
+  contract with atelier#2998). A `geometry` parameter may carry
+  `geometry_type`, the GeoJSON type name its field declares (`Point`,
+  `MultiPoint`, `LineString`, `MultiLineString`, `Polygon`, `MultiPolygon`,
+  `GeometryCollection`; GeoJSON's own spelling). The renderer picks the
+  picker from it and stores a GeoJSON value of EXACTLY that type:
+  - absent or `Point` → the point picker over a GeoJSON Point (unchanged);
+  - `Polygon`, `MultiPolygon`, `MultiPoint`, `LineString`,
+    `MultiLineString` → the matching MapPicker shape mode; removing every
+    shape stores `null`;
+  - anything else (incl. `GeometryCollection`, wrong case) → a loud
+    field-level "Unsupported geometry type X" alert and NO picker — never a
+    silent point. Override the copy with `unsupportedGeometryLabel`.
+  - An existing value of another type fails loud on the field ("expected a
+    GeoJSON MultiPolygon, got Polygon"), as the Point path already did.
+  - `geometryLabels` forwards translated toolbar/instruction labels to the
+    shape-mode pickers.
+- **`MapPicker` shape modes**: `multipoint`, `linestring`,
+  `multilinestring`, `multipolygon` join `point` and `polygon`. Shape modes
+  take and report a GeoJSON geometry of exactly their type through the new
+  bindable `geometry` prop and `ongeometry` callback (polygon rings wound
+  per RFC 7946; `null` when no shape is left; a `geometry` of another type
+  shows as the field error). They add a drawing toolbar (`--map-toolbar-*`
+  tokens; clear, and in multi modes a live count + delete selected),
+  click-to-select, vertex dragging (alt+click removes a vertex), and keys
+  on the focused map (now in the tab order in shape modes): Enter finishes
+  a sketch, Escape cancels it or deselects, Backspace removes the last
+  sketched vertex, Delete removes the selected shape. A new sketch in a
+  single mode replaces the current shape only on completion. New labels:
+  `deleteSelectedLabel`, `clearLabel`, `toolbarLabel`, `countLabel`,
+  `instructionsLabel` (shown as the help text when no `help` is given).
+  `point` mode is unchanged; `polygon` keeps firing `onchange(outerRing)`.
+- **`map-geometry`** (`@aiaiai-pt/design-system/components/map-geometry`):
+  the pure mode table and `modeForGeometryType`, `composeGeometry`,
+  `decomposeGeometry`.
+- **Tokens**: `--map-selection-fill`, `--map-selection-stroke`,
+  `--map-selection-stroke-width` (the selected drawn shape).
+
+### Fixed
+
+- **`ActionFormRenderer` clears reach the wire.** A field set to `null`
+  (a removed geometry, a cleared single relationship or json field) fell
+  back to its `default_value` in the payload, so an edit form re-sent the
+  prefilled value instead of the clear. An explicit `null` now rides as
+  `null`; only a never-seeded key falls back.
+
 ## [0.59.0] — 2026-11-16
 
 ### Added

@@ -109,6 +109,8 @@ export async function createMapStyles(el) {
   const markerStrokeObj = new Stroke({ color: "", width: 0 });
   const polyFillObj = new Fill({ color: "" });
   const polyStrokeObj = new Stroke({ color: "", width: 0 });
+  const selFillObj = new Fill({ color: "" });
+  const selStrokeObj = new Stroke({ color: "", width: 0 });
 
   let markerRadiusVal = 8;
   let clusterBaseRadiusVal = 16;
@@ -129,6 +131,13 @@ export async function createMapStyles(el) {
     stroke: polyStrokeObj,
   });
 
+  // MapPicker shape modes: the selected drawn shape (and its vertices).
+  const selection = new Style({
+    fill: selFillObj,
+    stroke: selStrokeObj,
+    image: new CircleStyle({ radius: 8, fill: selFillObj, stroke: selStrokeObj }),
+  });
+
   /** @type {Map<string, import('ol/style/Style.js').default>} */
   const clusterCache = new Map();
   /** @type {Map<string, import('ol/style/Style.js').default>} */
@@ -146,6 +155,11 @@ export async function createMapStyles(el) {
     );
     polyStrokeObj.setColor(cssVar(el, "--map-polygon-stroke", "#ff6b35"));
     polyStrokeObj.setWidth(cssPx(el, "--map-polygon-stroke-width", 2));
+    selFillObj.setColor(
+      cssVar(el, "--map-selection-fill", "rgba(44,40,37,0.2)"),
+    );
+    selStrokeObj.setColor(cssVar(el, "--map-selection-stroke", "#2c2825"));
+    selStrokeObj.setWidth(cssPx(el, "--map-selection-stroke-width", 2));
     clusterBaseRadiusVal = cssPx(el, "--map-cluster-radius", 16);
     clusterFillColor = cssVar(el, "--map-cluster-fill", "#ff6b35");
     clusterTextColor = cssVar(el, "--map-cluster-text-fill", "#fff");
@@ -175,6 +189,13 @@ export async function createMapStyles(el) {
       new CircleStyle({
         radius: markerRadiusVal,
         fill: markerFillObj,
+        stroke: markerStrokeObj,
+      }),
+    );
+    selection.setImage(
+      new CircleStyle({
+        radius: markerRadiusVal,
+        fill: selStrokeObj.getColor() ? new Fill({ color: selStrokeObj.getColor() }) : selFillObj,
         stroke: markerStrokeObj,
       }),
     );
@@ -277,7 +298,7 @@ export async function createMapStyles(el) {
     pinCache.clear();
   }
 
-  return { marker, polygon, cluster, pin, refresh };
+  return { marker, polygon, selection, cluster, pin, refresh };
 }
 
 // ─── Theme Watcher ───────────────────────────────────────────────
