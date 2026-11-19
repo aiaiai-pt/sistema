@@ -853,6 +853,10 @@
   --map-radius: var(--radius-md);
   --map-border: var(--elevation-border);
 
+  /* Read-only map (MapDisplay) heights: a detail field, a page section */
+  --map-display-height-sm: 200px;
+  --map-display-height-md: 280px;
+
   /* Marker */
   --map-marker-radius: var(--space-sm);
   --map-marker-fill: var(--color-accent);
