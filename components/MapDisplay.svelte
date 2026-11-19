@@ -1,18 +1,34 @@
 <!--
   @component MapDisplay
 
-  Read-only map showing a point or polygon. OpenLayers with configurable tiles.
+  Read-only map showing a point or polygon, or ANY GeoJSON geometry through
+  `geometry` (Point, MultiPoint, LineString, MultiLineString, Polygon,
+  MultiPolygon, or a recursive GeometryCollection — atelier#2838): every
+  leaf is drawn and the view fits its extent; a lone point is centred at
+  `zoom`. Validate a stored value with `geoGeometry` (renderer/display) —
+  an invalid `geometry` draws nothing. OpenLayers with configurable tiles.
   Consumes --map-* tokens from components.css.
 
   @example Point
   <MapDisplay center={[-9.14, 38.74]} zoom={14} marker={[-9.14, 38.74]} />
+
+  @example Any GeoJSON geometry (e.g. a stored location)
+  <MapDisplay zoom={16} geometry={geoGeometry(row.location)} />
 
   @example Styled tiles
   <MapDisplay center={[-9.14, 38.74]} tileSource={{ type: 'stadia', layer: 'stamen_toner_lite' }} />
 -->
 <script>
   import { fromLonLat } from 'ol/proj.js';
-  import { createTileLayer, createMapStyles, createOverlayLayers, watchTheme, renderMapError } from './map-utils.js';
+  import {
+    buildGeometryFeatures,
+    createTileLayer,
+    createMapStyles,
+    createOverlayLayers,
+    cssPx,
+    watchTheme,
+    renderMapError,
+  } from './map-utils.js';
 
   let {
     /** @type {[number, number]} — [longitude, latitude] WGS84 */
@@ -23,6 +39,11 @@
     marker = undefined,
     /** @type {number[][] | undefined} — polygon coords [[lon,lat], ...] */
     polygon = undefined,
+    /** @type {unknown} — any GeoJSON geometry (incl. GeometryCollection),
+     *  drawn in full; the view fits its extent (a lone point keeps `zoom`).
+     *  Reactive: a value arriving after mount is drawn then. Invalid or
+     *  null → nothing drawn. Coexists with `marker` / `polygon`. */
+    geometry = undefined,
     /** @type {import('./map-utils.js').TileSourceConfig} */
     tileSource = { type: 'osm' },
     /** @type {import('./map-utils.js').OverlayLayerDef[]} — ordered GeoJSON
@@ -46,6 +67,37 @@
   let _map = $state();
   /** @type {any} — shared style factory (set at mount) */
   let _styles = $state();
+  /** @type {any} — the marker/polygon/geometry vector source (set at mount) */
+  let _vectorSource = $state.raw();
+
+  // The `geometry` features have ONE owner: this effect — a detail page
+  // typically loads its record after the map mounts. Replaces only its own
+  // features (never the `marker` / `polygon` ones) and re-fits the view.
+  /** @type {any[]} */
+  let _geometryFeatures = [];
+  let _geometrySeq = 0;
+  $effect(() => {
+    const g = geometry;
+    const map = _map;
+    const source = _vectorSource;
+    if (!map || !source) return;
+    const seq = ++_geometrySeq;
+    void (async () => {
+      const built = await buildGeometryFeatures(g);
+      if (seq !== _geometrySeq || _map !== map) return;
+      for (const f of _geometryFeatures) source.removeFeature(f);
+      _geometryFeatures = built?.features ?? [];
+      if (!built) return;
+      source.addFeatures(_geometryFeatures);
+      const view = map.getView();
+      if (built.center) {
+        view.setCenter(built.center);
+      } else {
+        const pad = container ? cssPx(container, '--space-lg', 24) : 24;
+        view.fit(built.extent, { padding: [pad, pad, pad, pad], maxZoom: 18 });
+      }
+    })();
+  });
 
   // The `layers` overlays have ONE owner: this effect (same contract as
   // MapPicker's boundary). Consumers typically RESOLVE overlay defs
@@ -124,11 +176,13 @@
         }));
       }
 
+      const vectorSource = new VectorSource({ features });
       const vectorLayer = new VectorLayer({
-        source: new VectorSource({ features }),
+        source: vectorSource,
         style: (feature) => {
           const type = feature.getGeometry()?.getType();
-          return type === 'Point' ? styles.marker : styles.polygon;
+          // Lines take the polygon style's stroke (fill is ignored).
+          return type === 'Point' || type === 'MultiPoint' ? styles.marker : styles.polygon;
         },
       });
 
@@ -143,6 +197,7 @@
         }),
         controls: [],
       });
+      _vectorSource = vectorSource;
       _map = map;
 
       disposeTheme = watchTheme(() => {

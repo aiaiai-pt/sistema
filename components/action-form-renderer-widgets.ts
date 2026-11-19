@@ -7,6 +7,13 @@
 // renderer dispatches on this kind and falls back to the param `type`, so
 // legacy action-lane params (no widget key) render byte-identically.
 
+import {
+  decomposeGeometry,
+  modeForGeometryType,
+  type GeoJsonGeometry,
+  type MapPickerMode,
+} from "./map-geometry";
+
 type Entity = Record<string, unknown>;
 
 /** The render intent for a param: `widget` → `ui_schema.widget` → `type`. */
@@ -93,6 +100,82 @@ export function geoJsonPointToLonLat(value: unknown): {
 /** #39 — serialize a placed pin back onto the GeoJSON wire shape. */
 export function lonLatToGeoJsonPoint(coords: [number, number]): GeoJsonPoint {
   return { type: "Point", coordinates: [coords[0], coords[1]] };
+}
+
+/** atelier#2838 — what the `geometry` widget renders, from the parameter's
+ *  DECLARED geometry type (`geometry_type`, a GeoJSON type name):
+ *  - absent (undefined / null / "") or "Point" → the #39 point picker over a
+ *    GeoJSON Point (`coords` + `error` from `geoJsonPointToLonLat`);
+ *  - a drawable type → that MapPicker shape mode over a GeoJSON value of
+ *    EXACTLY that type (`geometry` + `error` from `decomposeGeometry`);
+ *  - anything else (GeometryCollection, unknown names, wrong case) →
+ *    `mode: null` + `unsupportedType`: the field renders a loud unsupported
+ *    state and no picker — never a silent point. */
+export type GeometryFieldPlan =
+  | {
+      mode: "point";
+      coords: [number, number] | null;
+      geometry: null;
+      error: string | null;
+      unsupportedType: null;
+    }
+  | {
+      mode: Exclude<MapPickerMode, "point">;
+      coords: null;
+      geometry: GeoJsonGeometry | null;
+      error: string | null;
+      unsupportedType: null;
+    }
+  | {
+      mode: null;
+      coords: null;
+      geometry: null;
+      error: null;
+      unsupportedType: string;
+    };
+
+export function geometryFieldPlan(
+  parameter: Entity,
+  value: unknown,
+): GeometryFieldPlan {
+  const declared = parameter.geometry_type;
+  if (
+    declared === undefined ||
+    declared === null ||
+    declared === "" ||
+    declared === "Point"
+  ) {
+    const { coords, error } = geoJsonPointToLonLat(value);
+    return {
+      mode: "point",
+      coords,
+      geometry: null,
+      error,
+      unsupportedType: null,
+    };
+  }
+  const mode = modeForGeometryType(declared);
+  if (mode === null || mode === "point") {
+    return {
+      mode: null,
+      coords: null,
+      geometry: null,
+      error: null,
+      unsupportedType:
+        typeof declared === "string" ? declared : JSON.stringify(declared),
+    };
+  }
+  const { error } = decomposeGeometry(mode, value);
+  return {
+    mode,
+    coords: null,
+    geometry:
+      error || value === "" || value == null
+        ? null
+        : (value as GeoJsonGeometry),
+    error,
+    unsupportedType: null,
+  };
 }
 
 /** #46 — the map picker's INITIAL CENTRE, from its declared home:

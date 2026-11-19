@@ -3,6 +3,8 @@
  * Not exported from index.js — internal to map components only.
  */
 
+import { geometryLeaves, isGeoJsonGeometry } from "./map-geometry";
+
 /**
  * @typedef {{ tone?: 'muted' }} TileTone — `tone: 'muted'` greys the
  *   basemap (and darkens it in the dark scheme) through
@@ -109,6 +111,8 @@ export async function createMapStyles(el) {
   const markerStrokeObj = new Stroke({ color: "", width: 0 });
   const polyFillObj = new Fill({ color: "" });
   const polyStrokeObj = new Stroke({ color: "", width: 0 });
+  const selFillObj = new Fill({ color: "" });
+  const selStrokeObj = new Stroke({ color: "", width: 0 });
 
   let markerRadiusVal = 8;
   let clusterBaseRadiusVal = 16;
@@ -129,6 +133,13 @@ export async function createMapStyles(el) {
     stroke: polyStrokeObj,
   });
 
+  // MapPicker shape modes: the selected drawn shape (and its vertices).
+  const selection = new Style({
+    fill: selFillObj,
+    stroke: selStrokeObj,
+    image: new CircleStyle({ radius: 8, fill: selFillObj, stroke: selStrokeObj }),
+  });
+
   /** @type {Map<string, import('ol/style/Style.js').default>} */
   const clusterCache = new Map();
   /** @type {Map<string, import('ol/style/Style.js').default>} */
@@ -146,6 +157,11 @@ export async function createMapStyles(el) {
     );
     polyStrokeObj.setColor(cssVar(el, "--map-polygon-stroke", "#ff6b35"));
     polyStrokeObj.setWidth(cssPx(el, "--map-polygon-stroke-width", 2));
+    selFillObj.setColor(
+      cssVar(el, "--map-selection-fill", "rgba(44,40,37,0.2)"),
+    );
+    selStrokeObj.setColor(cssVar(el, "--map-selection-stroke", "#2c2825"));
+    selStrokeObj.setWidth(cssPx(el, "--map-selection-stroke-width", 2));
     clusterBaseRadiusVal = cssPx(el, "--map-cluster-radius", 16);
     clusterFillColor = cssVar(el, "--map-cluster-fill", "#ff6b35");
     clusterTextColor = cssVar(el, "--map-cluster-text-fill", "#fff");
@@ -175,6 +191,13 @@ export async function createMapStyles(el) {
       new CircleStyle({
         radius: markerRadiusVal,
         fill: markerFillObj,
+        stroke: markerStrokeObj,
+      }),
+    );
+    selection.setImage(
+      new CircleStyle({
+        radius: markerRadiusVal,
+        fill: selStrokeObj.getColor() ? new Fill({ color: selStrokeObj.getColor() }) : selFillObj,
         stroke: markerStrokeObj,
       }),
     );
@@ -277,7 +300,43 @@ export async function createMapStyles(el) {
     pinCache.clear();
   }
 
-  return { marker, polygon, cluster, pin, refresh };
+  return { marker, polygon, selection, cluster, pin, refresh };
+}
+
+// ─── Read-only geometry (MapDisplay `geometry`, atelier#2838) ────
+
+/**
+ * Build what MapDisplay draws for ANY GeoJSON geometry: one projected
+ * (EPSG:3857) OpenLayers feature per leaf geometry — a GeometryCollection is
+ * flattened recursively — plus the extent to fit the view to. A geometry
+ * whose extent is a single point (a Point, or a collection of one point)
+ * returns `center` instead, so the consumer's zoom is kept. Invalid → null.
+ *
+ * @param {unknown} geometry
+ * @returns {Promise<{ features: any[], extent: number[], center: number[] | null } | null>}
+ */
+export async function buildGeometryFeatures(geometry) {
+  if (!isGeoJsonGeometry(geometry)) return null;
+  const [{ default: GeoJSON }, { default: Feature }, { createEmpty, extend, getWidth, getHeight, getCenter }] =
+    await Promise.all([
+      import("ol/format/GeoJSON.js"),
+      import("ol/Feature.js"),
+      import("ol/extent.js"),
+    ]);
+  const format = new GeoJSON();
+  const features = geometryLeaves(geometry).map(
+    (leaf) =>
+      new Feature({
+        geometry: format.readGeometry(leaf, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857",
+        }),
+      }),
+  );
+  const extent = createEmpty();
+  for (const f of features) extend(extent, f.getGeometry().getExtent());
+  const center = getWidth(extent) === 0 && getHeight(extent) === 0 ? getCenter(extent) : null;
+  return { features, extent, center };
 }
 
 // ─── Theme Watcher ───────────────────────────────────────────────

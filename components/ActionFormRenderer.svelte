@@ -53,7 +53,7 @@
   import {
     dateOnlyToDate,
     dateToDateOnly,
-    geoJsonPointToLonLat,
+    geometryFieldPlan,
     lonLatToGeoJsonPoint,
     mapInitialCenter,
     storedFileDescriptor,
@@ -207,6 +207,16 @@
      *  fields are empty. Rendered as a polite `role="status"` so screen
      *  readers announce why the form cannot be submitted. */
     requiredFieldsMessage?: string;
+    /** atelier#2838 — the loud field state for a `geometry` param whose
+     *  declared `geometry_type` no picker can draw (e.g. GeometryCollection).
+     *  Receives the declared type name. */
+    unsupportedGeometryLabel?: (geometryType: string) => string;
+    /** atelier#2838 — forwarded verbatim to the MapPicker of every shape-mode
+     *  `geometry` param (Polygon, MultiPolygon, …) so consumers can translate
+     *  its toolbar and keyboard instructions (see MapPicker's
+     *  `deleteSelectedLabel`, `clearLabel`, `countLabel`,
+     *  `instructionsLabel`). */
+    geometryLabels?: Record<string, unknown>;
   }
 
   let {
@@ -244,6 +254,9 @@
     dropLabel = "Drop files here or click to browse",
     defaultSectionLabel = "Details",
     requiredFieldsMessage = "Fill in all required fields to submit.",
+    unsupportedGeometryLabel = (geometryType: string) =>
+      `Unsupported geometry type: ${geometryType}. This field cannot be edited here.`,
+    geometryLabels = {},
   }: Props = $props();
 
   let values = $state<Record<string, unknown>>({});
@@ -523,7 +536,12 @@
       // reach the wire (readonly defaults OUT on the form-surface.v1 lane;
       // `payload: "include"` declares prefill-and-send).
       if (!isPayloadIncluded(parameter)) continue;
-      bag[key] = values[key] ?? initialValue(parameter);
+      // An explicit null in the bag is a CLEAR (a removed geometry, a cleared
+      // relationship/json) and rides the wire as null — falling back to
+      // `initialValue` here re-sent the prefilled default on edit forms
+      // (atelier#2838). Only a key never seeded falls back.
+      bag[key] =
+        key in values && values[key] !== undefined ? values[key] : initialValue(parameter);
     }
     return bag;
   }
@@ -1047,25 +1065,53 @@
       {/if}
     </div>
   {:else if kind === "geometry"}
-    <!-- #39 — the form-surface.v1 geometry widget: the value bag carries a
-         GeoJSON Point (the CRUD wire shape); the MapPicker keeps speaking
-         [lon, lat] at its prop edge; the pure adapters translate. A
-         non-Point value fails LOUD on the field instead of rendering a
-         silently-empty map over real data. The legacy `geo` param (bare
-         tuple) is the branch below, untouched. -->
-    {@const hydrated = geoJsonPointToLonLat(values[key])}
-    <MapPicker
-      mode="point"
-      height="20rem"
-      {boundary}
-      {layers}
-      {onoutofbounds}
-      error={fieldError ?? hydrated.error ?? geoError}
-      label={String(parameter.label ?? key)}
-      center={mapInitialCenter(parameter)}
-      value={hydrated.coords ?? undefined}
-      onchange={(coords: [number, number]) => setValue(key, lonLatToGeoJsonPoint(coords))}
-    />
+    <!-- #39 / atelier#2838 — the form-surface.v1 geometry widget. The picker
+         follows the parameter's DECLARED `geometry_type` (a GeoJSON type
+         name): absent or Point → the point picker over a GeoJSON Point (the
+         MapPicker speaks [lon, lat] at its prop edge; the pure adapters
+         translate); a drawable type → that MapPicker shape mode, storing a
+         GeoJSON value of EXACTLY that type (null when every shape is
+         removed). A value of another type fails LOUD on the field; a type
+         no picker can draw (GeometryCollection, unknown names) renders a
+         loud unsupported state and NO picker — never a silent point. The
+         legacy `geo` param (bare tuple) is the branch below, untouched. -->
+    {@const plan = geometryFieldPlan(parameter, values[key])}
+    {#if plan.mode === null}
+      <div class="afr-file-param" role="group" aria-labelledby={`${key}-geometry-label`}>
+        <span id={`${key}-geometry-label`} class="afr-file-label"
+          >{String(parameter.label ?? key)}</span
+        >
+        <Alert variant="error">
+          {unsupportedGeometryLabel(plan.unsupportedType)}
+        </Alert>
+      </div>
+    {:else if plan.mode === "point"}
+      <MapPicker
+        mode="point"
+        height="20rem"
+        {boundary}
+        {layers}
+        {onoutofbounds}
+        error={fieldError ?? plan.error ?? geoError}
+        label={String(parameter.label ?? key)}
+        center={mapInitialCenter(parameter)}
+        value={plan.coords ?? undefined}
+        onchange={(coords: [number, number]) => setValue(key, lonLatToGeoJsonPoint(coords))}
+      />
+    {:else}
+      <MapPicker
+        mode={plan.mode}
+        height="20rem"
+        {boundary}
+        {layers}
+        error={fieldError ?? plan.error ?? geoError}
+        label={String(parameter.label ?? key)}
+        center={mapInitialCenter(parameter)}
+        geometry={plan.geometry}
+        ongeometry={(geometry: unknown) => setValue(key, geometry ?? null)}
+        {...geometryLabels}
+      />
+    {/if}
   {:else if type === "geo"}
     <!-- A `geo` parameter renders the DS map-picker; its value is the
          [lon, lat] the BFF's GEO_PARSE binding transform turns into a Point.

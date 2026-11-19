@@ -9,6 +9,62 @@
 	import 'ol/ol.css';
 
 	let pickedPoint = $state<[number, number] | undefined>(undefined);
+	// MapDisplay `geometry` (atelier#2838): any GeoJSON geometry, drawn in
+	// full. A stored location may be a GeometryCollection wrapping a Point.
+	const displayGeometries = [
+		{
+			label: 'GEOMETRYCOLLECTION [POINT]',
+			geometry: { type: 'GeometryCollection', geometries: [{ type: 'Point', coordinates: [-9.139, 38.722] }] },
+		},
+		{
+			label: 'MULTIPOLYGON',
+			geometry: {
+				type: 'MultiPolygon',
+				coordinates: [
+					[[[-9.152, 38.724], [-9.146, 38.724], [-9.146, 38.729], [-9.152, 38.729], [-9.152, 38.724]]],
+					[[[-9.141, 38.731], [-9.135, 38.731], [-9.135, 38.736], [-9.141, 38.736], [-9.141, 38.731]]],
+				],
+			},
+		},
+		{
+			label: 'MULTILINESTRING',
+			geometry: {
+				type: 'MultiLineString',
+				coordinates: [
+					[[-9.155, 38.720], [-9.145, 38.728], [-9.138, 38.733]],
+					[[-9.150, 38.736], [-9.140, 38.722]],
+				],
+			},
+		},
+		{
+			label: 'GEOMETRYCOLLECTION (MIXED)',
+			geometry: {
+				type: 'GeometryCollection',
+				geometries: [
+					{ type: 'Polygon', coordinates: [[[-9.150, 38.725], [-9.142, 38.725], [-9.142, 38.731], [-9.150, 38.731], [-9.150, 38.725]]] },
+					{ type: 'LineString', coordinates: [[-9.155, 38.720], [-9.136, 38.735]] },
+					{ type: 'MultiPoint', coordinates: [[-9.153, 38.733], [-9.138, 38.722]] },
+				],
+			},
+		},
+	];
+	// Shape modes (atelier#2838): each emits a GeoJSON geometry of exactly
+	// its type through `geometry` / `ongeometry`.
+	let pickedPolygon = $state<unknown>(null);
+	let pickedArea = $state<unknown>({
+		type: 'MultiPolygon',
+		coordinates: [
+			[[[-9.152, 38.724], [-9.146, 38.724], [-9.146, 38.729], [-9.152, 38.729], [-9.152, 38.724]]],
+			[[[-9.141, 38.731], [-9.135, 38.731], [-9.135, 38.736], [-9.141, 38.736], [-9.141, 38.731]]],
+		],
+	});
+	let pickedStops = $state<unknown>(null);
+	let pickedRoute = $state<unknown>(null);
+	const geometrySummary = (g: unknown) => {
+		if (!g || typeof g !== 'object') return 'null';
+		const { type, coordinates } = g as { type: string; coordinates: unknown[] };
+		return type.startsWith('Multi') ? `${type} · ${coordinates.length} members` : type;
+	};
 	let boundaryPoint = $state<[number, number] | undefined>(undefined);
 	let boundaryError = $state<string | undefined>(undefined);
 
@@ -106,6 +162,10 @@
 		'--map-cluster-text-fill: var(--color-text-on-accent)',
 		'--map-polygon-fill: color-mix(in srgb, var(--color-accent) 20%, transparent)',
 		'--map-polygon-stroke: var(--color-accent)',
+		'--map-selection-fill: color-mix(in srgb, var(--color-text) 20%, transparent)',
+		'--map-selection-stroke: var(--color-text)',
+		'--map-toolbar-bg: var(--color-surface)',
+		'--map-toolbar-border: var(--elevation-border)',
 		'--map-pin-bg: var(--color-surface)',
 		'--map-pin-text: var(--color-text)',
 		'--map-pin-border-color: var(--color-border-strong)',
@@ -145,6 +205,17 @@
 			/>
 		</div>
 	</div>
+
+	<p class="type-body-sm" style="margin: var(--space-lg) 0 var(--space-md);"><code>geometry</code> takes any GeoJSON geometry — Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon or a (recursive) GeometryCollection — draws every part and fits the view to it; a lone point is centred at <code>zoom</code>. Validate stored values with <code>geoGeometry(value)</code> from <code>renderer/display</code>: it returns the geometry, or null so the host keeps its own fallback.</p>
+
+	<div class="map-demo-grid">
+		{#each displayGeometries as demo (demo.label)}
+			<div>
+				<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">{demo.label}</span>
+				<MapDisplay zoom={15} geometry={demo.geometry} height="240px" data-testid="display-geometry" />
+			</div>
+		{/each}
+	</div>
 </section>
 
 <!-- MapPicker -->
@@ -173,13 +244,75 @@
 			{/if}
 		</div>
 		<div>
-			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">POLYGON MODE</span>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">POLYGON MODE → Polygon</span>
 			<MapPicker
 				label="SERVICE AREA"
 				mode="polygon"
 				center={[-9.145, 38.730]}
 				zoom={14}
-				help="Click vertices to draw a polygon. Double-click to finish."
+				search={false}
+				bind:geometry={pickedPolygon}
+				height="280px"
+				data-testid="picker-polygon"
+			/>
+			<code class="type-data geometry-readout" data-testid="readout-polygon">{geometrySummary(pickedPolygon)}</code>
+		</div>
+	</div>
+
+	<p class="type-body-sm" style="margin: var(--space-lg) 0 var(--space-md);">Shape modes take and emit a GeoJSON geometry of exactly their type — <code>multipolygon</code> → MultiPolygon, <code>multipoint</code> → MultiPoint, <code>linestring</code> → LineString, <code>multilinestring</code> → MultiLineString — through <code>geometry</code> / <code>ongeometry</code> (null once every shape is removed). Click a shape to select it; Delete (key or button) removes it; drag a vertex to edit it. The focused map takes Enter (finish), Escape (cancel / deselect) and Backspace (remove last vertex). A <code>geometry</code> of another type fails loud through the field error.</p>
+
+	<div class="map-demo-grid">
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">MULTIPOLYGON MODE → MultiPolygon</span>
+			<MapPicker
+				label="INTERVENTION AREAS"
+				mode="multipolygon"
+				center={[-9.145, 38.730]}
+				zoom={14}
+				search={false}
+				bind:geometry={pickedArea}
+				height="280px"
+				data-testid="picker-multipolygon"
+			/>
+			<code class="type-data geometry-readout" data-testid="readout-multipolygon">{geometrySummary(pickedArea)}</code>
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">MULTIPOINT MODE → MultiPoint</span>
+			<MapPicker
+				label="COLLECTION STOPS"
+				mode="multipoint"
+				center={[-9.145, 38.730]}
+				zoom={14}
+				search={false}
+				bind:geometry={pickedStops}
+				height="280px"
+				data-testid="picker-multipoint"
+			/>
+			<code class="type-data geometry-readout" data-testid="readout-multipoint">{geometrySummary(pickedStops)}</code>
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">LINESTRING MODE → LineString</span>
+			<MapPicker
+				label="ROUTE"
+				mode="linestring"
+				center={[-9.145, 38.730]}
+				zoom={14}
+				search={false}
+				bind:geometry={pickedRoute}
+				height="280px"
+				data-testid="picker-linestring"
+			/>
+			<code class="type-data geometry-readout" data-testid="readout-linestring">{geometrySummary(pickedRoute)}</code>
+		</div>
+		<div>
+			<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">TYPE MISMATCH → LOUD</span>
+			<MapPicker
+				label="INTERVENTION AREAS"
+				mode="multipolygon"
+				center={[-9.145, 38.730]}
+				zoom={14}
+				search={false}
+				geometry={{ type: 'Polygon', coordinates: [[[-9.15, 38.72], [-9.14, 38.72], [-9.14, 38.73], [-9.15, 38.72]]] }}
 				height="280px"
 			/>
 		</div>
@@ -348,6 +481,13 @@
 <TokenRef component="Map components" file="components.css" tokens={mapTokens} />
 
 <style>
+	.geometry-readout {
+		display: block;
+		margin-top: var(--space-xs);
+		font-size: var(--type-caption-size);
+		color: var(--color-text-muted);
+	}
+
 	.map-demo-grid {
 		display: grid;
 		grid-template-columns: 1fr;
