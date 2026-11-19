@@ -4,6 +4,15 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.61.0] — 2026-11-19
+
+### Added
+
+- **Map display height tokens** (atelier#2838): `--map-display-height-sm`
+  (200px, a map inside a detail field) and `--map-display-height-md` (280px, a
+  map section on a page). Hosts size `MapDisplay` with
+  `height="var(--map-display-height-sm)"` instead of a hardcoded px value.
+
 ## [0.60.0] — 2026-11-19
 
 ### Added
