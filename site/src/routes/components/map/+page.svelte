@@ -9,6 +9,45 @@
 	import 'ol/ol.css';
 
 	let pickedPoint = $state<[number, number] | undefined>(undefined);
+	// MapDisplay `geometry` (atelier#2838): any GeoJSON geometry, drawn in
+	// full. A stored location may be a GeometryCollection wrapping a Point.
+	const displayGeometries = [
+		{
+			label: 'GEOMETRYCOLLECTION [POINT]',
+			geometry: { type: 'GeometryCollection', geometries: [{ type: 'Point', coordinates: [-9.139, 38.722] }] },
+		},
+		{
+			label: 'MULTIPOLYGON',
+			geometry: {
+				type: 'MultiPolygon',
+				coordinates: [
+					[[[-9.152, 38.724], [-9.146, 38.724], [-9.146, 38.729], [-9.152, 38.729], [-9.152, 38.724]]],
+					[[[-9.141, 38.731], [-9.135, 38.731], [-9.135, 38.736], [-9.141, 38.736], [-9.141, 38.731]]],
+				],
+			},
+		},
+		{
+			label: 'MULTILINESTRING',
+			geometry: {
+				type: 'MultiLineString',
+				coordinates: [
+					[[-9.155, 38.720], [-9.145, 38.728], [-9.138, 38.733]],
+					[[-9.150, 38.736], [-9.140, 38.722]],
+				],
+			},
+		},
+		{
+			label: 'GEOMETRYCOLLECTION (MIXED)',
+			geometry: {
+				type: 'GeometryCollection',
+				geometries: [
+					{ type: 'Polygon', coordinates: [[[-9.150, 38.725], [-9.142, 38.725], [-9.142, 38.731], [-9.150, 38.731], [-9.150, 38.725]]] },
+					{ type: 'LineString', coordinates: [[-9.155, 38.720], [-9.136, 38.735]] },
+					{ type: 'MultiPoint', coordinates: [[-9.153, 38.733], [-9.138, 38.722]] },
+				],
+			},
+		},
+	];
 	// Shape modes (atelier#2838): each emits a GeoJSON geometry of exactly
 	// its type through `geometry` / `ongeometry`.
 	let pickedPolygon = $state<unknown>(null);
@@ -165,6 +204,17 @@
 				height="240px"
 			/>
 		</div>
+	</div>
+
+	<p class="type-body-sm" style="margin: var(--space-lg) 0 var(--space-md);"><code>geometry</code> takes any GeoJSON geometry — Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon or a (recursive) GeometryCollection — draws every part and fits the view to it; a lone point is centred at <code>zoom</code>. Validate stored values with <code>geoGeometry(value)</code> from <code>renderer/display</code>: it returns the geometry, or null so the host keeps its own fallback.</p>
+
+	<div class="map-demo-grid">
+		{#each displayGeometries as demo (demo.label)}
+			<div>
+				<span class="type-label" style="margin-bottom: var(--space-sm); display: block;">{demo.label}</span>
+				<MapDisplay zoom={15} geometry={demo.geometry} height="240px" data-testid="display-geometry" />
+			</div>
+		{/each}
 	</div>
 </section>
 

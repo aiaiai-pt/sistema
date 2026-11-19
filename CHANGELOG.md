@@ -40,9 +40,20 @@ feat → MINOR, breaking → MAJOR.
   `deleteSelectedLabel`, `clearLabel`, `toolbarLabel`, `countLabel`,
   `instructionsLabel` (shown as the help text when no `help` is given).
   `point` mode is unchanged; `polygon` keeps firing `onchange(outerRing)`.
+- **`MapDisplay` renders any GeoJSON geometry** through the new reactive
+  `geometry` prop: Point, MultiPoint, LineString, MultiLineString, Polygon,
+  MultiPolygon, and a recursive GeometryCollection (every leaf drawn). The
+  view fits the geometry's extent; a lone point (incl. a
+  `GeometryCollection[Point]`) is centred at `zoom`. A value arriving after
+  mount is drawn then. `marker` / `polygon` are unchanged and may coexist.
+- **`geoGeometry(value)`** (`@aiaiai-pt/design-system/renderer/display`):
+  validates any GeoJSON geometry (well-formed coordinates, closed rings,
+  non-empty collections; a Feature is not a geometry) and returns it, or
+  `null` so the host keeps its own fallback. `geoPoint` keeps its
+  point-only contract.
 - **`map-geometry`** (`@aiaiai-pt/design-system/components/map-geometry`):
   the pure mode table and `modeForGeometryType`, `composeGeometry`,
-  `decomposeGeometry`.
+  `decomposeGeometry`, `isGeoJsonGeometry`, `geometryLeaves`.
 - **Tokens**: `--map-selection-fill`, `--map-selection-stroke`,
   `--map-selection-stroke-width` (the selected drawn shape).
 

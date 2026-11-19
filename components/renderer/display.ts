@@ -19,8 +19,11 @@
  *     date formatting (admin, from schema type); otherwise value-shape
  *     detection (`isIsoTimestamp`) applies (portal).
  *
- * Everything here is PURE and dependency-free.
+ * Everything here is PURE; the only import is the DS's own pure GeoJSON
+ * validator (`map-geometry`), shared with MapPicker/MapDisplay.
  */
+
+import { isGeoJsonGeometry, type AnyGeoJsonGeometry } from "../map-geometry";
 
 export type ObjectFallback = "redact" | "json";
 
@@ -207,4 +210,16 @@ export function geoPoint(value: unknown): [number, number] | null {
   if (typeof lon !== "number" || typeof lat !== "number") return null;
   if (!Number.isFinite(lon) || !Number.isFinite(lat)) return null;
   return [lon, lat];
+}
+
+/**
+ * atelier#2838 — validate ANY GeoJSON geometry for the read-only map: Point,
+ * MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, or a
+ * (recursive, non-empty) GeometryCollection, with well-formed coordinates.
+ * Returns the value itself when it is drawable, otherwise null — the host
+ * keeps its own fallback for null. Feed the result to `MapDisplay`'s
+ * `geometry` prop. Pure.
+ */
+export function geoGeometry(value: unknown): AnyGeoJsonGeometry | null {
+  return isGeoJsonGeometry(value) ? value : null;
 }

@@ -206,3 +206,48 @@ export function decomposeGeometry(
   if (!valid(coords)) return malformed;
   return { parts: [clone(coords, depth)], error: null };
 }
+
+// ─── Read-only display: ANY GeoJSON geometry ────────────────────────────────
+
+const SIMPLE_TYPES: Readonly<Record<string, { drawType: DrawType; multi: boolean }>> = {
+  Point: { drawType: "Point", multi: false },
+  MultiPoint: { drawType: "Point", multi: true },
+  LineString: { drawType: "LineString", multi: false },
+  MultiLineString: { drawType: "LineString", multi: true },
+  Polygon: { drawType: "Polygon", multi: false },
+  MultiPolygon: { drawType: "Polygon", multi: true },
+};
+
+/** Any GeoJSON geometry, incl. a (recursive) GeometryCollection. */
+export type AnyGeoJsonGeometry =
+  | GeoJsonGeometry
+  | { type: "GeometryCollection"; geometries: AnyGeoJsonGeometry[] };
+
+/** True when `value` is a drawable GeoJSON geometry (RFC 7946 §3.1): one of
+ *  the six simple types with well-formed coordinates (finite positions, ≥2
+ *  positions per line, closed rings of ≥4 positions; multi types non-empty),
+ *  or a GeometryCollection whose members are all valid and which has at least
+ *  one member. A Feature/FeatureCollection is not a geometry. */
+export function isGeoJsonGeometry(value: unknown): value is AnyGeoJsonGeometry {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const row = value as Record<string, unknown>;
+  if (row.type === "GeometryCollection") {
+    const members = row.geometries;
+    return Array.isArray(members) && members.length > 0 && members.every(isGeoJsonGeometry);
+  }
+  const spec = typeof row.type === "string" ? SIMPLE_TYPES[row.type] : undefined;
+  if (!spec) return false;
+  const valid = PART_VALID[spec.drawType];
+  const coords = row.coordinates;
+  if (!spec.multi) return valid(coords);
+  return Array.isArray(coords) && coords.length > 0 && coords.every(valid);
+}
+
+/** The simple (non-collection) geometries of a valid geometry, depth-first
+ *  in document order — a GeometryCollection is flattened recursively. */
+export function geometryLeaves(geometry: AnyGeoJsonGeometry): GeoJsonGeometry[] {
+  if (geometry.type === "GeometryCollection") {
+    return geometry.geometries.flatMap(geometryLeaves);
+  }
+  return [geometry];
+}

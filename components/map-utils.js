@@ -3,6 +3,8 @@
  * Not exported from index.js — internal to map components only.
  */
 
+import { geometryLeaves, isGeoJsonGeometry } from "./map-geometry";
+
 /**
  * @typedef {{ tone?: 'muted' }} TileTone — `tone: 'muted'` greys the
  *   basemap (and darkens it in the dark scheme) through
@@ -299,6 +301,42 @@ export async function createMapStyles(el) {
   }
 
   return { marker, polygon, selection, cluster, pin, refresh };
+}
+
+// ─── Read-only geometry (MapDisplay `geometry`, atelier#2838) ────
+
+/**
+ * Build what MapDisplay draws for ANY GeoJSON geometry: one projected
+ * (EPSG:3857) OpenLayers feature per leaf geometry — a GeometryCollection is
+ * flattened recursively — plus the extent to fit the view to. A geometry
+ * whose extent is a single point (a Point, or a collection of one point)
+ * returns `center` instead, so the consumer's zoom is kept. Invalid → null.
+ *
+ * @param {unknown} geometry
+ * @returns {Promise<{ features: any[], extent: number[], center: number[] | null } | null>}
+ */
+export async function buildGeometryFeatures(geometry) {
+  if (!isGeoJsonGeometry(geometry)) return null;
+  const [{ default: GeoJSON }, { default: Feature }, { createEmpty, extend, getWidth, getHeight, getCenter }] =
+    await Promise.all([
+      import("ol/format/GeoJSON.js"),
+      import("ol/Feature.js"),
+      import("ol/extent.js"),
+    ]);
+  const format = new GeoJSON();
+  const features = geometryLeaves(geometry).map(
+    (leaf) =>
+      new Feature({
+        geometry: format.readGeometry(leaf, {
+          dataProjection: "EPSG:4326",
+          featureProjection: "EPSG:3857",
+        }),
+      }),
+  );
+  const extent = createEmpty();
+  for (const f of features) extend(extent, f.getGeometry().getExtent());
+  const center = getWidth(extent) === 0 && getHeight(extent) === 0 ? getCenter(extent) : null;
+  return { features, extent, center };
 }
 
 // ─── Theme Watcher ───────────────────────────────────────────────
