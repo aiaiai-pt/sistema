@@ -513,7 +513,11 @@
     const type = parameterType(parameter);
     if (type === "bool" || type === "boolean") return false;
     if (type === "number" || type === "integer") return "";
-    if (type === "enum" || type === "select") return enumOptions(parameter)[0]?.value ?? "";
+    // A choice with no declared default starts EMPTY (the placeholder), never
+    // on its first option: a pre-selected option is a value nobody chose,
+    // and it rides the payload (atelier#2838 — staff creates wrote untouched
+    // `location_level: "building"`). A required one blocks submit until picked.
+    if (type === "enum" || type === "select") return "";
     // #34 — an unset single `relationship` summary is null on the wire
     // (string|null contract). Legacy `object_reference` keeps its "" seed.
     if (type === "relationship") return null;
