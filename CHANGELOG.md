@@ -4,6 +4,20 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.61.1] — 2026-11-21
+
+### Fixed
+
+- **`ActionFormRenderer`: a choice field with no declared default starts
+  empty** (atelier#2838). An `enum`/`select` parameter without a
+  `default_value` used to mount on its FIRST option, so the form showed and
+  submitted a value nobody chose (Atelier staff creates wrote untouched
+  `location_level: "building"`, `asset_nature: "digital"`, …). It now shows the
+  placeholder and holds `""` in the value bag; a required one keeps submit
+  disabled until the person picks. A declared `default_value` still
+  pre-selects. Consumers that relied on the implicit first option must declare
+  that option as the parameter's `default_value`.
+
 ## [0.61.0] — 2026-11-19
 
 ### Added
