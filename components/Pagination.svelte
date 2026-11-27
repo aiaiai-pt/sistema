@@ -66,6 +66,21 @@
     /** @type {string} — label for the "next" nav button */
     nextLabel = 'NEXT',
 
+    /* Host-language text (atelier#2674): the summary and the navigation's
+       accessible names. Each count arrives already formatted. */
+    /** @type {(total: string) => string} — cursor-mode summary */
+    totalLabel = (total) => `${total} total`,
+    /** @type {(start: string, end: string, total: string) => string} — offset-mode range */
+    rangeLabel = (start, end, total) => `${start}–${end} of ${total}`,
+    /** @type {string} — accessible name of the page-size control */
+    rowsPerPageLabel = 'Rows per page',
+    /** @type {string} — accessible name of the previous-page button */
+    previousPageLabel = 'Previous page',
+    /** @type {string} — accessible name of the next-page button */
+    nextPageLabel = 'Next page',
+    /** @type {string | undefined} — BCP 47 locale the counts are formatted in */
+    locale = undefined,
+
     /** @type {string} */
     class: className = '',
     ...rest
@@ -87,13 +102,17 @@
     total_items === undefined
       ? ''
       : mode === 'cursor'
-        ? `${total_items.toLocaleString()} total`
+        ? totalLabel(total_items.toLocaleString(locale))
         : (() => {
             const start = (current_page - 1) * page_size + 1;
             const end = Math.min(current_page * page_size, total_items);
             return start > total_items
-              ? `${total_items.toLocaleString()} total`
-              : `${start}–${end} of ${total_items.toLocaleString()}`;
+              ? totalLabel(total_items.toLocaleString(locale))
+              : rangeLabel(
+                  start.toLocaleString(locale),
+                  end.toLocaleString(locale),
+                  total_items.toLocaleString(locale)
+                );
           })()
   );
 
@@ -138,7 +157,7 @@
         value={page_size_value}
         options={page_size_options}
         onchange={(val) => on_page_size_change?.(Number(val))}
-        aria-label="Rows per page"
+        aria-label={rowsPerPageLabel}
       />
     </div>
   {/if}
@@ -150,15 +169,15 @@
   <span class="pagination-spacer" aria-hidden="true"></span>
 
   {#if mode === 'cursor'}
-    <button class="pagination-nav" disabled={!has_prev} onclick={on_prev} aria-label="Previous page">
+    <button class="pagination-nav" disabled={!has_prev} onclick={on_prev} aria-label={previousPageLabel}>
       {@render chevronLeft()}<span>{prevLabel}</span>
     </button>
-    <button class="pagination-nav" disabled={!has_next} onclick={on_next} aria-label="Next page">
+    <button class="pagination-nav" disabled={!has_next} onclick={on_next} aria-label={nextPageLabel}>
       <span>{nextLabel}</span>{@render chevronRight()}
     </button>
 
   {:else}
-    <button class="pagination-nav" disabled={current_page <= 1} onclick={() => on_page_change?.(current_page - 1)} aria-label="Previous page">
+    <button class="pagination-nav" disabled={current_page <= 1} onclick={() => on_page_change?.(current_page - 1)} aria-label={previousPageLabel}>
       {@render chevronLeft()}<span>{prevLabel}</span>
     </button>
 
@@ -181,7 +200,7 @@
       {/each}
     </div>
 
-    <button class="pagination-nav" disabled={current_page >= (total_pages ?? current_page)} onclick={() => on_page_change?.(current_page + 1)} aria-label="Next page">
+    <button class="pagination-nav" disabled={current_page >= (total_pages ?? current_page)} onclick={() => on_page_change?.(current_page + 1)} aria-label={nextPageLabel}>
       <span>{nextLabel}</span>{@render chevronRight()}
     </button>
   {/if}
