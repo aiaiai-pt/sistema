@@ -19,7 +19,7 @@
   import FileUploadItem from "./FileUploadItem.svelte";
   import Select from "./Select.svelte";
   import Tag from "./Tag.svelte";
-  import type { Snippet } from "svelte";
+  import { untrack, type Snippet } from "svelte";
   import {
     buildActionPayload,
     isPayloadIncluded,
@@ -217,6 +217,12 @@
      *  `deleteSelectedLabel`, `clearLabel`, `countLabel`,
      *  `instructionsLabel`). */
     geometryLabels?: Record<string, unknown>;
+    /** atelier#2838 D4 — when true, fire an empty-query `searchEntities` call
+     *  for every reference/relationship parameter on mount so the picker shows
+     *  the offered set before the user types (the BFF handles empty query by
+     *  returning the first accessible page). No new BFF capability is needed.
+     *  Default false (no change to existing callers). */
+    loadReferenceOnOpen?: boolean;
   }
 
   let {
@@ -257,6 +263,7 @@
     unsupportedGeometryLabel = (geometryType: string) =>
       `Unsupported geometry type: ${geometryType}. This field cannot be edited here.`,
     geometryLabels = {},
+    loadReferenceOnOpen = false,
   }: Props = $props();
 
   let values = $state<Record<string, unknown>>({});
@@ -643,6 +650,23 @@
         referenceLoading = { ...referenceLoading, [key]: false };
     }
   }
+
+  // atelier#2838 D4 — pre-load the offered reference set on mount when the
+  // consumer opts in with `loadReferenceOnOpen`. Calls `handleReferenceSearch`
+  // with an empty query for every reference/relationship parameter; the BFF
+  // handles empty query by returning the first accessible page of entities.
+  // `untrack` prevents `referenceLoading`/`referenceItems` writes inside
+  // `handleReferenceSearch` from becoming reactive dependencies of THIS effect
+  // and causing an infinite update cycle.
+  $effect(() => {
+    if (!loadReferenceOnOpen || !searchEntities) return;
+    const refParams = [...parameters, ...criteria].filter(isRelationshipParam);
+    untrack(() => {
+      for (const p of refParams) {
+        handleReferenceSearch(p, "");
+      }
+    });
+  });
 
   // #34 — relationship label bookkeeping. `relLabels` maps, per param key, a
   // linked entity id → its display label, fed by (a) edit-time hydration
