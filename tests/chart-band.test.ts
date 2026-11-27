@@ -9,7 +9,7 @@ import { mount, unmount } from "svelte";
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it } from "vitest";
 import EChart from "../components/EChart.svelte";
-import { buildChartOption } from "../components/renderer/chart-option";
+import { buildChartOption, withAlpha } from "../components/renderer/chart-option";
 import type { ChartData } from "../components/renderer/aggregate";
 
 const TOKENS = { accent: "#2563eb", textPrimary: "#111", textSecondary: "#222", border: "#333", surface: "#444", band: "#eee" };
@@ -49,7 +49,8 @@ describe("buildChartOption band", () => {
   it("should_fall_back_to_the_accent_wash_without_a_band_token", () => {
     const { band: _, ...tokens } = TOKENS;
     const option = buildChartOption(days, { tokens, band: { from: "1 Oct", to: "1 Oct" } });
-    expect(series(option)[0].markArea!.itemStyle.color).toContain("#2563eb");
+    expect(series(option)[0].markArea!.itemStyle.color).toBe(withAlpha(TOKENS.accent, 0.16));
+    expect(series(option)[0].markArea!.itemStyle.color).toBe("rgba(37, 99, 235, 0.16)");
   });
 });
 
