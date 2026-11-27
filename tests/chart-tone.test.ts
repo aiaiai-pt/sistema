@@ -2,7 +2,7 @@
 // lines, on a scale where 3 mm looks small and 30 mm still fits.
 
 import { describe, expect, it } from "vitest";
-import { buildChartOption, seriesColor } from "../components/renderer/chart-option";
+import { buildChartOption, mutedColor, seriesColor } from "../components/renderer/chart-option";
 import type { ChartData } from "../components/renderer/aggregate";
 
 const TOKENS = { accent: "#2563eb", textPrimary: "#111", textSecondary: "#6b7280", border: "#333", surface: "#444" };
@@ -23,8 +23,9 @@ const top = (axis: Axis, max: number) => (typeof axis.max === "function" ? axis.
 describe("buildChartOption tone", () => {
   it("should_draw_a_muted_series_in_the_secondary_text_colour_not_the_accent", () => {
     const [rain] = series(buildChartOption(days, { tokens: TOKENS, ySecondary: true }));
-    expect(rain.itemStyle.color).toContain("#6b7280");
-    expect(rain.itemStyle.color).not.toContain("#2563eb");
+    expect(rain.itemStyle.color).toBe(mutedColor(TOKENS.textSecondary));
+    expect(rain.itemStyle.color).toBe("rgba(107, 114, 128, 0.35)");
+    expect(rain.itemStyle.color).not.toBe(seriesColor(TOKENS.accent, 0));
   });
 
   it("should_keep_the_accent_ramp_for_the_other_series_as_if_the_muted_one_were_absent", () => {

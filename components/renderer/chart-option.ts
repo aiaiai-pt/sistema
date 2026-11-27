@@ -81,13 +81,77 @@ function makeFmt(locale: string): (value: number) => string {
 }
 
 /**
+ * Parse a CSS hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`) or `rgb()`/`rgba()`
+ * string (comma or CSS Color 4 space/slash syntax) into `[r, g, b, a]`, or null
+ * if unrecognised.
+ */
+function parseRgb(color: string): [number, number, number, number] | null {
+  const s = color.trim();
+  if (s.startsWith("#")) {
+    const hex = s.slice(1);
+    if (hex.length === 3 || hex.length === 4) {
+      const r = parseInt(hex[0] + hex[0], 16);
+      const g = parseInt(hex[1] + hex[1], 16);
+      const b = parseInt(hex[2] + hex[2], 16);
+      const a = hex.length === 4 ? parseInt(hex[3] + hex[3], 16) / 255 : 1;
+      if ([r, g, b, a].every(Number.isFinite)) return [r, g, b, a];
+    } else if (hex.length === 6 || hex.length === 8) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      const a = hex.length === 8 ? parseInt(hex.slice(6, 8), 16) / 255 : 1;
+      if ([r, g, b, a].every(Number.isFinite)) return [r, g, b, a];
+    }
+    return null;
+  }
+
+  const m = s.match(
+    /^rgba?\(\s*([0-9.]+)\s*[,\s]\s*([0-9.]+)\s*[,\s]\s*([0-9.]+)(?:\s*[,/]\s*([0-9.]+%?))?\s*\)$/i,
+  );
+  if (!m) return null;
+  const r = Math.round(Number(m[1]));
+  const g = Math.round(Number(m[2]));
+  const b = Math.round(Number(m[3]));
+  let a = 1;
+  if (m[4] !== undefined) {
+    a = m[4].endsWith("%") ? parseFloat(m[4]) / 100 : Number(m[4]);
+  }
+  if (![r, g, b, a].every(Number.isFinite)) return null;
+  return [
+    Math.min(255, Math.max(0, r)),
+    Math.min(255, Math.max(0, g)),
+    Math.min(255, Math.max(0, b)),
+    Math.min(1, Math.max(0, a)),
+  ];
+}
+
+/**
+ * Apply an alpha multiplier to a CSS colour and emit ZRender-safe `rgb()` /
+ * `rgba()` syntax.
+ *
+ * Why NOT `color-mix(in srgb, ...)`: Canvas 2D draws `color-mix(...)` at rest,
+ * but ECharts 6 / ZRender computes hover (`emphasis`) colours in JS via
+ * `zrender/lib/tool/color.lift()`, whose parser only accepts `#hex`, `rgb()`,
+ * `rgba()`, `hsl()`, and named CSS colours. Passing `color-mix(...)` makes
+ * `lift()` return `undefined`, turning hovered bars/slices invisible.
+ */
+export function withAlpha(color: string, alpha: number): string {
+  const clamped = Math.min(1, Math.max(0, alpha));
+  const parsed = parseRgb(color);
+  if (!parsed) return color.trim();
+  const [r, g, b, baseA] = parsed;
+  const outA = Math.round(baseA * clamped * 1000) / 1000;
+  return outA >= 1 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${outA})`;
+}
+
+/**
  * Per-series / per-slice colour: an alpha ramp off the accent so N series stay
- * distinguishable AND on-theme without a hardcoded palette. `color-mix` keeps
- * it in the live colour space, so it re-themes with the tokens.
+ * distinguishable AND on-theme without a hardcoded palette. Emits ZRender-safe
+ * `rgb()`/`rgba()` so ECharts emphasis (`color.lift`) works on hover.
  */
 export function seriesColor(accent: string, i: number): string {
   const alpha = Math.max(0.35, 1 - i * 0.15);
-  return `color-mix(in srgb, ${accent} ${Math.round(alpha * 100)}%, transparent)`;
+  return withAlpha(accent, alpha);
 }
 
 /** True when the chart should render as a pie/donut (single-measure mode). */
@@ -140,7 +204,7 @@ function buildPieOption(
 
 /** A muted series: the secondary text colour, light enough to sit behind the accent. */
 export function mutedColor(textSecondary: string): string {
-  return `color-mix(in srgb, ${textSecondary} 35%, transparent)`;
+  return withAlpha(textSecondary, 0.35);
 }
 
 /** Map one shaped series → its ECharts series object. `i` counts accent series only. */
@@ -213,8 +277,7 @@ function bandArea(
   return {
     silent: true,
     itemStyle: {
-      color:
-        tokens.band || `color-mix(in srgb, ${tokens.accent} 16%, transparent)`,
+      color: tokens.band || withAlpha(tokens.accent, 0.16),
     },
     label: {
       show: Boolean(band.label),
@@ -303,7 +366,10 @@ function buildCartesianOption(
     tooltip: {
       ...tooltipChrome(tokens),
       trigger: "axis",
-      axisPointer: { type: "shadow" },
+      axisPointer: {
+        type: "shadow",
+        shadowStyle: { color: withAlpha(tokens.textSecondary, 0.08) },
+      },
       formatter: (
         ps: Array<{
           axisValueLabel?: string;

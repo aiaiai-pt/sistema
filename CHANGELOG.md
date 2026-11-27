@@ -4,6 +4,25 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.61.2] — 2026-11-27
+
+### Fixed
+
+- **`EChart` / `chart-option`: hovered bars, slices, and points no longer
+  disappear on emphasis** (atelier#1966). `seriesColor`, `mutedColor`, and the
+  `bandArea` fallback previously emitted CSS Color 5 `color-mix(in srgb, ...)`.
+  Canvas 2D drew that at rest, but ECharts 6 / ZRender computes hover
+  (`emphasis`) fills in JS via `zrender/lib/tool/color.lift()`, which cannot
+  parse `color-mix(...)` and returned `undefined` — rendering hovered series
+  items invisible. `withAlpha()` now emits ZRender-safe `rgb()`/`rgba()`,
+  `EChart.svelte` resolves CSS Color 4/5 tokens (such as dark-scheme
+  `--chart-band-bg`) before passing them to ECharts, and `axisPointer` uses a
+  subtle token-driven wash (`withAlpha(tokens.textSecondary, 0.08)`).
+- **`EChart` accessible data table**: right-aligned numeric column headers
+  (`.echart-table thead th:not(:first-child)`) above their right-aligned values,
+  and replaced the stale `--color-text-primary` CSS variable reference with the
+  live `--color-text` token.
+
 ## [0.61.1] — 2026-11-21
 
 ### Fixed

@@ -170,6 +170,26 @@
   /** @type {import('echarts/core').EChartsType | undefined} */
   let _chart = $state();
 
+  /**
+   * Resolve CSS Color 4/5 values (e.g. `color-mix(...)`, `oklch(...)`,
+   * space-separated `rgb(... / ...)`) into ZRender-safe `rgb()`/`rgba()` via a
+   * transient DOM probe. Simple `#hex` and comma `rgb()`/`rgba()` pass straight
+   * through without touching the DOM.
+   */
+  const ZRENDER_SAFE_COLOR = /^(?:#[0-9a-f]{3,8}|rgba?\(\s*[0-9.]+\s*,\s*[0-9.]+\s*,\s*[0-9.]+(?:\s*,\s*[0-9.]+)?\s*\))$/i;
+
+  function resolveColor(el, raw) {
+    if (!raw || ZRENDER_SAFE_COLOR.test(raw)) return raw;
+    if (typeof document === "undefined") return raw;
+    const probe = document.createElement("span");
+    probe.style.display = "none";
+    probe.style.color = raw;
+    el.appendChild(probe);
+    const resolved = getComputedStyle(probe).color.trim();
+    probe.remove();
+    return resolved || raw;
+  }
+
   /** Build the ECharts option from current data + the container's tokens. */
   function buildOption() {
     const el = container;
@@ -177,7 +197,7 @@
     const cs = getComputedStyle(el);
     const token = (name, fallback) => {
       const v = cs.getPropertyValue(name).trim();
-      return v || fallback;
+      return resolveColor(el, v || fallback);
     };
     return buildChartOption(chartData, {
       tokens: {
@@ -351,6 +371,10 @@
     font-weight: 600;
   }
 
+  .echart-table thead th:not(:first-child) {
+    text-align: end;
+  }
+
   .echart-table tr[data-band] {
     background: var(--chart-band-bg);
   }
@@ -361,12 +385,12 @@
   }
   .echart-table tbody th {
     font-weight: 400;
-    color: var(--color-text-primary);
+    color: var(--color-text);
   }
 
   .echart-table td {
     text-align: end;
     font-variant-numeric: tabular-nums;
-    color: var(--color-text-primary);
+    color: var(--color-text);
   }
 </style>
