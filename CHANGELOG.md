@@ -4,6 +4,17 @@ All notable changes to `@aiaiai-pt/design-system` are recorded here. This
 project follows [Semantic Versioning](https://semver.org): fix → PATCH,
 feat → MINOR, breaking → MAJOR.
 
+## [0.62.0] — 2026-11-27
+
+### Added
+
+- **`Pagination` speaks the host's language** (atelier#2674, run-2 review R49).
+  A Portuguese console printed "1 total" under its lists: the summary and the
+  navigation's accessible names were English literals. New props, each
+  defaulting to today's English text: `totalLabel(total)` (cursor summary),
+  `rangeLabel(start, end, total)` (offset range), `rowsPerPageLabel`,
+  `previousPageLabel`, `nextPageLabel`, and `locale` (BCP 47, for the counts).
+
 ## [0.61.2] — 2026-11-27
 
 ### Fixed
