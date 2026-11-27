@@ -487,3 +487,63 @@ describe("relationship picker placeholder (atelier#2672 L3)", () => {
     expect(input.placeholder).not.toContain("Search");
   });
 });
+
+// ─── loadReferenceOnOpen (#2838 D4) ─────────────────────────────────────────
+// When `loadReferenceOnOpen` is true the renderer fires an empty-query search
+// on mount so the picker shows the offered set before the user types.
+
+describe("loadReferenceOnOpen", () => {
+  const PARAM = {
+    key: "rel:authorized_by",
+    label: "Authorized by",
+    type: "relationship",
+    required: false,
+    relationship: {
+      relCode: "authorized_by",
+      targetTypeCode: "organization",
+      cardinality: "many_to_one",
+    },
+  };
+
+  it("fires searchEntities with empty query on mount when loadReferenceOnOpen is true", async () => {
+    const searchEntities = vi
+      .fn()
+      .mockResolvedValue([{ value: "org-1", label: "City Hall" }]);
+    render({ parameters: [PARAM], searchEntities, loadReferenceOnOpen: true });
+    await Promise.resolve();
+    flushSync();
+    expect(searchEntities).toHaveBeenCalledWith("organization", "", undefined);
+  });
+
+  it("shows the offered set in the picker before the user types", async () => {
+    const searchEntities = vi
+      .fn()
+      .mockResolvedValue([{ value: "org-1", label: "City Hall" }]);
+    render({ parameters: [PARAM], searchEntities, loadReferenceOnOpen: true });
+    // Let the $effect and async mock resolve through the microtask queue
+    await Promise.resolve();
+    flushSync();
+    await Promise.resolve(); // mock resolution
+    flushSync(); // DOM update
+    // Open the combobox dropdown — options are already populated
+    comboboxInput().focus();
+    flushSync();
+    expect(document.querySelector("[role='option']")?.textContent).toContain(
+      "City Hall",
+    );
+  });
+
+  it("does NOT fire searchEntities on mount when loadReferenceOnOpen is false (default)", () => {
+    const searchEntities = vi.fn().mockResolvedValue([]);
+    render({ parameters: [PARAM], searchEntities });
+    // No await — synchronous check: no call should have been queued
+    expect(searchEntities).not.toHaveBeenCalled();
+  });
+
+  it("does not preload when searchEntities is absent", async () => {
+    // Should not throw even if no searchEntities is provided
+    expect(() =>
+      render({ parameters: [PARAM], loadReferenceOnOpen: true }),
+    ).not.toThrow();
+  });
+});
